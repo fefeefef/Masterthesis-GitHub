@@ -99,9 +99,8 @@ hyperparameters are L: 1 layer, hidden 64, lookback 3; G: 2 layers, hidden 32,
 lookback 3. The rest of the frozen hyperparameters can be found in the appendix
 (\cref{tab:app_frozen_nn}).
 The LSTM shares the entire training protocol with the xLSTM and differs only in
-the recurrent cell. It is therefore the ablation that isolates what the xLSTM
-adds: any skill gap between the two is attributable to the cell, not to the
-pipeline.
+the recurrent cell. So a skill gap between the two can only come from the cell
+and not from the pipeline; the LSTM is our ablation for what the xLSTM adds.
 
 \subsection{xLSTM}
 \label{sec:models:xlstm}
@@ -174,7 +173,8 @@ the hidden state $h_t = o_t\odot\frac{C_t\,q_t}{\max(|n_t^\top q_t|,\,1)}$. In
 comparison to sLSTM, in mLSTM there is no dependency on previous steps (fully
 parallelizable), it has matrix memory, and no memory mixing. The memory matrix
 has a fixed $d\times d$ size and does not grow with the sequence length, unlike
-attention's key--value cache, giving constant memory and linear compute.
+the key--value cache of attention. Memory usage is therefore constant and the
+compute linear in the sequence length.
 \begin{align}
   q_t &= W_q x_t + b_q, &
   k_t &= \tfrac{1}{\sqrt{d}}\,W_k x_t + b_k, \label{eq:mlstm-qk}\\
@@ -215,7 +215,8 @@ series foundation models from NXAI. Both models tokenise the series by splitting
 into non-overlapping patches, process the token sequence with an xLSTM backbone
 \parencite{beck2024xlstm}, and emit quantiles through a residual output head. The same
 architecture we train from scratch (\cref{sec:models:xlstm}) therefore also powers
-the pretrained models, closing the ladder of models. They are pretrained on large
+the pretrained models, so our comparison ends with the same architecture it
+started with. They are pretrained on large
 time series corpora and are used in a zero-shot way: we did not retrain, fine-tune,
 or optimise the hyperparameters. We input the raw level series of the spreads
 $(s_1, s_2, \dots, s_{t-1})$ as context, expanding monthly and one step ahead. We
@@ -225,10 +226,10 @@ $q_{\Delta} = q_{\mathrm{level}} - s_{t-1}$.
 
 TiRex-2 is used in two variants: first, the univariate variant that only sees the
 spread's past as context, and second, the covariate variant that additionally sees
-the 17 covariates as past covariates. The within-model contrast of TiRex-2 with and
-without covariates on identical test months isolates the effect of the additional
-covariates. The covariates enter as past covariates; we have no future-known
-features, so TiRex-2's bidirectional future-covariate path is not exercised in our
+the 17 covariates as past covariates. Comparing TiRex-2 with and without
+covariates on identical test months isolates the effect of the additional
+covariates. The covariates enter as past covariates. We have no future-known
+features, so TiRex-2's bidirectional future-covariate path is not used in our
 setup. TiRex only works with the context of the time series it is predicting. Since
 we have no in-sample residuals, we abstain from the constant-width interval twin
 comparison, and the G+I residual adjustment is intentionally omitted. When we look

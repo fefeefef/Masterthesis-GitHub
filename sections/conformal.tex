@@ -279,13 +279,13 @@ maximum-score approximation is necessary.
 \end{equation}
 initialised at $\alpha_{115} = \alphamis$ with $\gamma = 0.005$.
 
-The best learning rate $\gamma$ is heavily data-dependent, so \texttt{agaci}
-\parencite{zaffran2022agaci} turns the choice into an online aggregation
-problem over $K$ experts, each running ACI with a different $\gamma$ from the
-paper's grid. This method aggregates the predictive bounds rather than the thresholds, so it briefly steps outside our standard score interface. The aggregation uses the BOA algorithm \parencite{wintenberger2017boa} with adaptive learning rates. The lower and upper bounds are aggregated separately, using a symmetric-tail reading of the pinball loss at $\alphamis/2$ for the lower bound and at $1-\alphamis/2$ for
-the upper bound, even though our underlying score is one-sided. Aggregating
-online means the $\gamma$-sensitivity is handled by the algorithm itself, not
-by us tuning it by hand.
+The best learning rate $\gamma$ is heavily data-dependent. \texttt{agaci}
+\parencite{zaffran2022agaci} therefore turns the choice into an online aggregation
+problem over $K$ experts, where every expert runs ACI with a different $\gamma$ from the
+paper's grid. This method aggregates the predictive bounds and not the thresholds, so it is the one exception from our standard score interface. The aggregation uses the BOA algorithm \parencite{wintenberger2017boa} with adaptive learning rates. The lower and upper bounds are aggregated separately, with a symmetric-tail reading of the pinball loss at $\alphamis/2$ for the lower bound and at $1-\alphamis/2$ for
+the upper bound, even though our underlying score is one-sided. Since the
+aggregation happens online, the $\gamma$-sensitivity is handled by the
+algorithm and we do not have to tune it by hand.
 
 For $K = 11$ experts with learning rates $\gamma_1, \dots, \gamma_K$ from the
 paper's grid, each expert $k$ runs \cref{eq:m-aci} with its own $\alpha_t^{(k)}$
@@ -348,19 +348,19 @@ with $\sigma = 1/8$ and $\eta = 2.72$; the experts' $\alpha_t^{(k)}$ follow
 \subsubsection{Group (d): forecasting the score itself}
 \label{sec:conformal:spci}
 
-\texttt{spci} \parencite{xu2023spci} reverses the usual conformal logic.
+\texttt{spci} \parencite{xu2023spci} turns the usual conformal logic around.
 Instead of taking an empirical quantile of past scores, it predicts the
-conditional $(1-\alphamis)$-quantile of the next score, using the most recent
-$w=12$ scores as features. We estimate this with a Quantile Random Forest
+conditional $(1-\alphamis)$-quantile of the next score from the most recent
+$w=12$ scores. We estimate this with a Quantile Random Forest
 \parencite{meinshausen2006qrf}, implemented through the leaf weights of a
-standard random forest (100 trees, minimum leaf size 2, seed 42). By
-exploiting the temporal dependence and volatility clustering of the scores
-directly, it is the conceptual opposite of the exchangeability assumption. If
-the calibration pool has fewer than $w+10=22$ scores (mainly concerns the 24-month runs) the method falls back to a standard empirical pool
+standard random forest (100 trees, minimum leaf size 2, seed 42). The method
+directly exploits the temporal dependence and volatility clustering of the
+scores, so it does exactly what the exchangeability assumption rules out. If
+the calibration pool has fewer than $w+10=22$ scores (this mainly concerns the 24-month runs) the method falls back to a standard empirical pool
 quantile. The original paper also optimizes an asymmetry
-parameter $\beta$ to find the tightest interval endpoints, but that degree of
+parameter $\beta$ to find the tightest interval endpoints. This degree of
 freedom does not exist for our one-sided CQR score, since the interval is
-fully determined by the $(1-\alphamis)$-quantile alone. We omit the
+fully determined by the $(1-\alphamis)$-quantile alone, so we omit the
 $\beta$-search.
 
 With $\mathbf{x}_i = (E_{i}, \dots, E_{i+w-1})$ and target $E_{i+w}$ over the
@@ -376,20 +376,23 @@ distribution of the next score. Then
 \subsubsection{Group (e): online control and online convex optimisation}
 \label{sec:conformal:online}
 
-What sets the methods in this last category apart from the others is that they keep no historical pool of scores. Instead, the threshold $Q_t$ is an internal state, initialized at zero and updated every month from the instantaneous coverage error. They give no finite-sample exchangeability guarantee, only long-run
+The methods in this last category keep no historical pool of scores. The
+threshold $Q_t$ is an internal state instead, initialized at zero and updated
+every month from the instantaneous coverage error. These methods give no
+finite-sample exchangeability guarantee, only long-run
 asymptotic coverage or regret bounds. All free step sizes are scaled
-dynamically in units of $\bar{S}$.
+in units of $\bar{S}$.
 
-The PID family takes a control-theoretic approach \parencite{angelopoulos2023pid}.
-It treats the coverage error ($\mathrm{err}_t - \alphamis$) as the feedback
+The PID family comes from control theory \parencite{angelopoulos2023pid}.
+The coverage error ($\mathrm{err}_t - \alphamis$) is the feedback
 signal. The proportional (P) term is a simple quantile tracking step with gain
 $\eta = 0.1\,\bar{S}$. The integral (I) term uses a saturating tangent
-integrator ($C_{\text{sat}} = 5$) to counter sustained miscoverage and drain
-the accumulated error. A naming note: our \texttt{pid} is the PI controller
+integrator ($C_{\text{sat}} = 5$) against sustained miscoverage; it drains
+the accumulated error. A note on naming: our \texttt{pid} is the PI controller
 from the original paper, without the derivative term. \texttt{pid\_local}
-replaces the global integrator with a rolling 12-month window. It forgets
-old errors faster and stays robust when the regime changes.
-\texttt{pid\_tan} adds the derivative (D) term back in, via an autoregressive
+replaces the global integrator with a rolling 12-month window, so old errors
+are forgotten faster and the method stays robust when the regime changes.
+\texttt{pid\_tan} adds the derivative (D) term back in via an autoregressive
 scorecaster.
 
 \begin{equation}
@@ -423,10 +426,10 @@ autoregressive coefficient $\varphi \in [-0.95, 0.95]$ contributes
 \end{equation}
 
 \texttt{sfogd} \parencite{bhatnagar2023sfogd} runs scale-free online gradient
-descent directly on the pinball subgradient. "Scale-free" means the update
-step is normalized by the square root of the accumulated squared gradients.
-So there is no learning rate to calibrate, only a base radius $D = \bar{S}$.
-This gives large corrective steps early on that get smaller automatically over time.
+descent directly on the pinball subgradient. Scale-free means that the update
+step is normalized by the square root of the accumulated squared gradients,
+so there is no learning rate to calibrate, only a base radius $D = \bar{S}$.
+The corrective steps are large at the beginning and shrink automatically over time.
 
 \begin{equation}
   \text{\texttt{sfogd}:}\quad
@@ -469,11 +472,11 @@ $g_t = \big(\rho_\tau(E_t, Q_t) - \rho_\tau(E_t, Q_t^{(e)})\big)
 via $z_e \leftarrow z_e + g_t$ and $\mathit{wz}_e \leftarrow \mathit{wz}_e + g_t w_e$.
 
 \texttt{decay\_ocp} \parencite{angelopoulos2024decay} uses the same tracking
-step as \texttt{sfogd}, but with a step size that decays deterministically.
+step as \texttt{sfogd}, but with a deterministically decaying step size.
 With exponent $-1/2-\epsilon$ ($\epsilon=0.05$) the step sequence is
-square-summable. The tracker settles on a stable threshold instead of
-oscillating around the target. It is a deliberate counterweight to
-reactive methods like ACI or PID: less adaptivity, in exchange for long-term
+square-summable, so the tracker settles on a stable threshold instead of
+oscillating around the target. We include it as the counterpart to the
+reactive methods like ACI or PID: it trades adaptivity for long-term
 stability.
 
 \begin{equation}
@@ -542,30 +545,29 @@ stability.
 \label{sec:conformal:params}
 %------------------------------------------------------------------------
 No parameter in the conformal calibration layer was tuned or optimized on
-data. Every value comes from either the exact value from the paper the method stems from or a standard default expressed in units of $\bar{S}$ (\cref{eq:burnin-scale}). This constraint is important since tuning the conformal layer would turn Research Question 3 comparing hyperparameter tuning budgets instead of the methods themselves. $\bar{S}$ is derived only from the pre-test burn-in months. We also did
+data. Every value comes from either the exact value from the paper the method stems from or a standard default expressed in units of $\bar{S}$ (\cref{eq:burnin-scale}). This constraint is important since tuning the conformal layer would turn Research Question 3 into comparing hyperparameter tuning budgets instead of the methods themselves. $\bar{S}$ is derived only from the pre-test burn-in months. We also did
 no grid-search for the ACI learning rate $\gamma$. We let \texttt{agaci}
-and \texttt{dtaci} determine the grid online. This is the best approch for comparing the methods itself, but it means we cannot report the best hyperparamters of each conformal method for our dataset. \cref{tab:cp_params} reproduces the parameter dictionary from our execution environment verbatim.
+and \texttt{dtaci} determine the grid online. This is the best approach for comparing the methods themselves, but it means we cannot report the best hyperparameters of each conformal method for our dataset. \cref{tab:cp_params} reproduces the parameter dictionary from our execution environment verbatim.
 
 %------------------------------------------------------------------------
 \subsection{Derived prediction streams}
 \label{sec:conformal:derived}
 %------------------------------------------------------------------------
 
-We construct two additional prediction streams computationally from
-saved model artifacts. No extra training is involved. They serve as the
+We construct two additional prediction streams computationally from the
+saved model artifacts, without any extra training. They serve as the
 control groups for Research Questions (1,2) and go through the same 14
 calibration methods as every other stream.
 
 The constant-width twin takes the model's median point forecast and
-adds or subtracts the empirical 10th and 90th percentiles of that refit
-block's in-sample median residuals. It therefore shares the exact same point
-forecast as its parent model, but keeps a strictly constant interval width for
-the whole refit block. This construction addresses Research Question 2. It
-isolates the value of adaptive width control, since the point forecasts are
-identical and any performance difference must come from the dynamic,
-conditional uncertainty estimate. As noted in \cref{sec:models}, this only
+adds or subtracts the empirical 10th and 90th percentiles of the in-sample
+median residuals of that refit block. So it has exactly the same point
+forecast as its parent model but a constant interval width over the whole
+refit block. This is our control group for Research Question 2: the point
+forecasts are identical, so any performance difference must come from the
+dynamic, conditional uncertainty estimate. As noted in \cref{sec:models}, this only
 works for the trainable machine learning models (\texttt{xlstm}, \texttt{lstm},
-\texttt{lgbm}), since zero-shot foundation models have no in-sample residuals.
+\texttt{lgbm}), since the zero-shot foundation models have no in-sample residuals.
 Like every other stream, the twins' outputs go through the standard monotonic
 rearrangement and validity flagging.
 
@@ -581,18 +583,18 @@ at cutoff $C$, the constant-width twin $m\_\texttt{const}$ emits
 where $\hat\varepsilon^{(\tau)}_C$ is the empirical $\tau$-quantile of the
 block's in-sample median residuals.
 
-The Global+Individual (G+I) stream shifts the global G model's quantiles in
-parallel, using the rolling median of that country's last 36 realized
-out-of-sample median residuals. For Research Question 1, G+I is the cheapest
-possible country-specific adaptation. It is a naive intercept shift with no extra
-fine-tuning. The contrast between the globally fine-tuned GF regime and G+I
-will show whether fine-tuning actually captures cross-country dynamics, or
+The Global+Individual (G+I) stream shifts the quantiles of the global G model
+in parallel by the rolling median of the country's last 36 realized
+out-of-sample median residuals. It is a naive intercept shift without any extra
+fine-tuning, and by that the cheapest possible country-specific adaptation for
+Research Question 1. Comparing the globally fine-tuned GF regime with G+I
+shows whether fine-tuning actually captures cross-country dynamics or
 just performs a crude level correction. To avoid leakage, the shift applied in
 month $t$ only uses residuals from before $t$. The rolling window grows from 1
-to 36 during burn-in and stays fully populated at 36 from the first test month
+to 36 during the burn-in and stays fully populated at 36 from the first test month
 on. We record the in-sample and out-of-sample median residuals per refit block
 to check whether the bias seen during training actually survives
-out-of-sample. This construct only exists for trainable models with a global
+out-of-sample. This stream only exists for trainable models with a global
 regime.
 
 \begin{equation}
@@ -609,29 +611,33 @@ regime.
 \label{sec:conformal:notes}
 %------------------------------------------------------------------------
 
-All 14 conformal implementations follow their foundational papers, but our
-monthly CQR score setup needs a few technical conventions and deliberate
+All 14 implementations follow their original papers, but our monthly
+CQR-score setup needs a few technical conventions and deliberate
 deviations. We list them here for transparency.
 
 \begin{enumerate}
-  \item In \texttt{pid\_tan}, the derivative (D) term is a purely additive
-  term on the effective threshold $Q^{\text{eff}}_t$. This differs from the
-  original composition, where the P+I controller regulates the scorecaster's
-  residuals. Our control loop never "sees" the scorecaster's forecast in its
+  \item In \texttt{pid\_tan} the derivative (D) term is added directly onto
+  the effective threshold $Q^{\text{eff}}_t$. In the original composition the
+  P+I controller instead regulates the residuals of the scorecaster. In our
+  version the control loop never sees the scorecaster's forecast in its
   error signal, so the D-term cannot mechanically relieve the integrator.
 
   \item The \texttt{saocp} reference implementation enforces non-negative
-  radii. On our signed CQR scores, this means the algorithm can only widen the
-  raw interval, never narrow it. Its conservative coverage is an artifact
-  of its domain definition, not a finding.
+  radii. On our signed CQR scores this means the algorithm can only widen the
+  raw interval and never narrow it. The conservative coverage of
+  \texttt{saocp} therefore comes from its domain definition and is not a
+  finding.
 
-  \item For the \texttt{aci} family, when a long violation streak pushes
-  $\alpha_t$ below $1/(n+1)$, we substitute the maximum observed score in the
-  calibration pool for the theoretically infinite interval. This is a
-  necessary finite-pool approximation, and makes the method mildly anti-conservative at extreme miscoverage levels.
+  \item In the \texttt{aci} family a long violation streak can push
+  $\alpha_t$ below $1/(n+1)$. The interval would then be theoretically
+  infinite; we use the maximum observed score in the calibration pool
+  instead. This finite-pool approximation is necessary and makes the method
+  mildly anti-conservative at extreme miscoverage levels.
 
-  \item For \texttt{dtaci}, we emit the deterministic weighted mean of the
-  expert thresholds instead of sampling an expert stochastically. This is done to avoid adding unnecessary sampling variance to our seed-aggregated evaluations.
+  \item For \texttt{dtaci} we emit the deterministic weighted mean of the
+  expert thresholds instead of sampling an expert stochastically, since we do
+  not want to add unnecessary sampling variance to our seed-aggregated
+  evaluations.
 
   \item \texttt{agaci} aggregates the lower and upper bounds separately, with
   a symmetric-tail reading of the pinball loss at $\alphamis/2$ and at
@@ -649,10 +655,10 @@ deviations. We list them here for transparency.
   \texttt{mondrian} are a design decision, not a theoretical requirement.
 \end{enumerate}
 
-The conformal pipeline ends in a single tidy table, \texttt{calibrated\_all.parquet},
-logging country, month, model, regime, seed, CP method, pool mode, target
+The conformal pipeline ends in a single table, \texttt{calibrated\_all.parquet}.
+It logs country, month, model, regime, seed, CP method, pool mode, target
 realization, level anchor ($y_{t-1}$), point forecast, and both raw and
 calibrated quantiles for every stream. This table is the only input to the
-evaluation chapter (\cref{sec:evaluation}), which keeps a clean cut between
-calibration and inference.
+evaluation chapter (\cref{sec:evaluation}), so calibration and inference stay
+cleanly separated.
 

@@ -42,7 +42,7 @@ The deep models are trained in three regimes:
   \item \textbf{GF} (global fine-tuned): the global model is fully fine-tuned
         for each country at one tenth of the global training learning rate.
 \end{itemize}
-This gives a fair comparison between a local, a global and a specialised model.
+This way we get a fair comparison between a local, a global and a specialised model.
 LightGBM uses only L and G, while the classical and zero-shot models use a
 single setting (\cref{tab:model_selection}).
 
@@ -162,41 +162,42 @@ variant; the variants are described in \cref{sec:models}.
 
 \subsection{Seeds and aggregation}
 \label{sec:exp:seeds}
-The three seeds (42, 43, 44) apply to the neural models, xLSTM and LSTM, only.
-They measure training stochasticity. We report coverage as the mean $\pm$ sd
-across seeds, and downstream we report the span of the median skill across seeds
-as a robustness check. Hyperparameters are tuned once, at seed 42
-(\cref{sec:exp:hpo}), and then frozen. The seeds differ only in the production
-refits. The run loop iterates L, G, GF $\times$ blocks $\times$ seeds. Each seed
-is a fully independent refit/predict chain. Its seed label stays on every
-prediction row through the conformal and diagnostic stages, and predictions are
-never pooled across seeds before the per-chain metrics are computed. The
-level-scale metrics (Winkler score, pinball loss, average width, and median MAE)
-are computed per country, that is, per regime, seed, and country, so that no
-single high-spread country dominates the aggregate. Only the scale-free metrics,
-mean coverage rate and mean crossing rate, are averaged across countries. This is
-the sole cross-country aggregation. The remaining models, RW, ARIMA, LightGBM,
-TiRex, and TiRex-2, are run deterministically with a single seed.
+Only the neural models, xLSTM and LSTM, use the three seeds (42, 43, 44). With
+them we measure how much of the result is training randomness. Coverage is
+reported as mean $\pm$ sd across seeds, and downstream we also report the span
+of the median skill across seeds as a robustness check. The hyperparameters are
+tuned once at seed 42 (\cref{sec:exp:hpo}) and then frozen, so the seeds only
+differ in the production refits. The run loop iterates L, G, GF $\times$ blocks
+$\times$ seeds. Every seed is its own independent refit/predict chain and keeps
+its seed label on every prediction row through the conformal and diagnostic
+stages. Predictions are never pooled across seeds before the per-chain metrics
+are computed. The level-scale metrics (Winkler score, pinball loss, average
+width, and median MAE) are computed per country, so per regime, seed, and
+country, since otherwise a single high-spread country would dominate the
+aggregate. Only the scale-free metrics, mean coverage rate and mean crossing
+rate, are averaged across countries; this is the sole cross-country
+aggregation. The remaining models, RW, ARIMA, LightGBM, TiRex, and TiRex-2,
+are deterministic and run with a single seed.
 
 
 
 \subsection{Quantile post-processing}
 \label{sec:exp:rearrange}
-Because the three quantiles are estimated independently, they can cross, which
-would leave the conformal layer downstream with ill-defined interval bounds.
-Before evaluation we therefore sort the three values per forecast, a monotone
-rearrangement \parencite{chernozhukov2010} that guarantees
-$\hat{q}_{0.1} \le \hat{q}_{0.5} \le \hat{q}_{0.9}$. The raw crossing incidence,
-measured before sorting, is logged as a diagnostic and reported per model. The
-step is identical for every model.
+The three quantiles are estimated independently, so they can cross. Crossed
+quantiles would leave the conformal layer downstream with ill-defined interval
+bounds. That is why we sort the three values per forecast before evaluation, a
+monotone rearrangement \parencite{chernozhukov2010} that guarantees
+$\hat{q}_{0.1} \le \hat{q}_{0.5} \le \hat{q}_{0.9}$. How often the raw
+quantiles crossed before sorting is logged as a diagnostic and reported per
+model. This step is the same for every model.
 
 \subsection{Conformal prediction layer}
 \label{sec:exp:conformal-ref}
-The benchmarks emit only raw quantiles; no calibration happens inside them. The
+The benchmarks emit only raw quantiles and contain no calibration code. The
 conformal layer runs downstream on every combination of model, regime, seed, and
 country. All methods share one nonconformity score, the CQR score
 $E_t = \max(\hat{q}_{\mathrm{lo},t} - y_t,\; y_t - \hat{q}_{\mathrm{hi},t})$,
-calibrated on a rolling out-of-sample pool. Applying the same set of methods to
-every model lets us trace differences in interval quality back to the models
-rather than to the calibration. The methods, their fixed parameters, and the
-calibration-pool variants are described in \cref{sec:conformal}.
+calibrated on a rolling out-of-sample pool. Since the same set of methods is
+applied to every model, differences in interval quality can be traced back to
+the models and not to the calibration. The methods, their fixed parameters, and
+the calibration-pool variants are described in \cref{sec:conformal}.
