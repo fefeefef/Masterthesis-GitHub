@@ -1,0 +1,509 @@
+
+####################################################################################
+
+überarbeite das hier bisher geschriebene. bessere die die formatierung und latex komponenten auf. verbessere rechtschreibfehler. lasse die formulierungen wie sie sind:
+\subsection{Country universe and sample period}
+\label{sec:data:universe}
+
+We study monthly sovereign credit spreads for ten euro-area issuers
+(Austria, Belgium, Spain, Finland, France, Greece, Ireland, Italy, the
+Netherlands, and Portugal).
+The spread here is the difference of the 10 year bond between the country and Germany. The sample period starts in 2003-4 and ends in 2026-4. The start date was chosen by finding the first month where all necessary data points existed. the end date was chosen by finding the last month where all necessary data points existed. 
+
+\subsection{Target variable: delta-spreads}
+\label{sec:data:target}
+
+Let $\spread_{i,t}$ denote the level credit spread of country $i$ at time
+$t$. All models are trained on the \emph{first difference}
+\begin{equation}
+  \dspread_{i,t} \;=\; \spread_{i,t} - \spread_{i,t-1},
+  \label{eq:delta-target}
+\end{equation}
+and every forecast is mapped back to level space before evaluation via
+\begin{equation}
+  \hat{\spread}_{i,t} \;=\; \spread_{i,t-1} + \widehat{\dspread}_{i,t}.
+  \label{eq:back-transform}
+\end{equation}
+Modelling differences targets the (near) unit-root behaviour of spreads and
+avoids spurious level persistence; the cost is that interval evaluation must
+be performed in level space via \cref{eq:back-transform}, which we do
+throughout.
+
+\subsection{Feature groups and the leakage constraint}
+\label{sec:data:features}
+
+The feature selection is not part of this work. So we adhere to the features proposed in 
+\parencite[ECB WP 1781]{afonso2015} with some additions. This is a good fit since \parencite[ECB WP 1781]{afonso2015} investigates spread drivers for the same county and monthly data structure that we are trying to forecast. A caveat is that they do it with data from 1999-1 to 2010-12. a time period that not even covers half of the period we are working with and as \parencite[ECB WP 1781]{afonso2015} themselves showed the predictors for credit spreads are changing over time. \\
+
+Here we see all the features we used from \parencite[ECB WP 1781]{afonso2015}. We used Monthly industrial growth as a monthly GDP proxy since GDP growth data is only available monthly. This is the same as in \parencite[ECB WP 1781]{afonso2015}. They are also using expected debt/GDP, fiscal balance/GDP and debt/GDP instead of realized as we do even though expected data would probably yield more signal. This is due to the expected data not being available. Since realized data are subjected to revisions and in that process information not known at the actual date of the estimation is used, we implement a lag dictionary to impede data leakage. additionaly to the other features we would have liked to use the bid asked spread but here aswell there was no free data available.
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Overview of all the used features from \parencite[ECB WP 1781]{afonso2015}}
+    \label{tab:features_overview}
+    \begin{tabular}{clllp{3.5cm}}
+        \toprule
+        \textbf{\#} & \textbf{Feature} & \textbf{Type} & \textbf{Construction} & \textbf{Channel} \\
+        \midrule
+        1 & VIX & global & one value per month for all countries & global risk aversion \\
+        \addlinespace
+        2 & realized debt/GDP (rel. DE) & local & $\text{debt/GDP}_i - \text{debt/GDP}_{\text{DE}}$ & solvency \\
+        \addlinespace
+        3 & realized fiscal balance/GDP (rel. DE) & local & $\text{balance}_i - \text{balance}_{\text{DE}}$ & fiscal flow \\
+        \addlinespace
+        4 & Real effective exchange rate (rel. DE) & local & $\log \text{REER}_i - \log \text{REER}_{\text{DE}}$ & competitiveness \\
+        \addlinespace
+        5 & Industrial production growth (rel. DE) & local & $\text{IP growth}_i - \text{IP growth}_{\text{DE}}$ & economic situation (monthly GDP proxy) \\
+        \addlinespace
+        6 & realized debt/GDP (rel. DE) squared & local & $\left(\text{debt/GDP}_i - \text{debt/GDP}_{\text{DE}}\right)^2$ & solvency \\
+        \addlinespace
+        7 & Lagged own spread & local & $s_{i,t-1}$ & persistence / mean-reversion \\
+        \addlinespace
+        8 & second principal component & local & PC2 & core vs. periphery \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Besindes therese features we also employ some others from differens sources. \parencite[ECB WP 1781]{afonso2015} only uses the VIX as global risk faktor. \parencite{codogno2003yield} showed that the US kredit risk is its own spread driver. so we include Moody's Seasoned Aaa Corporate Yield  − 10y US-Treasury as a features as proposed by \parencite{codogno2003yield}. \parencite{bernoth2004sovereign} identivied Moody's Baa Corporate Yield − Moody's Aaa Corporate Yield as an indicator of risk aversion in inverstors and by that a driver of sovereign credit spreads. \\
+They also identified interest expenditure / current government revenue (as differenze to germany) and outstanding debt of the country / sum of the debt of the 11 panel countries (incl. DE) as sovereign credit spread drivers. so we include them aswell. \\
+\textcite{afonso2012sovereign} has shown that the the numeric sovereign rating on a scala of 1-17 as a difference to germany ($rating_i − rating_{GE}$)is also relevant. We also include the Economic Policy Uncertainty Europa as log. It measures how much newspapers are reporting on economic uncertainty. its relevance in this context was shown by \textcite{baker2016measuring}. The Trans-European Automated Real-time Gross settlement Express Transfer System, 2. Generation short TARGET2. It is a a market-based indicator of
+capital flight. \textcite{degrauwe2013self} showed that the loss of investor confidence lead to a bond sell off and then a liquidity outflow in 2010-11. TARGET2 is what measures exactly this accounting coutnerpart of this liquidity outflow as shown by \textcite{sinnwollmershaeuser2012}; \textcite{krishnamurthy2018}. \textcite{degrauweji2013} is not using TARGET@ as an empirical proxy for their theorie. Since all the features that account for Risk so far are the same for all countries we also imlement a feature measuring coutry specific risk used in \cite{afonso2015}. it takes the deviation of the log Vix from its expandig mean times the relative debt per country. relative debt here is again dept / GDP minus the same for Germany and we again work with the realiced debt istead of the expected.
+
+##################################################################################
+
+ich habe aber ein bisschen ein notations problem glaube ich. in den beiden tabellens tehen utnerschiedliche sachen wie soll ichd amit umgehen. mach mir einige stilistische vorschläge was geändert gehört und bessser lesbar ist:
+
+\subsection{Country universe and sample period}
+\label{sec:data:universe}
+
+We study monthly sovereign credit spreads for ten euro-area issuers
+(Austria, Belgium, Spain, Finland, France, Greece, Ireland, Italy, the
+Netherlands, and Portugal).
+The spread here is the difference of the 10 year bond between the country
+and Germany. The sample period starts in 2003-04 and ends in 2026-04. The
+start date was chosen by finding the first month where all necessary data
+points existed. The end date was chosen by finding the last month where all
+necessary data points existed. An exception was made for Greece. In 2015-7 there was no market data because of Capital controls during the Greek crisis. Every look back that contains this time frame is discarded. The discarded time frames are outside of the test window.
+
+\subsection{Target variable: delta-spreads}
+\label{sec:data:target}
+
+Let $\spread_{i,t}$ denote the level credit spread of country $i$ at time
+$t$. All models are trained on the \emph{first difference}
+\begin{equation}
+  \dspread_{i,t} \;=\; \spread_{i,t} - \spread_{i,t-1},
+  \label{eq:delta-target}
+\end{equation}
+and every forecast is mapped back to level space before evaluation via
+\begin{equation}
+  \hat{\spread}_{i,t} \;=\; \spread_{i,t-1} + \widehat{\dspread}_{i,t}.
+  \label{eq:back-transform}
+\end{equation}
+Spreads are highly persistant and modelling with the first difference removes this dominat persistance effekt.
+Modelling differences targets the (near) unit-root behaviour of spreads and
+avoids spurious level persistence; the cost is that interval evaluation must
+be performed in level space via \cref{eq:back-transform}, which we do
+throughout.
+
+\subsection{Feature groups and the leakage constraint}
+\label{sec:data:features}
+
+The feature selection is not part of this work. So we adhere to the
+features proposed in \textcite[ECB WP 1781]{afonso2015} with some
+additions. This is a good fit since \textcite[ECB WP 1781]{afonso2015}
+investigates spread drivers for the same country and monthly data structure
+that we are trying to forecast. A caveat is that they do it with data from
+1999-1 to 2010-12, a time period that does not even cover half of the
+period we are working with, and as \textcite[ECB WP 1781]{afonso2015}
+themselves showed, the predictors for credit spreads are changing over
+time.
+
+Here we see all the features we used from \textcite[ECB WP 1781]{afonso2015}.
+We used monthly industrial growth as a monthly GDP proxy since GDP growth
+data is only available quarterly. This is the same as in
+\textcite[ECB WP 1781]{afonso2015}. They are also using expected debt/GDP and 
+fiscal balance/GDP instead of realized as we do, even though
+expected data would probably yield more signal. This is due to the expected
+data not being available. Since realized data are subjected to revisions
+and in that process information not known at the actual date of the
+estimation is used, we implement a lag dictionary to impede data leakage.
+Additionally to the other features we would have liked to use the
+bid-ask spread, but here as well there was no free data available.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Overview of all the used features from \textcite[ECB WP 1781]{afonso2015}}
+    \label{tab:features_overview}
+    \begin{tabular}{clllp{3cm}}
+        \toprule
+        \textbf{\#} & \textbf{Feature} & \textbf{Type} & \textbf{Construction} & \textbf{Channel} \\
+        \midrule
+        1 & VIX & global & one value per month for all countries & global risk aversion \\
+        \addlinespace
+        2 & realized debt/GDP (rel. DE) & local & $\text{debt/GDP}_i - \text{debt/GDP}_{\text{DE}}$ & solvency \\
+        \addlinespace
+        3 & realized fiscal balance/GDP (rel. DE) & local & $\text{balance}_i - \text{balance}_{\text{DE}}$ & fiscal flow \\
+        \addlinespace
+        4 & Real effective exchange rate (rel. DE) & local & $\log \text{REER}_i - \log \text{REER}_{\text{DE}}$ & competitiveness \\
+        \addlinespace
+        5 & Industrial production growth (rel. DE) & local & $\text{IP growth}_i - \text{IP growth}_{\text{DE}}$ & economic situation (monthly GDP proxy) \\
+        \addlinespace
+        6 & realized debt/GDP (rel. DE) squared & local & $\left(\text{debt/GDP}_i - \text{debt/GDP}_{\text{DE}}\right)^2$ & solvency \\
+        \addlinespace
+        7 & Lagged own spread & local & $s_{i,t}$ & persistence / mean-reversion \\
+        \addlinespace
+        8 & second principal component & global & PC2 & core vs. periphery \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+PC2 is calculated from the z standardised country data with a 12 month refit on an expanding window with minimum 36 months. The loadings are anchored so that periphery countries always load positive. The missing value for greece is handled by imputing 0. PC2 only measures the core periphery contrast and is no measure for monetary risk.
+The Eurostat quarterly government finance statistics were forward filled until the next datapoint is available.
+Besides these features we also employ some others from different sources.
+\textcite[ECB WP 1781]{afonso2015} only uses the VIX as global risk factor.
+\textcite{codogno2003yield} showed that the US credit risk is its own
+spread driver. So we include us aaa treasury (Moody's Seasoned Aaa Corporate Yield
+$-$ 10y US-Treasury) as a feature. Aswell as the deviation of us aaa treasury from its average times the difference in debt/GDP ratio to Germany, as proposed by \textcite{codogno2003yield}. To avoid the kolinarity of this term to the debt term.
+\textcite{bernoth2004sovereign} identified Moody's Baa Corporate Yield
+$-$ Moody's Aaa Corporate Yield as an indicator of risk aversion in
+investors and, by that, a driver of sovereign credit spreads.
+
+They also identified interest expenditure / total government revenue
+(as difference to Germany) and outstanding debt of the country / sum of
+the debt of the 11 panel countries (incl. DE) as sovereign credit spread
+drivers, so we include them as well. The fiscal balance aswell as the debt service ratio had a strong seasonal character as seen by the seasonal dummy variable having  $R^2=0.35$ in a regression. We replace all the quaterly data by its trailing 4 quater mean. This removes the seasonal component (quarter-dummy $R²= 0$). We still keep the 4 month publication lag. for the debt service rate the nummerator and denuminator are each get the same treatment before deviding. 
+
+\textcite{afonso2012sovereign} has shown that the numeric sovereign rating
+on a scale of 1--17, as a difference to Germany
+($\text{rating}_i - \text{rating}_{\text{DE}}$), is also relevant. We also
+include the Economic Policy Uncertainty Europe index as log. It measures
+how much newspapers are reporting on economic uncertainty; its relevance in
+this context was shown by \textcite{bernal2016epu}. The
+Trans-European Automated Real-time Gross settlement Express Transfer
+System, 2nd generation, short TARGET2, is a market-based indicator of
+capital flight. \textcite{degrauweji2013} showed that the loss of investor
+confidence led to a bond sell-off and then a liquidity outflow in 2010-11.
+TARGET2 is what measures exactly this accounting counterpart of this
+liquidity outflow, as shown by
+\textcite{sinnwollmershaeuser2012,krishnamurthy2018}. We are using (TARGET2/ GDP) *100.
+\textcite{degrauweji2013} is not using TARGET2 as an empirical proxy for
+their theory.
+
+Since all the features that account for risk so far are the same for all
+countries, we also implement a feature measuring country-specific risk,
+used in \textcite{afonso2015}. It takes the deviation of the log VIX from
+its expanding mean, times the relative debt per country. Relative debt
+here is again debt/GDP minus the same for Germany, and we again work with
+the realized debt instead of the expected.
+
+The GDP data we are reconstructing from as seen here: GDP = $gov_debt_mio_eur / (gov_debt_pct_gdp / 100.0)$. since we already have the two necessary timeseries.
+
+The global features are the same for every country while the local features change from country to country. In the data for each country are all the global features aswell as al the features that are specific to that country. So the data for each country contains the same 17 features. 
+
+\subsection{Publication-lag protocol}
+\label{sec:data:lags}
+
+As already stated we didnt have access to vintage data and had to resort to later published, revised data instead. In the revision process information that might only be later available than was available in the referenc periode. That is a form of dataleakage we want to prevent. So we imploy a lag dictionary. every datapoint in reference period $t$ moved $k=\lceil \text{lag}/30\rceil$ full months forward, so we can only use the datapoint at $t + k$. since we are always snaping to the end of the month we risk overlagging by 29 to 30 days. The target itself is never lagged. Look ahead bias still remains in the montyl avergage series s (Moody’s Aaa/Baa yields, EPU) they appear about 5 days into the next month. we still employ no time lag since We judge
+it negligible and record it here rather than leave it unstated.
+
+
+% Präambel: \usepackage{booktabs}
+\begin{table}[H]
+\centering
+\caption{Publication lag by feature. The shift we impose in real time is
+$k=\lceil \text{days}/30\rceil$ whole months on a month-end series
+(see Note).}
+\label{tab:publication-lags}
+\begin{tabular}{@{}p{4.3cm}p{1.2cm}p{1.4cm}p{5.3cm}@{}}
+\toprule
+\textbf{Feature(s)} & \textbf{Lag (d)} & \textbf{Shift (m)} & \textbf{Source} \\
+\midrule
+\texttt{vix\_log}                                   & 0    & 0  & \parencite{fred_vixcls} \\
+\texttt{epu\_log}$^{\dagger}$                        & 0    & 0  & \parencite[p.\,6, fn.\,8]{baker2016epu} \\
+\texttt{spread\_lag}, \texttt{pc2\_core\_periph}     & 0    & 0  & \parencite{ecb_irs_calendar} \\
+\texttt{us\_aaa\_treasury}$^{\dagger}$, \texttt{us\_baa\_aaa}$^{\dagger}$
+                                                     & 0    & 0  & \parencite{fed_h15_qa} \\
+\texttt{rating\_num}                                 & 0    & 0  & \parencite{spglobal_emea_calendar,afonsofurcerigomes2012} \\
+\texttt{reer\_log}                                   & 30   & 1  & \parencite{eurostat_erteff} \\
+\texttt{target2\_gdp}$^{\ddagger}$                    & 33   & 2  & \parencite{ecb_target_balances} \\
+\texttt{ip\_growth\_yoy}                             & 45   & 2  & \parencite{eurostat_ip_releases} \\
+\texttt{debt\_gdp}, \texttt{debt\_gdp\_sq},
+\texttt{liquidity\_share}                            & 113  & 4  & \parencite{eurostat_gov10qggdebt} \\
+\texttt{fiscal\_balance}, \texttt{debt\_service\_rev}& 113  & 4  & \parencite{eurostat_gov10qggnfa} \\
+\texttt{vix\_log\_x\_debt},
+\texttt{us\_aaa\_treasury\_x\_debt}$^{\ddagger}$      & --   & -- & \parencite{eurostat_gov10qggdebt} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\raggedright\footnotesize
+\textit{Note:} \emph{Lag (d)} reports the provider's documented publication
+delay after the reference period. \emph{Shift (m)} is the lag we actually
+impose, $k=\lceil \text{days}/30\rceil$ whole months, applied as a month-end
+shift of the feature within each country. The forecast target is never
+shifted. Because $k$ rounds up, no value enters the panel before it was
+released; the price we pay is up to roughly 29 days of over-lagging. \\[2pt]
+$^{\dagger}$ The monthly-average series (Moody's Aaa/Baa yields, EPU) appear
+about 5 days into the following month. At monthly frequency that delay rounds
+to a zero-month shift, so a look-ahead of a few days remains. We judge it
+negligible and record it here rather than leave it unstated. \\[2pt]
+$^{\ddagger}$ \emph{Split lag.} When an input combines two series with
+different release calendars, we lag each series on its own calendar before
+combining them. For \texttt{target2\_gdp} $=$ TARGET2$/$GDP the TARGET2
+numerator is shifted by 2 months and the GDP denominator (from quarterly EDP
+debt) by 4 months, which gives $\text{TARGET2}(t{-}2)/\text{GDP}(t{-}4)$. This
+holds the numerator, the part that moves fastest in a crisis, at its shortest
+defensible lag. The interaction terms follow the same logic: in
+$\text{global}(t)\times\text{debt}(t{-}4)$ the debt factor already carries its
+4-month (113 d) lag before it multiplies the contemporaneous global factor
+(lag 0), so we do not lag the product a second time.
+\end{table}
+
+super setzte alles um aber lass den fließtext genau so wie er ist. gib es mir so das ich es direkt rüber kopieren kann
+
+######################################################################
+
+überarbeite diesen abschnitt meienr amsterarbeit. behalte meine formulierungen bei und bessere nur grammatik fheler und typos aus. außerdem mache die latex fomatierung so das sie gut aussieht. behalte den tabelle stil bei. gib mir das ganze wieder aus sodass ich es direkt in overleaf kopieren kann
+
+
+
+\section{Forecasting Models}
+
+\label{sec:models}
+
+We will walk through all models we use in our experiments, going from the simplest to the most complex. 
+
+The Random Walk is our naive baseline. ARIMA serves as the linear sequential baseline in contrast to LightGBM out non linear non sequential baseline. LSTM is the nonlinear sequential baseline and xLSTM the state of the art extension of LSTM. We also use TiRex and TiRex2 multi/uni- variate, two pre trained foundation models based on the xLSTM architecture. 
+
+% Flughöhe: WAS ist jede Engine (Architektur). WIE trainiert -> \cref{sec:model-setup}.
+
+% Roter Faden: Leiter zunehmender induktiver Kapazität (RW -> ARIMA -> LGBM ->
+
+% LSTM -> xLSTM -> TiRex-2). Tiefe proportional zum Beitrag: xLSTM + TiRex-2 tief,
+
+% Rest knapp. Alle Modelle teilen das 3-Quantil-Interface aus \cref{sec:exp:task}.
+
+
+
+% --- kurzer Einleitungsabsatz: die Leiter benennen, jede Stufe = eine Fähigkeit,
+
+%     Hinweis dass das Trainingsprotokoll bereits in \cref{sec:model-setup} steht. ---
+
+
+
+\subsection{Random Walk and ARIMA}
+
+\label{sec:models:classical}
+
+The Randowm Walk is our  naive baseline we are trying to beat. The prediction for the next spread level is the current level, so the predicted spread change is zero.
+
+\begin{equation}
+
+  \hat{s}_{t+1}=s_t
+
+  \qquad\Longleftrightarrow\qquad
+
+  \widehat{\Delta s}_{t+1}=0 .
+
+  \label{eq:rw}
+
+\end{equation}
+
+it is the denominator of all skill rations we are going to use. We use ARMA(p,q) at the L regime per country. It is our linear sequential baseline. ARIMA $(p,1,q)$ on levels is the same as ARMA$(p,q)$ on the differences spreads.
+
+% ---------- ARIMA(p,1,q)  ==  ARMA(p,q) on \Delta s ----------
+
+\begin{equation}\textbf{}
+
+  \Delta s_t=\sum_{i=1}^{p}\phi_i\,\Delta s_{t-i}
+
+            +\sum_{j=1}^{q}\theta_j\,\varepsilon_{t-j}
+
+            +\varepsilon_t ,
+
+  \qquad \varepsilon_t\sim\mathrm{WN}(0,\sigma^2).
+
+  \label{eq:arima}
+
+\end{equation}
+
+We assume no drift (trend="n") so so the model con collapse into an ARMA(0,0) which si the random walk. To estimate the Models coefficients we use maximum likelihood estimation (more precise a Kalman Filter via statsmodels). The Order (p,q) is determined once on the burn in set ($\le$ Monat 114) per country then frozen, per AIC on the grid $\{0,1,2,3\}^2$. Since both model are point forecasts they have no native quantile forecast. Instead of using Gaußian quantiles based on the point forecast we use the quantiles from the residual distribution. These are added/substraxted to/from the point forecast. 
+
+%   1 Zitat (Box & Jenkins / Hamilton). KEINE Herleitung. Intervalle aus füge die zitate an den richtigens tellen ein und erstelle mir ein bitex für sie das ich direkt rein kopieren kann
+
+%   empirischen Residual-Quantilen (Rückverweis \cref{sec:exp:task}). baue den rückverweis ein.
+
+
+
+\subsection{Gradient-boosted trees (LightGBM)}
+
+\label{sec:models:lgbm}
+
+The Gradient-boosted trees is our non linear non sequential baseline.
+
+LightGBM is an additive ensemble method and works with Gradient boosting decision trees. Every tree fits the negative gradient of the loss function (in our case the pinball loss).
+
+\begin{equation}
+
+  F_M(x)=\sum_{m=1}^{M}\eta\,f_m(x),
+
+  \qquad
+
+  f_m\approx-\,\nabla_{\!F}\,\mathcal{L}\big(y,F_{m-1}(x)\big).
+
+  \label{eq:gbdt}
+
+\end{equation}
+
+Specific features of LightGBM are the histogram based split search and leaf wise growth. We use one booth per quantile (Pinball-Objective bei $\tau\in{0.1,0.5,0.9}$).
+
+The Input data has a Tabular structure and the lenght of the lookback is tuned on the burnin set from nested lag set{1,2,3,6,12,24}. Optionally we include the rolling means over {3,6,12} for all features, under the 24 month cap. In G the country enters as a native categorical feature column. We emply early stopping 50 on boosting rounds. LightGBM only has the L and G regime since there is no fine tuning analogon. After hyperparameter optimization we obtained the following. Frozen L: $num\_leaves=7, max\_depth=-1, min\_data\_in\_leaf=5, lr=0.153,$ no Rolling-Means. Frozen G: $num\_leaves=15, max\_depth=3, min\_data\_in\_leaf=40, lr=0.083$, Rolling-Means on.
+
+% KURZ. GBDT-Prinzip in 2-3 Sätzen; leaf-wise growth, histogram-based (Ke 2017).
+
+%   Nicht-sequentiell -> tabellarische Lag-Struktur statt Lookback (Rückverweis
+
+%   \cref{sec:exp:hpo}). Ein Booster pro Quantil (quantile objective).
+
+
+
+\subsection{LSTM}
+
+\label{sec:models:lstm}
+
+%baue hier die referenz ein hochreiter1997lstm und gib mir den etnsprechenden bibtex eintrag
+
+This is our recurrent (sequential) deep-learning baseline. The cell state $c_t$ is the memory that persists over time. The sigmoid forget gate $f_t$ decides whats beeing kept and what is forgotten. The sigmoid entrance gate $i_t$ together with $\tilde{c}$ decides what is newly written into the cell state. The sigmoid output gate $o_t$ decides what is read from the current cell state.
+
+% ============================================================
+
+% LSTM  (xLSTM paper, Beck et al. 2024, Eqs. 2-7)
+
+% ============================================================
+
+\begin{align}
+
+  c_t &= f_t\,c_{t-1} + i_t\,z_t, &
+
+  h_t &= o_t\odot\tilde{h}_t,\quad \tilde{h}_t=\psi(c_t), \label{eq:lstm-ch}\\
+
+  z_t &= \varphi\!\big(w_z^\top x_t + r_z\,h_{t-1} + b_z\big), &
+
+  i_t &= \sigma\!\big(w_i^\top x_t + r_i\,h_{t-1} + b_i\big), \label{eq:lstm-zi}\\
+
+  f_t &= \sigma\!\big(w_f^\top x_t + r_f\,h_{t-1} + b_f\big), &
+
+  o_t &= \sigma\!\big(w_o^\top x_t + r_o\,h_{t-1} + b_o\big). \label{eq:lstm-fo}
+
+\end{align}
+
+% varphi = tanh (cell input), psi = tanh (hidden), sigma = sigmoid
+
+The cellstate is updated the weighted sum of the old cell state and new information $c_t = f_t\odot c_{t-1} + i_t\odot\tilde{c}_t$. The output/hidden state is calculated via $h_t = o_t\odot\tanh(c_t). \label{eq:lstm-ch}$ and flows back into every gate in the next step.\\
+
+The hidden state of the last time step of our Network is fed into the Quantile head. It consists of, in order of the flow, LayerNorm, Dropout and a linear layer that projects onto the three quantiles {0.1,0.5,0.9}. In the G Regime we use country embedding that is attached at every point in time. Tbhe main frozen hyperparameters are L: 1 Layer, hidden 64, Lookback 3. G: 2 Layer, hidden 32, Lookback 3.The rest of the frozen Hyperparamters can be found in the appendix. % füge hier eine referenz hinzu
+
+The LSTM shares the entire training protocol with the xLSTM and differs only in the recurrent cell. It is therefore the ablation that isolates what the xLSTM adds: any skill gap between the two is attributable to the cell, not to the pipeline.
+
+
+
+\subsection{xLSTM}
+
+\label{sec:models:xlstm}
+
+xLSTM is the state of the art extension of LSTM. It introduces two new building blocks (cell types), sLSTM and mLSTM. It was invented to overcome three shortcomings of the original LSTM: The original LSTM has only a scalar memory which leads to a limited memory capacity. The sigmoid gates saturate which leads to slow overwriting of the memory cell ( it cant learn or forget fast). The calculation of the hidden state depends on the last hidden state and is by that now realizable. That increases inference and training time. The sLSTM solves the sigmoid gate saturation by using exponential gating instead, which allows it to drasticlly forgett or learn. It is capable of state tracking because it is time-dependent and therefore also cannot be parallelized and keeps the scalar memory. mLSTM also uses exponential gating but switches the scalar memory for matrix memory which gives it more memory capacity and makes it parallizible. \\
+
+% xLSTM (Beck et al., 2024)füge die reference hier ein und erstelle mir ein bintex das ich in meine bibliothek kopieren kann
+
+A gate scales a flow. In LSTM the sigmoid gating only allows for partial learning or forgetting. The fix is making the input gate exponential $i_t=exp()$. Instead of saturating at 1 the exponential gate is nor caped. That leads to new strong signal being able to dominate the memory. The problem with exponential gating is that it can numerically overflow. This is solved by the stabilizer state. $i_t,f_t$ are subsituted by $i'_t,f'_t$. The paper proofed that the output and gradient stay exactly the same after the substitution. This is only for numerical reasons and no change of the Model. %füge hier ein zitat und einen verweis zud em bewei in dem paper ein$.
+
+% sLSTM/mLSTM stabiliser state (Eqs. 15-17) -- applies to BOTH cells
+
+\begin{equation}
+
+  m_t=\max\!\big(\log f_t + m_{t-1},\ \log i_t\big),\quad
+
+  i_t'=\exp\!\big(\log i_t - m_t\big),\quad
+
+  f_t'=\exp\!\big(\log f_t + m_{t-1} - m_t\big).
+
+  \label{eq:xlstm-stab}
+
+\end{equation}
+
+The other consequence of the exponential gating is the input gate (and optionally the forget gate) are no longer bounded to [0,1]. The cell state can therefore grow unbounded and is rescaled by the normalizer state. The cell state $c_t$ is therefore normalized by the normalizer state. This same exponential gating and stabilization is shared by both cell types below.\\
+
+\\
+
+% ============================================================
+
+% sLSTM  (Eqs. 8-17): scalar memory, exponential gating, stabilisation
+
+% ============================================================
+
+We go through a full time step $t$ in an sLSTM block to give the reader a better understanding of its working. As already said sLSTM also employs a scalar memory cell. The candidate for memory is the cell input $z_t$ and the input,output and forget gate $i_t,o_t,f_t$ are calculated from the last hidden state $h_{t-1}$ (what makes the network recurrent) and current input vector $x_t$. The $w,r,b$ are learned parameters. Then the memory cell state is updated $c_t \&= f_t\,c_{t-1} + i_t\,z_t$, some of the old is kept and new information is added. Parallel the normalizer $n_t \&= f_t\,n_{t-1} + i_t$ is calculated. The new hidden state is determined by normalizing the memory cell state and multiplying the output gate $h_t = o_t·\frac{c_t}{n_t}$. Then Memory mixing happens. sLSTM cells, in the same attention head share, information via the recurrent R Matrix.
+
+\begin{align}
+
+  z_t &= \varphi\!\big(w_z^\top x_t + r_z\,h_{t-1} + b_z\big), &
+
+  i_t &= \exp\!\big(w_i^\top x_t + r_i\,h_{t-1} + b_i\big), \label{eq:slstm-zi}\\
+
+  f_t &= \sigma\!\big(w_f^\top x_t + r_f\,h_{t-1} + b_f\big)\ \text{or}\ \exp(\cdot), &
+
+  o_t &= \sigma\!\big(w_o^\top x_t + r_o\,h_{t-1} + b_o\big). \label{eq:slstm-fo}\\
+
+  c_t &= f_t\,c_{t-1} + i_t\,z_t, &
+
+  n_t &= f_t\,n_{t-1} + i_t, \label{eq:slstm-cn}\\
+
+  h_t &= o_t\odot\tilde{h}_t,\quad \tilde{h}_t = c_t/n_t, &&  \label{eq:slstm-h}\\
+
+\end{align}
+
+We go through a full time step $t$ in an mLSTM block to give the reader a better understanding of its working. Instead of scalar memory mLSTM uses a matrix this allows for way more memory capacity and assoziative learning of rare patterns. From the input vector $x_t$ the key,value and query vectors $k_t,q_t,v_t$ are calculated (eq:mlstm-qk, eq:mlstm-vi). The gates $i_t,f_t,o_t$ are calculated next and are only dependent on $x_t$ no longer on the previous time step ($h_{t-1}$)(eq:mlstm-vi, eq:mlstm-fo). The new input into the matrix memory is  calculated $v_t k_t^\top,$ and the weighted sum of the old memory and new input is calculated. The normalization vector is calculated $ n_t = f_t·n_(t-1) + i_t·k_t $ and with it the hidden state $h_t = o_t ⊙ \frac{(C_t·q_t)}{max(|n_t^T·q_t|, 1)}$. In comparison to sLSTM, in mLSTM there is no dependency on a previous steps (fully parallelistic), it has matrix memory and no memory mixing. The memory matrix has a fixed d×d size and does not grow with the sequence length ,unlike attention's key–value cache, giving constant memory and linear compute.
+
+
+
+
+
+% ============================================================
+
+% mLSTM  (Eqs. 19-27): matrix memory, covariance update, parallelisable
+
+% ============================================================
+
+\begin{align}
+
+  q_t &= W_q x_t + b_q, &
+
+  k_t &= \tfrac{1}{\sqrt{d}}\,W_k x_t + b_k, \label{eq:mlstm-qk}\\
+
+  v_t &= W_v x_t + b_v, &
+
+  i_t &= \exp\!\big(w_i^\top x_t + b_i\big), \label{eq:mlstm-vi}\\
+
+  f_t &= \sigma\!\big(w_f^\top x_t + b_f\big)\ \text{or}\ \exp(\cdot), &
+
+  o_t &= \sigma\!\big(W_o x_t + b_o\big). \label{eq:mlstm-fo}\\
+
+  C_t &= f_t\,C_{t-1} + i_t\,v_t k_t^\top, &
+
+  n_t &= f_t\,n_{t-1} + i_t\,k_t, \label{eq:mlstm-Cn}\\
+
+  h_t &= o_t\odot\tilde{h}_t,\quad
+
+        \tilde{h}_t = \frac{C_t\,q_t}{\max\!\big(|n_t^\top q_t|,\,1\big)}, &&  \label{eq:mlstm-h}
+
+\end{align}
+
+
+
+Every cell is nested in a residual block. sLSTM employs a post up projection while mLSTM uses a pre up projection. Optionaly a causal convolution is used before calculation of the gates $i_t,o_t,f_t$ or key,value,query vectors $k_t,v_t,q_t$ to give more context. A residual stack with pre layer back bone is used to create a deeper network. A xLSTM net usualy doesent contain of only sLSTM or mLSTM but a mix. The notation is xLSTM[a,b], where a is the number of mLSTM and b the number of sLSTM blocks. The selected configuration uses mLSTM only blocks (L:xLSTM[1:0] and G:xLSTM[3:0]), so memory mixing is not present in the deployed model. \\
+
+Our architecture uses a linear input projection followed bu input drop out before the xLSTM blocks. Our quantile output head works on the hidden state of the last time point and consists of a layer norm folowed by droput and a linear layer that projects on to the three quantiles {0.1,0.5,0.9}. In the G Regime wie attatched a 8 dimensional country embedding vector at each time step to the feature vector.
+
+The frozen configoration turned out as L = xLSTM[1:0], 1 Block, emb 32, Lookback 3; G = xLSTM[3:0], 3 Blocks, emb 64, Lookback 24; more details in the appendix
+
+
+
+We assumed that especially the exponential gating would lead to good results on credit spreads since the regime changes need a fast adaption rate

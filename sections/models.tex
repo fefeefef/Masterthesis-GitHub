@@ -1,0 +1,254 @@
+\section{Forecasting Models}
+\label{sec:models}
+We will walk through all models we use in our experiments, going from the
+simplest to the most complex. The Random Walk is our naive baseline. ARIMA
+serves as the linear sequential baseline, in contrast to LightGBM, our
+non-linear, non-sequential baseline. LSTM is the non-linear sequential baseline,
+and xLSTM the state-of-the-art extension of LSTM. We also use TiRex and TiRex2
+(the latter in a univariate and a univariate + covariates variant), two pretrained foundation models
+based on the xLSTM architecture. All models share the same three-quantile
+interface (\cref{sec:exp:task}); how they are trained is described in
+\cref{sec:model-setup}.
+
+\subsection{Random Walk and ARIMA}
+\label{sec:models:classical}
+The Random Walk is our naive baseline that we are trying to beat. The prediction
+for the next spread level is the current level, so the predicted spread change is
+zero.
+\begin{equation}
+  \hat{s}_{t+1}=s_t
+  \qquad\Longleftrightarrow\qquad
+  \widehat{\Delta s}_{t+1}=0 .
+  \label{eq:rw}
+\end{equation}
+It is the denominator of all skill ratios we are going to use. We use ARMA$(p,q)$
+in the L regime per country. It is our linear sequential baseline. ARIMA
+$(p,1,q)$ on levels is the same as ARMA$(p,q)$ on the differenced spreads
+\parencite{hamilton1994}.
+\begin{equation}
+  \Delta s_t=\sum_{i=1}^{p}\phi_i\,\Delta s_{t-i}
+            +\sum_{j=1}^{q}\theta_j\,\varepsilon_{t-j}
+            +\varepsilon_t ,
+  \qquad \varepsilon_t\sim\mathrm{WN}(0,\sigma^2).
+  \label{eq:arima}
+\end{equation}
+We assume no drift (\texttt{trend="n"}), so the model can collapse into an
+ARMA$(0,0)$, which is the random walk. To estimate the model's coefficients we
+use maximum likelihood estimation (more precisely, a Kalman filter via
+\texttt{statsmodels}). The order $(p,q)$ is determined once on the burn-in set
+($\le$ month 114) per country and then frozen, by AIC on the grid
+$\{0,1,2,3\}^2$. Since both models are point forecasts, they have no native
+quantile forecast. Instead of using Gaussian quantiles based on the point
+forecast, we use the quantiles from the residual distribution; these are added to
+and subtracted from the point forecast (\cref{sec:exp:task}).
+
+\subsection{Gradient-boosted trees (LightGBM)}
+\label{sec:models:lgbm}
+Gradient-boosted trees are our non-linear, non-sequential baseline. LightGBM
+\parencite{ke2017lightgbm} is an additive ensemble method and works with
+gradient-boosted decision trees. Every
+tree fits the negative gradient of the loss function (in our case the pinball
+loss).
+\begin{equation}
+  F_M(x)=\sum_{m=1}^{M}\eta\,f_m(x),
+  \qquad
+  f_m\approx-\,\nabla_{\!F}\,\mathcal{L}\big(y,F_{m-1}(x)\big).
+  \label{eq:gbdt}
+\end{equation}
+Specific features of LightGBM are the histogram-based split search and leaf-wise
+growth. We use one booster per quantile (pinball objective at
+$\tau\in\{0.1,0.5,0.9\}$). The input data has a tabular structure, and the length
+of the lag structure is tuned on the burn-in set from the nested lag set
+$\{1,2,3,6,12,24\}$. Optionally we include the rolling means over $\{3,6,12\}$ for
+all features, under the 24-month cap. In G the country enters as a native
+categorical feature column. We employ early stopping after 50 boosting rounds.
+LightGBM only has the L and G regime, since there is no fine-tuning analogue.
+After hyperparameter optimisation we obtained the following. Frozen L:
+\texttt{num\_leaves}$=7$, \texttt{max\_depth}$=-1$, \texttt{min\_data\_in\_leaf}$=5$,
+\texttt{lr}$=0.153$, no rolling means. Frozen G: \texttt{num\_leaves}$=15$,
+\texttt{max\_depth}$=3$, \texttt{min\_data\_in\_leaf}$=40$, \texttt{lr}$=0.083$,
+rolling means on.
+
+\subsection{LSTM}
+\label{sec:models:lstm}
+This is our recurrent (sequential) deep-learning baseline, the LSTM of
+\textcite{hochreiter1997lstm}; the notation of the equations follows
+\textcite{beck2024xlstm}. The cell state $c_t$ is
+the memory that persists over time. The sigmoid forget gate $f_t$ decides what is
+being kept and what is forgotten. The sigmoid input gate $i_t$, together with
+$\tilde{c}_t$, decides what is newly written into the cell state. The sigmoid
+output gate $o_t$ decides what is read from the current cell state.
+\begin{align}
+  c_t &= f_t\,c_{t-1} + i_t\,z_t, &
+  h_t &= o_t\odot\tilde{h}_t,\quad \tilde{h}_t=\psi(c_t), \label{eq:lstm-ch}\\
+  z_t &= \varphi\!\big(w_z^\top x_t + r_z\,h_{t-1} + b_z\big), &
+  i_t &= \sigma\!\big(w_i^\top x_t + r_i\,h_{t-1} + b_i\big), \label{eq:lstm-zi}\\
+  f_t &= \sigma\!\big(w_f^\top x_t + r_f\,h_{t-1} + b_f\big), &
+  o_t &= \sigma\!\big(w_o^\top x_t + r_o\,h_{t-1} + b_o\big). \label{eq:lstm-fo}
+\end{align}
+% varphi = tanh (cell input), psi = tanh (hidden), sigma = sigmoid
+The cell state is updated as the weighted sum of the old cell state and the new
+information, $c_t = f_t\odot c_{t-1} + i_t\odot\tilde{c}_t$, and the hidden state
+$h_t = o_t\odot\tanh(c_t)$ flows back into every gate at the next step.
+
+The hidden state of the last time step of our network is fed into the quantile
+head. It consists of, in order of the flow, LayerNorm, dropout, and a linear
+layer that projects onto the three quantiles $\{0.1,0.5,0.9\}$. In the G regime we
+use a country embedding that is attached at every time step. The main frozen
+hyperparameters are L: 1 layer, hidden 64, lookback 3; G: 2 layers, hidden 32,
+lookback 3. The rest of the frozen hyperparameters can be found in the appendix
+(\cref{tab:app_frozen_nn}).
+The LSTM shares the entire training protocol with the xLSTM and differs only in
+the recurrent cell. It is therefore the ablation that isolates what the xLSTM
+adds: any skill gap between the two is attributable to the cell, not to the
+pipeline.
+
+\subsection{xLSTM}
+\label{sec:models:xlstm}
+xLSTM \parencite{beck2024xlstm} is the state-of-the-art extension of LSTM. It
+introduces two new building blocks (cell types), sLSTM and mLSTM. It was invented to overcome three
+shortcomings of the original LSTM: the original LSTM has only a scalar memory,
+which leads to a limited memory capacity; the sigmoid gates saturate, which leads
+to slow overwriting of the memory cell (it cannot learn or forget quickly); and
+the calculation of the hidden state depends on the previous hidden state and is
+therefore not parallelizable, which increases inference and training time. The
+sLSTM solves the sigmoid gate saturation by using exponential gating instead,
+which allows it to drastically forget or learn. It is capable of state tracking
+because it is time-dependent; it therefore cannot be parallelized and keeps the
+scalar memory. mLSTM also uses exponential gating but switches the scalar memory
+for matrix memory, which gives it more memory capacity and makes it
+parallelizable.
+
+A gate scales a flow. In LSTM the sigmoid gating only allows for partial learning
+or forgetting. The fix is making the input gate exponential, $i_t=\exp(\cdot)$.
+Instead of saturating at 1, the exponential gate is not capped. That leads to a
+strong new signal being able to dominate the memory. The problem with exponential
+gating is that it can numerically overflow. This is solved by the stabilizer
+state: $i_t,f_t$ are substituted by $i'_t,f'_t$. The paper proved that the output
+and gradient stay exactly the same after the substitution
+\parencite[App.~A.2]{beck2024xlstm}; this is only for
+numerical reasons and no change of the model.
+\begin{equation}
+  m_t=\max\!\big(\log f_t + m_{t-1},\ \log i_t\big),\quad
+  i_t'=\exp\!\big(\log i_t - m_t\big),\quad
+  f_t'=\exp\!\big(\log f_t + m_{t-1} - m_t\big).
+  \label{eq:xlstm-stab}
+\end{equation}
+Another consequence of the exponential gating is that the input gate (and
+optionally the forget gate) is no longer bounded to $[0,1]$. The cell state can
+therefore grow unbounded and is rescaled by the normalizer state. This same
+exponential gating and stabilization is shared by both cell types below.
+
+We go through a full time step $t$ in an sLSTM block to give the reader a better
+understanding of its working. As already said, sLSTM also employs a scalar memory
+cell. The candidate for memory is the cell input $z_t$, and the input, output,
+and forget gates $i_t,o_t,f_t$ are calculated from the last hidden state $h_{t-1}$
+(which makes the network recurrent) and the current input vector $x_t$. The
+$w,r,b$ are learned parameters. Then the memory cell state is updated,
+$c_t = f_t\,c_{t-1} + i_t\,z_t$: some of the old is kept and new information is
+added. In parallel, the normalizer $n_t = f_t\,n_{t-1} + i_t$ is calculated. The
+new hidden state is determined by normalizing the memory cell state and
+multiplying by the output gate, $h_t = o_t\odot\frac{c_t}{n_t}$. Then memory
+mixing happens: sLSTM cells in the same head share information via the recurrent
+$R$ matrices.
+\begin{align}
+  z_t &= \varphi\!\big(w_z^\top x_t + r_z\,h_{t-1} + b_z\big), &
+  i_t &= \exp\!\big(w_i^\top x_t + r_i\,h_{t-1} + b_i\big), \label{eq:slstm-zi}\\
+  f_t &= \sigma\!\big(w_f^\top x_t + r_f\,h_{t-1} + b_f\big)\ \text{or}\ \exp(\cdot), &
+  o_t &= \sigma\!\big(w_o^\top x_t + r_o\,h_{t-1} + b_o\big), \label{eq:slstm-fo}\\
+  c_t &= f_t\,c_{t-1} + i_t\,z_t, &
+  n_t &= f_t\,n_{t-1} + i_t, \label{eq:slstm-cn}\\
+  h_t &= o_t\odot\tilde{h}_t,\quad \tilde{h}_t = c_t/n_t. &&  \label{eq:slstm-h}
+\end{align}
+We go through a full time step $t$ in an mLSTM block to give the reader a better
+understanding of its working. Instead of scalar memory, mLSTM uses a matrix; this
+allows for much more memory capacity and associative learning of rare patterns.
+From the input vector $x_t$ the key, value, and query vectors $k_t,v_t,q_t$ are
+calculated (\eqref{eq:mlstm-qk}, \eqref{eq:mlstm-vi}). The gates $i_t,f_t,o_t$ are
+calculated next and depend only on $x_t$, no longer on the previous time step
+$h_{t-1}$ (\eqref{eq:mlstm-vi}, \eqref{eq:mlstm-fo}). The new content written into
+the matrix memory is the outer product $v_t k_t^\top$, and the memory is updated
+as the weighted sum of the old memory and the new input (\eqref{eq:mlstm-Cn}). The
+normalization vector $n_t = f_t\,n_{t-1} + i_t\,k_t$ is calculated, and with it
+the hidden state $h_t = o_t\odot\frac{C_t\,q_t}{\max(|n_t^\top q_t|,\,1)}$. In
+comparison to sLSTM, in mLSTM there is no dependency on previous steps (fully
+parallelizable), it has matrix memory, and no memory mixing. The memory matrix
+has a fixed $d\times d$ size and does not grow with the sequence length, unlike
+attention's key--value cache, giving constant memory and linear compute.
+\begin{align}
+  q_t &= W_q x_t + b_q, &
+  k_t &= \tfrac{1}{\sqrt{d}}\,W_k x_t + b_k, \label{eq:mlstm-qk}\\
+  v_t &= W_v x_t + b_v, &
+  i_t &= \exp\!\big(w_i^\top x_t + b_i\big), \label{eq:mlstm-vi}\\
+  f_t &= \sigma\!\big(w_f^\top x_t + b_f\big)\ \text{or}\ \exp(\cdot), &
+  o_t &= \sigma\!\big(W_o x_t + b_o\big), \label{eq:mlstm-fo}\\
+  C_t &= f_t\,C_{t-1} + i_t\,v_t k_t^\top, &
+  n_t &= f_t\,n_{t-1} + i_t\,k_t, \label{eq:mlstm-Cn}\\
+  h_t &= o_t\odot\tilde{h}_t,\quad
+        \tilde{h}_t = \frac{C_t\,q_t}{\max\!\big(|n_t^\top q_t|,\,1\big)}. &&  \label{eq:mlstm-h}
+\end{align}
+Every cell is nested in a residual block. sLSTM employs a post up-projection,
+while mLSTM uses a pre up-projection. Optionally, a causal convolution is used
+before the calculation of the gates $i_t,o_t,f_t$ or the key, value, and query
+vectors $k_t,v_t,q_t$ to give more context. A residual stack with a pre-LayerNorm
+backbone is used to create a deeper network. An xLSTM network usually does not
+consist of only sLSTM or mLSTM blocks but a mix. The notation is xLSTM[$a{:}b$],
+where $a$ is the number of mLSTM and $b$ the number of sLSTM blocks. The selected
+configuration uses mLSTM-only blocks (L: xLSTM[$1{:}0$] and G: xLSTM[$3{:}0$]), so
+memory mixing is not present in the deployed model.
+
+Our architecture uses a linear input projection followed by input dropout before
+the xLSTM blocks. Our quantile output head works on the hidden state of the last
+time step and consists of a LayerNorm followed by dropout and a linear layer that
+projects onto the three quantiles $\{0.1,0.5,0.9\}$. In the G regime we attach an
+8-dimensional country embedding vector at each time step to the feature vector.
+The frozen configuration is L: xLSTM[$1{:}0$], 1 block, emb 32, lookback 3; G:
+xLSTM[$3{:}0$], 3 blocks, emb 64, lookback 24; more details in the appendix.
+
+We expect that the exponential gating in particular is well suited to credit
+spreads, since regime changes require a fast adaptation rate.
+
+\subsection{Pre-trained foundation models}
+\label{sec:models:tirex2}
+TiRex \parencite{auer2025tirex} and TiRex-2 \parencite{podest2026tirex2} are pretrained time
+series foundation models from NXAI. Both models tokenise the series by splitting it
+into non-overlapping patches, process the token sequence with an xLSTM backbone
+\parencite{beck2024xlstm}, and emit quantiles through a residual output head. The same
+architecture we train from scratch (\cref{sec:models:xlstm}) therefore also powers
+the pretrained models, closing the ladder of models. They are pretrained on large
+time series corpora and are used in a zero-shot way: we did not retrain, fine-tune,
+or optimise the hyperparameters. We input the raw level series of the spreads
+$(s_1, s_2, \dots, s_{t-1})$ as context, expanding monthly and one step ahead. We
+dynamically select the $\{0.1, 0.5, 0.9\}$ quantiles from the native quantile
+output. We then transform the levels into differences,
+$q_{\Delta} = q_{\mathrm{level}} - s_{t-1}$.
+
+TiRex-2 is used in two variants: first, the univariate variant that only sees the
+spread's past as context, and second, the covariate variant that additionally sees
+the 17 covariates as past covariates. The within-model contrast of TiRex-2 with and
+without covariates on identical test months isolates the effect of the additional
+covariates. The covariates enter as past covariates; we have no future-known
+features, so TiRex-2's bidirectional future-covariate path is not exercised in our
+setup. TiRex only works with the context of the time series it is predicting. Since
+we have no in-sample residuals, we abstain from the constant-width interval twin
+comparison, and the G+I residual adjustment is intentionally omitted. When we look
+at the results, we have to take into account that TiRex-2 was released on
+2026-07-01 with an undocumented pretraining cutoff. There might be a potential
+contamination in the evaluation window.
+\label{sec:models:tirex2}
+% TIEF, aber auf SETUP/Varianten, nicht auf die pretrained-Architektur.
+%   (a) Was es ist: pretrained Time-Series-Foundation-Model von NX-AI, xLSTM-
+%       basiert (schliesst die Leiter: xLSTM im Grossen). Architektur ZITIEREN
+%       (Podest et al. 2026), nicht nachbauen.
+%   (b) Zero-Shot: kein Training, kein Refit, kein HPO. Rohe Level-Serie s_1..s_{f-1}
+%       als Kontext, monatlich expandierend, one-step. Native Dezil-Quantile aus
+%       dem Checkpoint (0.1/0.5/0.9 dynamisch indiziert). Level -> Delta via Anker
+%       q_delta = q_level - s_{f-1}.
+%   (c) ZWEI VARIANTEN (der Kern): tirex2 (univariat) vs tirex2_cov (+17 rohe past
+%       covariates, gleiche Features). Der Within-model-Kontrast tirex2_cov - tirex2
+%       auf identischen Testmonaten isoliert den reinen Kovariaten-Effekt -> Grundlage
+%       der "Kovariaten ~ null"-Aussage in den Results.
+%   (d) Design-Konsequenz: keine In-Sample-Residuen -> keine const-width-Twins /
+%       G+I (ZS-only ist Absicht). 
+%   (e) Caveat kurz nennen: Release 2026-07-01, Pretraining-Cutoff undokumentiert
+%       -> potenzielle Kontamination im Eval-Fenster; Details in Limitations.

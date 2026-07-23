@@ -1,0 +1,607 @@
+%
+%  LESEHILFE FUER DAS SCHREIBEN
+%  ---------------------------------------------------------------------
+%  * "WAS HIER STEHT"  = inhaltliche Checkliste, Satz fuer Satz abarbeiten.
+%  * "ZAHLEN AUS"      = welche Datei/Spalte in diagnostics_output/ die
+%                        Zahl liefert -> NIE eine Zahl schreiben, die dort
+%                        nicht steht (CLAUDE.md Rigor-Regel).
+%  * "ZITATE"          = biblatex-Keys. Fehlende Keys stehen als fertiger
+%                        BibTeX-Block am ENDE dieser Datei (auskommentiert)
+%                        -> vor dem Einreichen nach references.bib kopieren.
+%  * "[arXiv-Kuerzung]"= wie dieses Unterkapitel fuer die arXiv-Fassung auf
+%                        1 Absatz eingedampft wird. So kannst du Top-Level-
+%                        Thesis schreiben und trotzdem schnell kuerzen.
+%  * Bloecke zwischen  % >>> THESIS-ONLY >>>  und  % <<< THESIS-ONLY <<<
+%                        fliegen fuer arXiv KOMPLETT raus.
+%
+%  GRUNDREGEL (Metrik-Konsistenz): jede hier definierte Groesse braucht
+%  spaeter GENAU eine Spalte/Abbildung im Results-Kapitel. Definierst du
+%  etwas, das du nie zeigst -> loeschen. Der Reporting-Map-Kommentar ganz
+%  am Ende dieser Datei ist die Wahrheitstabelle dafuer.
+%========================================================================
+\section{Evaluation Framework}
+\label{sec:evaluation}
+
+% WAS HIER STEHT (Kapitel-Kopf, 1 kurzer Absatz):
+%  - Ein Satz: alle Metriken werden im LEVEL-Raum auf dem gemeinsamen
+%    Testfenster (127 Monate, 2015-10..2026-04) berechnet, nachdem die
+%    Delta-Prognosen zurueckverankert wurden (Verweis \cref{sec:exp:...}).
+%  - Ein Satz zum tragenden Prinzip: Validity-first (Coverage ist ein Gate,
+%    Winkler-Skill das Rangkriterium) -> zeigt dem Leser sofort die Logik.
+%  - Ein Satz Roadmap: (i) Guetemass + Gate, (ii) skalenfreie Aggregation,
+%    (iii) Coverage-Tests, (iv) formale Vergleiche, (v) MCS, (vi) Regime,
+%    (vii) oekonomisch, (viii) Robustheit.
+%  - Ein Satz: Auswertungseinheit ("Zelle") = Modell x Regime x Seed x
+%    Methode x Land; Multiplizitaet wird ueberall per BH-FDR kontrolliert.
+%  NICHT hier schon Zahlen nennen -- das ist das Results-Kapitel.
+
+All interval and point metrics are computed in level space on the common
+test window of \num{127} months (2015-10 to 2026-04), after the modelled
+$\Delta$-spread forecasts have been re-anchored to levels
+(\cref{sec:exp:target}). % TODO: exaktes Label des Rueckverankerungs-Absatzes.
+Our reporting protocol is \emph{validity-first}. The interval calibration is
+treated as an admissibility \emph{gate}, and the Winkler interval score is
+the sole ranking criterion \emph{within} the admissible set. This operational
+reading of ``maximise sharpness subject to calibration''
+\parencite{gneiting2007sharpness} is made precise in \cref{sec:eval:validity}.
+The unit of evaluation, which we call a cell, is a
+model\,$\times$\,regime\,$\times$\,seed\,$\times$\,method\,$\times$\,country
+tuple. Multiplicity across cells is controlled throughout by
+Benjamini--Hochberg FDR \parencite{benjamini1995fdr}.
+
+% [arXiv-Kuerzung]: dieser Kopf bleibt fast unveraendert (3-4 Saetze).
+
+
+%------------------------------------------------------------------------
+\subsection{Validity-first principle and the interval score}
+\label{sec:eval:validity}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Winkler/Interval-Score DEFINIEREN (Gleichung unten steht schon).
+%     Ein Satz: er ist ein STRICTLY PROPER scoring rule fuer zentrale
+%     Prognoseintervalle -> theoretische Rechtfertigung, warum er das
+%     primaere Mass ist (nicht ad hoc). Zitat gneiting2007 (+ optional
+%     gneiting2007sharpness fuer das sharpness-subject-to-calibration-
+%     Paradigma, das das GANZE Kapitel traegt).
+%  2. Dekomposition benennen: W = sharpness (u-l)  +  under-penalty
+%     (2/alpha)(l-y)1{y<l}  +  over-penalty (2/alpha)(y-u)1{y>u}.
+%     Sagen, dass under/over separat berichtet werden + tail asymmetry
+%     = (over_penalty - under_penalty) bzw. lower_misses vs upper_misses.
+%  3. Das GATE praezise definieren (das ist der methodische Kern):
+%     Eine (Modell,Regime,Seed,Methode)-Kombi heisst VALIDE, wenn nach
+%     BH-FDR (q >= 0.10) SOWOHL Kupiec-UC ALS AUCH Christoffersen-CC in
+%     >= 70% der 10 Laender NICHT verworfen werden. Rankings/Skill werden
+%     NUR innerhalb der validen Menge gebildet; invalide Kombis werden
+%     ausgewiesen, aber nie gerankt.
+%  4. Ein Satz Begruendung fuer die 70%-Schwelle + q=0.10: bewusst
+%     nachsichtig, weil 10 korrelierte Laender + kleine Stichprobe;
+%     Robustheit gegen die Schwelle -> Verweis auf 7.8/Appendix.
+%     >>> DAS ist eine methodische Entscheidung mit Tradeoff (CLAUDE.md):
+%         streng (hohe Schwelle) -> fast alles faellt raus; lax -> Gate
+%         zahnlos. 70/0.10 ist die Vorregistrierung. Ehrlich so benennen.
+%
+% ZAHLEN AUS:
+%   winkler_decomposition.parquet -> winkler_mean, sharpness, under_penalty,
+%       over_penalty, lower_misses, upper_misses, tail_asymmetry
+%   coverage_diagnostics.parquet  -> pval_uc, qval_uc, pval_cc, qval_cc
+%       (Gate wertet die q-Spalten pro Land aus, dann 70%-Regel)
+%   master_summary.parquet        -> mean_winkler, mean_sharpness,
+%       UC_reject_rate, CC_reject_rate (aggregiert, fuer die Ueberblickstabelle)
+%
+% ZITATE: winkler1972 (Score), gneiting2007 (proper scoring rule),
+%         gneiting2007sharpness (Paradigma), kupiec1995 + christoffersen1998
+%         (Gate-Tests -- Details erst in 7.3, hier nur genannt),
+%         benjamini1995fdr (FDR im Gate).
+
+For an interval $[l,u]$ at miscoverage $\alphamis$, the Winkler (interval)
+score \parencite{winkler1972} is
+\begin{equation}
+  W_\alphamis(l,u;y) =
+  \underbrace{(u-l)}_{\text{sharpness}} +
+  \underbrace{\frac{2}{\alphamis}(l-y)\,\Ind\{y<l\}}_{\text{under-coverage penalty}} +
+  \underbrace{\frac{2}{\alphamis}(y-u)\,\Ind\{y>u\}}_{\text{over-coverage penalty}} .
+  \label{eq:winkler}
+\end{equation}
+The Winkler score is a proper scoring rule, so the interval $[l,u]$ that minimizes it is exactly the pair of quantiles at $(\frac{\alpha}{2},1-\frac{\alpha}{2})$ of the data-generating distribution \parencite{gneiting2007}. We decompose the Winkler score into sharpness, under-/over-penalty and tail asymmetry.
+
+
+\label{def:gate}
+A combination $(\text{model},\text{regime},\text{seed},\text{method})$ is
+\emph{admissible} if
+\[
+  \frac{1}{|\mathcal{C}|}\sum_{c\in\mathcal{C}}
+  \Ind\{\, q^{\mathrm{UC}}_c \ge 0.10 \ \wedge\ q^{\mathrm{CC}}_c \ge 0.10 \,\}
+  \;\ge\; 0.70 ,
+\]
+where $\mathcal{C}$ denotes the ten countries and $q^{\mathrm{UC}}_c$,
+$q^{\mathrm{CC}}_c$ are the Benjamini--Hochberg--adjusted $p$-values of the
+Kupiec unconditional-coverage and Christoffersen conditional-coverage tests
+for country $c$. Skill scores and rankings are formed only over admissible
+combinations.
+
+
+
+%------------------------------------------------------------------------
+\subsection{Scale-free aggregation: skill scores}
+\label{sec:eval:skill}
+Spread levels differ from country to country in scale, which makes averaging the Winkler score over all countries pointless. Instead we evaluate per country first, calculate the scale-free skill and then take the mean over all countries. So we evaluate the level metrics only per country and only the scale-free metrics over all countries. The Winkler skill is defined as in \eqref{eq:skill}.
+The Winkler skill is evaluated on the common sample with the reference being Random Walk / local / native ("RW/L/native"). The common sample is necessary since we could otherwise compare crisis months with calm ones. A skill $>0$ shows the model beats the reference and a skill $<0$ the opposite. Since the skill is not additively decomposable, we lose the possibility to diagnose exactly where improvements or deteriorations in comparison to the reference stem from. We report the median over all 10 countries since it is more robust to outliers from, for example, Greece.
+
+
+%
+% ZAHLEN AUS:
+%   master_summary.parquet -> mean_winkler (pro Methode; Skill wird im
+%       diagnostics-Notebook gegen die RW-native-Zeile gebildet)
+%   per_target_results_*.parquet (je Modellfamilie) -> winkler, avg_length
+%       pro Land = Rohmaterial fuer Wbar_{m}(c)
+%   MAE/RMSE-Ratio: aus den predictions/-Parquets (Median-Spalte vs RW)
+%   Common-Sample-Groesse: n_common (vgl. dm_pairwise_tests.parquet)
+%
+% ZITATE: dieboldmariano1995 (Skill/Loss-Differential-Idee), hyndman2006mase
+%   (skalenfreie Fehlermasse -- optional/THESIS), pesaran1992 (Richtungstest).
+
+% TODO Prosa: Skill-Gleichung + Median-ueber-Laender-Satz + Referenz-Fixierung.
+\begin{equation}
+  \mathrm{Skill}_m(c) \;=\; 1 \;-\;
+  \frac{\overline{W}_m(c)}{\overline{W}_{\mathrm{RW\text{-}native}}(c)},
+  \qquad
+  \mathrm{Skill}_m \;=\; \operatorname{median}_{c}\,\mathrm{Skill}_m(c).
+  \label{eq:skill}
+\end{equation}
+We use the Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) ratios of the models median forecast relative to native Random Walk baseline to evaluate the point forecast performance. 
+\begin{equation}
+  \mathrm{MAE\text{-}Ratio}_m(c) \;=\; \frac{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{m,t}(c) - s_{t}(c) \big|}{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{\mathrm{RW},t}(c) - s_{t}(c) \big|}
+  \label{eq:mae_ratio}
+\end{equation}
+\noindent where $T$ is the total number of periods in the common out-of-sample evaluation period, and $t$ indexes the specific point in time. The actual observed value for country $c$ at time $t$ is given by $s_{t}(c)$. $\hat{s}_{m,t}(c)$ represents the point forecast (median of the predictive distribution) generated by model $m$ and $\hat{s}_{\mathrm{RW},t}(c)$ is the forecast of the naive Random Walk baseline.\\
+The ratios are first calculated per country and then the median is taken across all countries. At the raw point forecast our \emph{tirex2} model was practically on par with the Random Walk (MAE-Ratio = 0.9965). This underscores the narrative of our paper. The main advantage of the model is not a superior point forecast but a superiority in predicting intervals and correctly quantifying uncertainty \parencite{hyndman2006mase}. We also measure the directional forecast quality, i.e.\ if the model gets the trend right. For that we employ the Pesaran--Timmermann test \parencite{pesaran1992} in \eqref{eq:pt_test} on the sign of the median $\Delta$ forecast.
+\begin{equation}
+  PT \;=\; \frac{\hat{P}_S - \hat{P}_*}{\sqrt{\widehat{\operatorname{Var}}(\hat{P}_S) - \widehat{\operatorname{Var}}(\hat{P}_*)}} \;\xrightarrow{d}\; \mathcal{N}(0,1)
+  \label{eq:pt_test}
+\end{equation}
+\noindent In this test statistic, $\hat{P}_S$ is the observed proportion of correctly predicted directional changes (the hit rate) and $\hat{P}_*$ the expected proportion of correct predictions under the null hypothesis of directional independence (i.e., pure chance). The terms $\widehat{\operatorname{Var}}(\hat{P}_S)$ and $\widehat{\operatorname{Var}}(\hat{P}_*)$ denote the consistent estimates of the respective variances. Under the null hypothesis, the test statistic asymptotically converges in distribution to a standard normal distribution ($\mathcal{N}(0,1)$).
+We use the same reference for all calculated skills (Random Walk per country).
+
+% >>> THESIS-ONLY >>>
+% Ausfuehrlicher Absatz zur Aggregations-Philosophie: warum Median statt
+% Mittel (GR-Leverage), warum common sample zwingend (sonst vergleicht man
+% Methoden auf unterschiedlichen Monatsmengen), Grenzen des Skill-Scores
+% (nicht additiv zerlegbar). Ggf. MAE-Ratio-Herleitung + PT-Teststatistik
+% ausschreiben.
+% <<< THESIS-ONLY <<<
+
+% [arXiv-Kuerzung]: \eqref{eq:skill} + 2 Saetze (Referenz = RW-native je Land,
+%   Median ueber Laender; MAE/RMSE-Ratio in einem Nebensatz). PT-Test streichen
+%   oder in Fussnote.
+
+
+%------------------------------------------------------------------------
+\subsection{Coverage test battery}
+\label{sec:eval:coverage}
+%------------------------------------------------------------------------
+% WAS HIER STEHT (die drei Tests, je 1-2 Saetze + was sie prueft):
+%  1. Empirische Coverage definieren: covhat = (1/T) sum_t 1{Y_t in C(X_t)},
+%     Ziel 1 - alpha = 0.80. (Gleichung unten.)
+%  2. Kupiec-UC (unconditional coverage, LR-Test): prueft ob die
+%     Trefferrate = 0.80. Nur Rate, ignoriert Clustering. -> kupiec1995
+%  3. Christoffersen: Independence-LR (keine Verletzungs-Cluster) +
+%     Conditional-Coverage-LR (UC+Independence gemeinsam). -> christoffersen1998
+%  4. DQ-Test (dynamic quantile): Regression der Verletzungs-Indikatoren
+%     auf 4 eigene Lags UND die Intervallbreite als Regressor; prueft, ob
+%     Verletzungen mit Vergangenheit/Breite korreliert sind. -> engle2004caviar
+%     (Engle & Manganelli 2004 fuehrten den DQ-Test ein).
+%  5. Multiplizitaet: alle p-Werte werden per BH-FDR ueber die Zellen
+%     (Modell x Regime x Seed x Methode x Land) zu q-Werten; berichtet
+%     werden q-Werte, das Gate (7.1) liest qval_uc und qval_cc.
+%     -> benjamini1995fdr
+%  6. Ein Satz Ehrlichkeit: kleine T pro Zelle (127 Monate, im Stress
+%     weniger) -> Tests sind niedrig-power; deshalb Gate nachsichtig (7.1).
+%
+% ZAHLEN AUS:
+%   coverage_diagnostics.parquet (5258 x 17): family, model, method, country,
+%       n_test, violations, coverage, pval_uc, pval_ind, pval_cc, pval_dq,
+%       qval_uc, qval_ind, qval_cc, qval_dq, wsc_width, method_tier
+%   master_summary.parquet -> mean_coverage, UC_reject_rate, CC_reject_rate,
+%       mean_WSC (worst-slab / width-scaled coverage, falls im Text erwaehnt)
+%   coverage_rejection_summary.parquet (Aggregat der Ablehnraten)
+%
+% ZITATE: kupiec1995, christoffersen1998, engle2004caviar, benjamini1995fdr.
+We want our prediction intervals to cover 80\% of the realized data points. To measure our hit rate we use the empirical coverage. It is the fraction of test points inside the interval,
+\begin{equation}
+  \widehat{\mathrm{cov}} \;=\; \frac{1}{T}\sum_{t}
+  \Ind\{Y_t \in C(X_t)\},
+  \label{eq:coverage}
+\end{equation}
+where $Y_t$ is the actual observed value at time $t$, and $C(X_t)$ denotes the predicted forecast interval based on the available information $X_t$. 
+\paragraph{Unconditional coverage.}
+The first thing is to verify that the model actually produces intervals at the target coverage. This is done by the Kupiec Unconditional Coverage (UC) Test \parencite{kupiec1995}. It compares
+$\hat{\pi}$ with $\alpha$ through the likelihood ratio
+\begin{equation}
+  \mathrm{LR}_{\mathrm{uc}} \;=\;
+  -2\ln\!\frac{\alpha^{x}\,(1-\alpha)^{T-x}}
+              {\hat{\pi}^{\,x}\,(1-\hat{\pi})^{T-x}}
+  \;\xrightarrow{d}\; \chi^2_{1}.
+  \label{eq:kupiec}
+\end{equation}
+Here $T$ is the number of test months in the cell, $x$ the number of
+violations, $\alpha$ the target miscoverage, and $\hat{\pi}=x/T$ its empirical
+counterpart. The statistic is asymptotically $\chi^2$ with one degree of
+freedom. It only checks the rate.\\
+\paragraph{Independence and conditional coverage.}
+To detect clustering we use the Markov test of \textcite{christoffersen1998}.
+Let $n_{ij}=\#\{t: I_{t-1}=i,\,I_t=j\}$ be the transition counts of the hit
+sequence, $\hat{\pi}_{ij}=n_{ij}/(n_{i0}+n_{i1})$ the estimated transition
+probabilities and $\hat{\pi}=(n_{01}+n_{11})/\!\sum_{i,j} n_{ij}$ the pooled
+violation rate. The independence statistic is
+\begin{equation}
+  \mathrm{LR}_{\mathrm{ind}} \;=\;
+  -2\ln\!\frac{(1-\hat{\pi})^{\,n_{00}+n_{10}}\;\hat{\pi}^{\,n_{01}+n_{11}}}
+              {(1-\hat{\pi}_{01})^{\,n_{00}}\hat{\pi}_{01}^{\,n_{01}}\,
+               (1-\hat{\pi}_{11})^{\,n_{10}}\hat{\pi}_{11}^{\,n_{11}}}
+  \;\xrightarrow{d}\; \chi^2_{1},
+  \label{eq:christ_ind}
+\end{equation}
+where $i,j\in\{0,1\}$ index the previous and current violation state, $n_{ij}$
+are the four transition counts, $\hat{\pi}_{ij}$ is the probability of a
+violation in $t$ given state $i$ in $t-1$ and $\hat{\pi}$ pools both states.
+Under the null the two conditional rates coincide, so a violation carries no
+information about the next one. Combining the two null hypotheses gives the
+joint conditional-coverage test
+\begin{equation}
+  \mathrm{LR}_{\mathrm{cc}} \;=\;
+  \mathrm{LR}_{\mathrm{uc}} + \mathrm{LR}_{\mathrm{ind}}
+  \;\xrightarrow{d}\; \chi^2_{2},
+  \label{eq:christ_cc}
+\end{equation}
+which tests the correct rate and independence at once, so two degrees of
+freedom.
+\paragraph{Dynamic quantile.}
+The DQ test of \textcite{engle2004caviar} checks whether violations can be
+predicted from their own past and from the interval width. It collects the demeaned
+hits $\mathrm{Hit}_t = I_t - \alpha$ in the vector
+$\mathbf{Hit}=(\mathrm{Hit}_1,\dots,\mathrm{Hit}_T)^{\!\top}$ and regresses them on
+the instrument matrix $Z$ whose $t$-th row is
+$z_t=\big(1,\,\mathrm{Hit}_{t-1},\dots,\mathrm{Hit}_{t-4},\,\hat{u}_t-\hat{l}_t\big)$
+(a constant, four lagged hits, and the interval width). The statistic is
+\begin{equation}
+  \mathrm{DQ} \;=\;
+  \frac{\mathbf{Hit}^{\!\top} Z\,(Z^{\!\top} Z)^{-1} Z^{\!\top}\mathbf{Hit}}
+       {\alpha\,(1-\alpha)}
+  \;\xrightarrow{d}\; \chi^2_{q},
+  \label{eq:dq}
+\end{equation}
+where $\mathrm{Hit}_t=I_t-\alpha$ is the centred violation, $[\hat{l}_t,\hat{u}_t]$
+are the interval bounds, $Z$ is the $T\times q$ matrix of instruments, and
+$q=6$ is its number of columns (constant, four lags, width), which sets the
+degrees of freedom. Under the null every coefficient of the regression of
+$\mathbf{Hit}$ on $Z$ is zero, so violations are unpredictable in mean.
+\paragraph{Multiplicity.}
+Each cell (model\,$\times$\,regime\,$\times$\,seed\,$\times$\,method\,$\times$\,country)
+yields one $p$-value per test, so we adjust across the $m$ cells with the
+Benjamini--Hochberg procedure \parencite{benjamini1995fdr}. For sorted
+$p$-values $p_{(1)}\le\dots\le p_{(m)}$ the adjusted value ($q$-value) is
+\begin{equation}
+  q_{(i)} \;=\; \min_{j\,\ge\, i}\,
+  \min\!\Big(\tfrac{m}{j}\,p_{(j)},\,1\Big),
+  \label{eq:bhfdr}
+\end{equation}
+where $m$ is the number of cells in the family, $p_{(j)}$ the $j$-th smallest
+$p$-value, and $q_{(i)}$ the false-discovery-rate-controlled value reported for
+cell $i$. A cell fails the calibration test when $q_{(i)} < 0.10$; the
+admissibility gate of \cref{def:gate} treats the calibration null as retained
+when $q_{(i)}\ge 0.10$.
+%------------------------------------------------------------------------
+\subsection{Formal forecast comparison}
+\label{sec:eval:comparison}
+%------------------------------------------------------------------------
+% Das ist das inhaltlich dichteste Unterkapitel -- hier haengen die RQs dran.
+%
+% WAS HIER STEHT:
+%  A) PAARWEISE, PRO LAND: Diebold-Mariano auf Winkler-DIFFERENTIALEN
+%     (Loss-Differential d_t = W_A,t - W_B,t), mit Harvey-Leybourne-Newbold
+%     Small-Sample-Korrektur fuer h=1. -> dieboldmariano1995 + harvey1997.
+%     Optional Giacomini-White als konditionaler Test. -> giacomini2006.
+%     Nur auf dem COMMON SAMPLE (n_common Monate).
+%     >>> CAVEAT-Satz (Diebold 2015): DM ist ein Test der Prognosen, nicht
+%         der Modelle; bei genesteten Modellen mit geschaetzten Parametern
+%         mit Vorsicht. Hier unkritisch, weil wir Prognose-Outputs (nicht
+%         Populationsmodelle) vergleichen -- aber ehrlich erwaehnen.
+%  B) PANEL-EBENE: um 10 korrelierte Laender NICHT als 10 unabhaengige
+%     Tests zu zaehlen: Querschnittsmittel des Loss-Differentials JE MONAT
+%     dbar_t = (1/10) sum_c d_{c,t}, dann t-Test auf dbar_t mit
+%     Newey-West-HAC (Lag 3) gegen Autokorrelation. -> newey1987.
+%     Das ist der ehrliche Ersatz fuer naive Laenderzaehlung.
+%  C) VORREGISTRIERTE KONTRASTFAMILIEN (jede mit EIGENER BH-FDR):
+%       RQ3: method vs native            (Nutzen der CP-Schicht)
+%       RQ1: G vs L, GF vs G, GF vs G+I  (Pooling / Fine-Tuning)
+%       RQ2: model vs _const-Zwilling    (adaptive Breite vs const-width)
+%       F10: arma vs arma_monthly        (Refit-Frequenz)
+%     Betonen: ex ante festgelegt -> keine p-hacking-Anfaelligkeit.
+%  D) POST-HOC-FAMILIE XM (cross-model): beste valide Pakete je Familie
+%     paarweise (z.B. tirex2 vs lgbm/G). EIGENE FDR-Familie UND expliziter
+%     Anti-Konservativitaets-/Selektions-Caveat: die Pakete wurden AUF den
+%     Testdaten als "beste" gewaehlt -> Inferenz optimistisch, nur
+%     deskriptiv/explorativ lesen. Das MUSS dastehen (Ehrlichkeit).
+%  E) Kennzahl je Kontrast: normalisiertes mittleres Differential d_norm
+%     (= mean d / mean W_ref), share_a_better (Anteil Laender mit A besser),
+%     Median-p ueber Laender. Genau die Groessen, die im Results-Text
+%     zitiert werden (z.B. tirex2_cov - tirex2: d_norm -0.0002, share 0.5,
+%     p 0.46) -- HIER nur definieren, nicht beziffern.
+%
+% ZAHLEN AUS:
+%   dm_pairwise_tests.parquet (342029 x 12): family, model, country,
+%       method_1, method_2, n_common, mean_loss_1, mean_loss_2,
+%       dm_stat, pval_dm, gw_stat, pval_gw
+%   dm_contrasts / dm_contrasts_panel (Notebook-Output je Kontrastfamilie;
+%       liefert d_norm, share_a_better, Median-p, Newey-West-Panel-t)
+%       -> nach dem Rebuild pruefen, exakter Dateiname im diagnostics-NB.
+%
+% ZITATE: dieboldmariano1995, harvey1997, giacomini2006, newey1987,
+%   benjamini1995fdr, diebold2015 (Caveat -- optional/THESIS).
+
+% TODO Prosa A-E. Optional die DM-HLN-Statistik ausschreiben:
+% DM = dbar / sqrt( (HLN-korrigierte LRV) / n ),  d_t = W_{A,t} - W_{B,t}.
+
+% >>> THESIS-ONLY >>>
+% - DM-Teststatistik + HLN-Korrekturfaktor formal ausschreiben.
+% - Giacomini-White-Konditionaltest formal (nur Thesis).
+% - Tabelle "Kontrastfamilie -> Hypothese -> FDR-Familie" (RQ1/RQ2/RQ3/F10/XM).
+% - Absatz zur Panel-vs-pooled-Frage: warum Querschnittsmittel + NW statt
+%   Two-Way-Clustering (Rechtfertigung der einfachen Wahl).
+% <<< THESIS-ONLY <<<
+
+% [arXiv-Kuerzung]: A-D in EINEM Absatz (DM/HLN je Land; Panel-t mit NW-Lag-3;
+%   vorregistrierte Familien RQ1-3+F10; XM post hoc mit eigener FDR + Caveat).
+%   E als ein Satz. Statistik-Formeln raus.
+
+
+%------------------------------------------------------------------------
+\subsection{Model Confidence Set}
+\label{sec:eval:mcs}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. MCS-Idee: Menge der Modelle, die auf Konfidenzniveau (1 - alpha_MCS)
+%     NICHT statistisch vom besten unterscheidbar sind. Statistik: T_max
+%     (Range-Statistik) mit Moving-Block-Bootstrap. -> hansen2011mcs.
+%  2. Konfiguration EXAKT: Block-Laenge 6, 1000 Bootstrap-Draws,
+%     alpha_MCS = 0.10. Block-Bootstrap wegen Autokorrelation der
+%     Loss-Differentiale. -> kunsch1989mbb (Moving-Block-Bootstrap).
+%  3. KURATIERTER Kandidatensatz (methodische Kernentscheidung!): bestes
+%     VALIDES Paket je Modell x Regime + RW-Referenz, NICHT alle 742
+%     Kombinationen. Begruendung: mit 742 hoch-korrelierten Kandidaten ist
+%     die MCS nicht trennscharf (fast alles bleibt drin). Tradeoff ehrlich:
+%     Kuratierung ist eine Vorentscheidung -> muss vorregistriert/begruendet
+%     sein, sonst Selektionsverzerrung.
+%  4. Berichtet: mcs_in_set (0/1) + mcs_pval je Kandidat; im Results als
+%     "welche Pakete ueberleben die MCS".
+%
+% ZAHLEN AUS:
+%   mcs_results.parquet (5258 x 7): family, model, country, method,
+%       mcs_in_set, mcs_pval, mean_loss
+%   master_summary.parquet -> mcs_inclusion_rate (Aggregat)
+%
+% ZITATE: hansen2011mcs, kunsch1989mbb.
+
+% TODO Prosa 1-4. Loss fuer die MCS = Winkler (konsistent mit 7.1),
+%   pro Land berechnet, Kandidaten = kuratierte Pakete.
+
+% [arXiv-Kuerzung]: 2-3 Saetze (MCS T_max, MBB Block 6 / 1000 draws /
+%   alpha 0.10, kuratierter Kandidatensatz + Begruendung).
+
+
+%------------------------------------------------------------------------
+\subsection{Regime-conditional analysis}
+\label{sec:eval:regime}
+%------------------------------------------------------------------------
+% WAS HIER STEHT (drei Regime-Achsen, alle strikt leakage-frei):
+%  1. Kalenderregime: QE-Aera (bis 2021-12) vs Hiking/QT (ab 2022-01).
+%     Ein Satz oekonomische Motivation (Politikregime bricht die Dynamik).
+%  2. Volatilitaets-Terzile: rollierende 12-Monats-Std der REALISIERTEN
+%     Delta-Spreads, NUR Vergangenheit (shift(1)!), in Terzile geschnitten.
+%     -> "nur Vergangenheit" explizit betonen (kein Look-ahead).
+%  3. VIX-Stress: VIX > 20 (macht ~28% der Testmonate aus). -> fred_vixcls.
+%  4. Ausgewertet WIRD pro Regime: Coverage + Sharpness neu berechnet;
+%     zentrale Groesse "stress coverage drop" = Coverage(Stress) -
+%     Coverage(Ruhe). Bootstrap-CI fuer das Delta (stress_delta_bootstrap).
+%  5. F13-Komplexitaetshypothese explizit als Testfrage benennen: verliert
+%     der Komplexitaetsvorsprung komplexer Modelle im Stress? (low-VIX vs
+%     high-VIX Skill-Differenz) -> im Results beziffern, hier nur ankuendigen.
+%
+% ZAHLEN AUS:
+%   regime_definition.parquet (48 x 4): vol_value, vol_regime (calm|stressed),
+%       event_label, joint_regime
+%   stress_delta_bootstrap.parquet (Bootstrap-CI der Stress-Deltas)
+%   master_summary.parquet -> stress_cov_drop
+%   coverage_diagnostics.parquet (fuer regime-geschnittene Coverage, falls
+%       das NB regime-konditional ausgibt)
+%
+% ZITATE: fred_vixcls (VIX-Quelle). Kalender-/QE-Datierung ggf. krishnamurthy2018.
+%   Volatilitaets-Terzil-Konstruktion braucht kein Zitat (eigene Definition).
+
+% TODO Prosa 1-5. Betonen: alle drei Achsen shift(1)/ex-ante -> kein Leakage.
+
+% >>> THESIS-ONLY >>>
+% - Regime-Timeline-Abbildung (fig_regime_timeline) beschreiben.
+% - Formale Definition der Terzil-Schwellen + Umgang mit Regime-Grenzen.
+% - F13 als eigene Unterhypothese mit Vorhersage ausschreiben.
+% <<< THESIS-ONLY <<<
+
+% [arXiv-Kuerzung]: 1 Absatz (drei Regime-Achsen + stress coverage drop +
+%   F13-Frage in einem Satz).
+
+
+%------------------------------------------------------------------------
+\subsection{Economic evaluation (supplementary)}
+\label{sec:eval:economic}
+%------------------------------------------------------------------------
+% WICHTIG: Dieser Block ist ERGAENZEND und wird NIE zum Rangkriterium
+% (STRUKTURVORGABE + CLAUDE.md: Coverage/Winkler entscheiden, nicht Sharpe).
+% Ein einleitender Satz muss das explizit sagen, sonst missversteht der
+% Leser die Story.
+%
+% WAS HIER STEHT:
+%  1. Kapital-Proxy (Basel-Stil): Intervallbreite RELATIV zur breitesten
+%     validen Benchmark je Land (capital_ratio = width / baseline_width).
+%     Interpretation: schmalere valide Intervalle = weniger regulatorisches
+%     Kapital fuer dieselbe Absicherung. NUR Proxy -> nennen, nicht als
+%     echte RWA-Rechnung verkaufen. Optional bcbs2019mar zitieren.
+%  2. Intervallbasierte Handelsregel: aktiv, wenn s_{t-1} AUSSERHALB des
+%     Intervalls liegt (Signal: Mean-Reversion erwartet); Position =
+%     sign x (Funktion der Breite); annualisierter Sharpe. Ein Satz, dass
+%     das eine STILISIERTE Regel ist (Transaktionskosten/Liquiditaet
+%     ignoriert), also nur relativer Methodenvergleich.
+%
+% ZAHLEN AUS:
+%   capital_efficiency.parquet (5258 x 14): + baseline_width, capital_ratio
+%   carry_trade.parquet (5258 x 10): sharpe, n, mean_pnl, std_pnl,
+%       active_share, method_tier
+%   master_summary.parquet -> median_sharpe
+%
+% ZITATE: bcbs2019mar (Basel-Kontext -- optional/THESIS). Sonst keine.
+
+% TODO Prosa 1-2 mit dem "nie Rangkriterium"-Vorbehalt an Position 1.
+
+% [arXiv-Kuerzung]: auf 2-3 Saetze eindampfen (Kapital-Proxy + Handelsregel-
+%   Sharpe als reine oekonomische Illustration, ausdruecklich sekundaer).
+%   Bei sehr knappem arXiv-Limit: ganzes Unterkapitel streichbar -> dann
+%   1 Fussnote im Results.
+
+
+%------------------------------------------------------------------------
+\subsection{Robustness protocol}
+\label{sec:eval:robustness}
+%------------------------------------------------------------------------
+% WAS HIER STEHT (Liste der Robustheits-Checks; Ergebnisse -> Results 8.8):
+%  1. CP-Pool-Fenster: Primaerfall rolling 36; Robustheit rolling 24/48 +
+%     expanding (nur fuer pool-lesende Methoden -- Verweis \cref{sec:conformal}).
+%     Berichtet: aendert sich das Ranking? (Spearman-rho der Rankings).
+%  2. ex-IE-Reaggregation: Ranking-Mediane OHNE Irland neu bilden
+%     (Leprechaun-/IP-Verzerrung, vgl. Data-Limitations); Spearman-rho des
+%     Rankings mit vs. ohne IE als Stabilitaetsmass.
+%  3. Seed-Spannen: nur fuer NN-Modelle (Seeds 42/43/44); berichte
+%     Skill-Spanne ueber Seeds, um Zufallsanteil vom Effekt zu trennen.
+%  4. Burn-in-Diagnostik: Coverage in den ersten 36 Testmonaten vs. Rest
+%     (F11) -> prueft, ob die Burn-in-Doppelrolle (HPO-Val = CP-Init) das
+%     fruehe Testfenster verzerrt. Selbstlimitierend, ehrlich ausweisen.
+%
+% ZAHLEN AUS:
+%   Pool-Fenster: separate Run-Artefakte je Fenster (rolling24/36/48/expanding)
+%   ex-IE: Reaggregation im diagnostics-NB (Spearman-rho)
+%   Seeds: per_target_results_*.parquet ueber Seeds gruppiert
+%   Burn-in: coverage_diagnostics ueber Zeitfenster geschnitten
+%   (F8/F11/F13-Story-IDs stehen in story_candidates.txt)
+%
+% ZITATE: keine neuen Pflichtzitate. IE-Verzerrung ggf. mit Quelle belegen
+%   (siehe TODO unten -- offener Punkt).
+
+% TODO Prosa 1-4 als kompakte Liste/Absatz. Jeder Check = 1 Satz Motivation
+%   + 1 Satz Kennzahl.
+
+% [arXiv-Kuerzung]: 1 Absatz mit 4 Stichpunkten inline ("Pool-Fenster 24/36/48
+%   + expanding, ex-IE, Seed-Spannen, Burn-in-Coverage").
+
+
+%========================================================================
+%  REPORTING MAP -- Metrik-Konsistenz-Kontrolle (fuer dich, nicht fuers Paper)
+%  Jede Metrik oben MUSS hier genau eine Quelle+Ergebnis-Spalte haben.
+%  Wenn eine Zeile keinen Results-Ort hat -> Metrik streichen.
+%------------------------------------------------------------------------
+%  Metrik (Def. in) ............ Quelle (diagnostics_output/) ......... Results-Ort
+%  Winkler-Skill (7.1/7.2) ...... master_summary.mean_winkler .......... Haupt-Ranking-Tab + skill_heatmap
+%  Sharpness/Penalties (7.1) .... winkler_decomposition.* .............. Winkler-Decomp-Fig
+%  Coverage + q-Werte (7.3) ..... coverage_diagnostics.* ............... Coverage-Heatmap + Gate
+%  MAE/RMSE-Ratio (7.2) ......... predictions/* vs RW .................. Punkt-vs-Intervall-Absatz
+%  DM/Panel-Kontraste (7.4) ..... dm_pairwise_tests.* / dm_contrasts ... RQ1/RQ2/RQ3/XM-Tabellen
+%  MCS (7.5) .................... mcs_results.* ........................ MCS-Inclusion-Fig
+%  Stress-cov-drop (7.6) ........ master_summary.stress_cov_drop ....... Stress-Degradation-Fig
+%  Kapital/Sharpe (7.7) ......... capital_efficiency.* / carry_trade.* . Oekonomie-Absatz (sekundaer)
+%  Pool/ex-IE/Seed/Burn-in (7.8)  Run-Artefakte + Reaggregation ........ Robustheits-Absatz
+%========================================================================
+
+
+%========================================================================
+%  FEHLENDE BIBTEX-EINTRAEGE -- vor dem Einreichen nach references.bib kopieren.
+%  (Auf Wunsch NICHT automatisch in references.bib eingefuegt; hier als
+%   fertige Bloecke.) Keys stimmen mit den \parencite/\textcite oben ueberein.
+%  Seitenzahlen/DOIs sind gesetzt, wo bekannt -- vor Abgabe gegenpruefen.
+%------------------------------------------------------------------------
+%
+% @article{benjamini1995fdr,
+%   title   = {Controlling the False Discovery Rate: A Practical and Powerful
+%              Approach to Multiple Testing},
+%   author  = {Benjamini, Yoav and Hochberg, Yosef},
+%   journal = {Journal of the Royal Statistical Society: Series B (Methodological)},
+%   volume  = {57}, number = {1}, pages = {289--300}, year = {1995}
+% }
+%
+% @article{newey1987,
+%   title   = {A Simple, Positive Semi-Definite, Heteroskedasticity and
+%              Autocorrelation Consistent Covariance Matrix},
+%   author  = {Newey, Whitney K. and West, Kenneth D.},
+%   journal = {Econometrica}, volume = {55}, number = {3}, pages = {703--708},
+%   year    = {1987}
+% }
+%
+% @article{pesaran1992,
+%   title   = {A Simple Nonparametric Test of Predictive Performance},
+%   author  = {Pesaran, M. Hashem and Timmermann, Allan},
+%   journal = {Journal of Business \& Economic Statistics},
+%   volume  = {10}, number = {4}, pages = {461--465}, year = {1992}
+% }
+%
+% @article{kunsch1989mbb,
+%   title   = {The Jackknife and the Bootstrap for General Stationary Observations},
+%   author  = {K{\"u}nsch, Hans R.},
+%   journal = {The Annals of Statistics}, volume = {17}, number = {3},
+%   pages   = {1217--1241}, year = {1989}
+% }
+%
+% @article{gneiting2007,
+%   title   = {Strictly Proper Scoring Rules, Prediction, and Estimation},
+%   author  = {Gneiting, Tilmann and Raftery, Adrian E.},
+%   journal = {Journal of the American Statistical Association},
+%   volume  = {102}, number = {477}, pages = {359--378}, year = {2007},
+%   doi     = {10.1198/016214506000001437}
+% }
+%
+% @article{gneiting2007sharpness,
+%   title   = {Probabilistic Forecasts, Calibration and Sharpness},
+%   author  = {Gneiting, Tilmann and Balabdaoui, Fadoua and Raftery, Adrian E.},
+%   journal = {Journal of the Royal Statistical Society: Series B (Statistical
+%              Methodology)},
+%   volume  = {69}, number = {2}, pages = {243--268}, year = {2007},
+%   doi     = {10.1111/j.1467-9868.2007.00587.x}
+% }
+%
+% ---- OPTIONAL / THESIS-ONLY (nur zitieren, wenn du den Satz wirklich schreibst) ----
+%
+% @article{hyndman2006mase,
+%   title   = {Another Look at Measures of Forecast Accuracy},
+%   author  = {Hyndman, Rob J. and Koehler, Anne B.},
+%   journal = {International Journal of Forecasting},
+%   volume  = {22}, number = {4}, pages = {679--688}, year = {2006},
+%   doi     = {10.1016/j.ijforecast.2006.03.001}
+% }
+%
+% @article{diebold2015,
+%   title   = {Comparing Predictive Accuracy, Twenty Years Later: A Personal
+%              Perspective on the Use and Abuse of Diebold--Mariano Tests},
+%   author  = {Diebold, Francis X.},
+%   journal = {Journal of Business \& Economic Statistics},
+%   volume  = {33}, number = {1}, pages = {1--9}, year = {2015},
+%   doi     = {10.1080/07350015.2014.983236}
+% }
+%
+% @techreport{bcbs2019mar,
+%   title       = {Minimum Capital Requirements for Market Risk},
+%   author      = {{Basel Committee on Banking Supervision}},
+%   institution = {Bank for International Settlements},
+%   number      = {d457}, year = {2019},
+%   url         = {https://www.bis.org/bcbs/publ/d457.htm}
+% }
+%
+% OFFENER PUNKT (kein Pflicht-Zitat, aber wenn du die IE-/Leprechaun-Verzerrung
+% in 7.8 belegen willst, brauchst du EINE Quelle -- Vorschlag: CSO-Irland
+% "Modified GNI (GNI*)" oder eine methodische Note dazu. Frag mich, dann
+% suche ich einen sauberen, zitierfaehigen Beleg heraus.)
+%========================================================================

@@ -1,0 +1,215 @@
+% ... letztes reguläres Kapitel endet hier ...
+
+\appendix
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Selected (frozen) configurations per model and regime, chosen once on
+  the burn-in and held fixed for all refit blocks. RW and ARMA are deterministic;
+  the deep models additionally use seeds 42/43/44.}
+  \label{tab:app_frozen}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Model} & \textbf{Regime} & \textbf{Selected configuration} \\
+    \midrule
+    Random Walk & L  & ARMA(0,0), trend $=$ none (no free parameters) \\
+    \addlinespace
+    ARMA        & L  & per country: AT/BE/ES/FI/IE $(2,2)$; FR $(0,0)$; \\
+                &    & \quad GR $(3,2)$; IT $(3,0)$; NL $(2,3)$; PT $(3,3)$ \\
+    \addlinespace
+    LightGBM    & L  & lag $\{1\}$, no rolling means, lr $0.15$, num\_leaves $7$, \\
+                &    & \quad max\_depth $-1$, min\_data\_in\_leaf $5$, feature\_fraction $0.78$, \\
+                &    & \quad bagging\_fraction $0.51$, $\lambda_1\,0.019$, $\lambda_2\,0.34$ \\
+    \addlinespace
+    LightGBM    & G  & lag $\{1\}$, rolling means, lr $0.083$, num\_leaves $15$, \\
+                &    & \quad max\_depth $3$, min\_data\_in\_leaf $40$, feature\_fraction $0.53$, \\
+                &    & \quad bagging\_fraction $0.74$, $\lambda_1\,0.013$, $\lambda_2\,8.1\times10^{-6}$ \\
+    \addlinespace
+    LSTM        & L  & lookback $3$, hidden $64$, $29$ epochs \\
+    LSTM        & G  & lookback $3$, hidden $32$, $10$ epochs \\
+    LSTM        & GF & init from G, lr $\times 0.1$, $20$ fine-tune epochs \\
+    \addlinespace
+    xLSTM       & L  & lookback $3$, mLSTM, $1$ block, dim $32$, $5$ epochs \\
+    xLSTM       & G  & lookback $24$, mLSTM, $3$ blocks, dim $64$, $1$ epoch \\
+    xLSTM       & GF & init from G, lr $\times 0.1$, $5$ fine-tune epochs \\
+    \addlinespace
+    TiRex-2     & ZS & zero-shot, no tuned parameters (variants \texttt{tirex2}, \texttt{tirex2\_cov}) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The search protocol is shared across all tuned models (\cref{tab:app_protocol});
+the model-specific search spaces are given in \cref{tab:app_nn_space}
+(sequence models) and \cref{tab:app_lgbm_space} (LightGBM). Every configuration
+is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Shared hyperparameter-search protocol.}
+  \label{tab:app_protocol}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Setting} & \textbf{Value} \\
+    \midrule
+    Search algorithm            & Optuna, TPE sampler (seed 42) \\
+    Trials per study            & 100 (20 random start-up trials) \\
+    Pruner                      & MedianPruner (20 start-up trials, 3 warm-up steps) \\
+    Studies                     & one per regime (L, G) \\
+    Selection window            & train $\le$ month 114, validate months 115--150 \\
+    Selection metric            & mean standardized-$\Delta$ pinball loss, averaged over countries \\
+    Epoch ceiling / early stop (NN) & 100 epochs / patience 15, restore-best \\
+    Boosting-round early stop (LightGBM) & 50 rounds \\
+    GF fine-tuning              & learning rate $\times\,0.1$, epochs from $\{5,10,20,40\}$ \\
+    Country embedding dim (NN, regime G) & 8 \\
+    Seeds                       & 42, 43, 44 \\
+    Information-horizon cap     & 24 months \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Sequence-model hyperparameter search spaces. Shared rows are
+  identical by design; ``---'' marks a parameter that does not exist for that
+  architecture.}
+  \label{tab:app_nn_space}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Hyperparameter} & \textbf{LSTM} & \textbf{xLSTM} \\
+    \midrule
+    lookback\_window       & $\{3,6,12,18,24\}$ & $\{3,6,12,18,24\}$ \\
+    learning\_rate         & $[10^{-4},10^{-2}]$ log & $[10^{-4},10^{-2}]$ log \\
+    weight\_decay          & $[10^{-6},10^{-2}]$ log & $[10^{-6},10^{-2}]$ log \\
+    batch\_size            & $\{16,32,64\}$ & $\{16,32,64\}$ \\
+    gradient\_clip         & $[0.5,5.0]$ & $[0.5,5.0]$ \\
+    optimizer              & \{adam, adamw\} & \{adam, adamw\} \\
+    scheduler              & \{none, cosine\} & \{none, cosine\} \\
+    dropout                & $[0.0,0.4]$ & $[0.0,0.4]$ \\
+    hidden / embedding dim & $\{32,64,128\}$ & $\{32,64,128\}$ \\
+    depth                  & num\_layers $\{1,2,3\}$ & num\_blocks $\{1,2,3,4\}$ \\
+    arch                   & --- & \{mlstm\_only, mixed\} \\
+    conv1d\_kernel\_size   & --- & $\{3,5,7\}$ ($\le$ lookback) \\
+    num\_heads             & --- & $\{2,4\}$ \\
+    qkv\_proj\_blocksize   & --- & $\{2,4\}$ \\
+    proj\_factor (mLSTM)   & --- & $[1.0,2.5]$ \\
+    proj\_factor (sLSTM)   & --- & $[1.0,1.5]$ \\
+    activation             & --- & \{gelu, relu\} \\
+    bias\_init             & --- & \{powerlaw\_blockdependent, small\_init, standard\} \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{LightGBM hyperparameter search space. A booster is fitted per
+  quantile. \texttt{lag\_set} selects one of the six nested lag sets
+  $\{1\},\{1,2\},\{1,2,3\},\{1,2,3,6\},\{1,2,3,6,12\},\{1,2,3,6,12,24\}$;
+  in regime G the country enters as a native categorical feature.}
+  \label{tab:app_lgbm_space}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Hyperparameter} & \textbf{Range} \\
+    \midrule
+    lag\_set          & one of six nested sets (see caption) \\
+    rolling\_means    & \{true, false\} (means over $\{3,6,12\}$ months) \\
+    learning\_rate    & $[0.01, 0.3]$ log \\
+    num\_leaves       & $\{7, 15, 31\}$ \\
+    max\_depth        & $\{-1, 3, 5, 7\}$ \\
+    min\_data\_in\_leaf & $\{5, 10, 20, 40\}$ \\
+    feature\_fraction & $[0.5, 1.0]$ \\
+    bagging\_fraction & $[0.5, 1.0]$ \\
+    lambda\_l1        & $[10^{-8}, 10]$ log \\
+    lambda\_l2        & $[10^{-8}, 10]$ log \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ============================================================
+% APPENDIX — FROZEN HYPERPARAMETERS
+% ============================================================
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Frozen neural-network hyperparameters, one column per model and
+  regime. Values marked ``---'' do not apply to that architecture. ``Depth''
+  is the number of xLSTM blocks / LSTM layers; ``width'' is the xLSTM embedding
+  dimension / LSTM hidden size. Frozen epochs are the production epoch counts
+  taken from the winning trial. GF fine-tuning uses learning rate $\times\,0.1$.}
+  \label{tab:app_frozen_nn}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    & \textbf{xLSTM (L)} & \textbf{xLSTM (G)} & \textbf{LSTM (L)} & \textbf{LSTM (G)} \\
+    \midrule
+    Lookback window $W$        & 3     & 24    & 3     & 3 \\
+    Architecture               & mLSTM-only & mLSTM-only & --- & --- \\
+    Depth (blocks / layers)    & 1     & 3     & 1     & 2 \\
+    Width (embed. / hidden)    & 32    & 64    & 64    & 32 \\
+    conv1d kernel size         & 3     & 7     & ---   & --- \\
+    Heads                      & 2     & 2     & ---   & --- \\
+    qkv projection blocksize   & 4     & 4     & ---   & --- \\
+    Projection factor (mLSTM)  & 2.13  & 2.36  & ---   & --- \\
+    Bias init                  & powerlaw & powerlaw & --- & --- \\
+    Activation (block FFN)     & gelu  & gelu  & ---   & --- \\
+    Dropout                    & 0.037 & 0.265 & 0.343 & 0.030 \\
+    Learning rate              & $3.46\times10^{-3}$ & $2.95\times10^{-4}$ & $2.01\times10^{-4}$ & $1.98\times10^{-3}$ \\
+    Weight decay               & $1.16\times10^{-3}$ & $6.23\times10^{-5}$ & $1.87\times10^{-4}$ & $1.54\times10^{-4}$ \\
+    Batch size                 & 64    & 16    & 16    & 32 \\
+    Gradient clip              & 3.23  & 2.03  & 4.36  & 4.82 \\
+    Optimizer                  & Adam  & Adam  & AdamW & Adam \\
+    LR scheduler               & none  & none  & none  & cosine \\
+    Frozen epochs (production) & 5     & 1     & 29    & 10 \\
+    GF fine-tune epochs        & ---   & 5     & ---   & 20 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Frozen LightGBM hyperparameters. One booster is fitted per quantile.
+  The lag set is the tabular replacement for a lookback window; rolling means are
+  taken over $\{3,6,12\}$ months. \texttt{max\_depth}${}=-1$ means no depth limit
+  (leaf-wise growth is bounded by \texttt{num\_leaves}).}
+  \label{tab:app_frozen_lgbm}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    \textbf{Hyperparameter} & \textbf{L} & \textbf{G} \\
+    \midrule
+    Lag set              & $\{1\}$ & $\{1\}$ \\
+    Rolling means        & no    & yes \\
+    Learning rate        & 0.153 & 0.083 \\
+    \texttt{num\_leaves} & 7     & 15 \\
+    \texttt{max\_depth}  & $-1$  & 3 \\
+    \texttt{min\_data\_in\_leaf} & 5 & 40 \\
+    Feature fraction     & 0.776 & 0.532 \\
+    Bagging fraction     & 0.514 & 0.735 \\
+    $\lambda_{L1}$       & 0.0185 & 0.0125 \\
+    $\lambda_{L2}$       & 0.341 & $8.11\times10^{-6}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Frozen ARIMA orders per country, selected by AIC over
+  $(p,q)\in\{0,\dots,3\}^2$ on the differenced target (regime L only). France
+  collapses to $(0,0)$, i.e.\ a random walk on the differenced series. The Random
+  Walk itself has no tunable hyperparameters.}
+  \label{tab:app_frozen_arma}
+  \begin{tabular}{@{}lcccccccccc@{}}
+    \toprule
+    & AT & BE & ES & FI & FR & GR & IE & IT & NL & PT \\
+    \midrule
+    $p$ & 2 & 2 & 2 & 2 & 0 & 3 & 2 & 3 & 2 & 3 \\
+    $q$ & 2 & 2 & 2 & 2 & 0 & 2 & 2 & 0 & 3 & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% optional weitere Anhänge:
+\section{Additional descriptive statistics}
+\label{app:descriptive}
+
+% ... danach erst:
+\printbibliography   % (biblatex)  ODER  \bibliography{...} (bibtex)

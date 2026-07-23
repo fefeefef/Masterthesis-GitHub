@@ -1,0 +1,80 @@
+%========================================================================
+%  Master Thesis / Working Paper -- Main file
+%  xLSTM & Conformal Prediction for Sovereign Credit Spread Forecasting
+%  TU Wien, MSc Financial & Insurance Mathematics
+%
+%  Overleaf import:  zip this folder and "Upload Project", OR sync via GitHub.
+%  Compile with pdfLaTeX (Menu -> Recompile). Uses biblatex+biber.
+%========================================================================
+\documentclass[11pt,a4paper]{article}
+
+%------------------------------------------------------------------ packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}                     % bold math symbols
+\usepackage{booktabs}               % professional tables
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{siunitx}                % aligned numbers in tables
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\usepackage{csquotes}
+\geometry{margin=2.5cm}
+
+%------------------------------------------------------------------ bibliography
+\usepackage[backend=biber,style=authoryear,natbib=true,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+
+%------------------------------------------------------------------ shortcuts
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Ind}{\mathbf{1}}       % indicator function
+\newcommand{\spread}{s}             % level spread
+\newcommand{\dspread}{\Delta s}     % delta spread (the modelling target)
+\newcommand{\alphamis}{\alpha}      % miscoverage level
+\DeclareMathOperator*{\Quantile}{Quantile}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+
+%========================================================================
+\begin{document}
+
+\title{Conformal Prediction Intervals for Sovereign Credit Spread
+Forecasting: An xLSTM and Foundation-Model Study}
+\author{Felix Neuwirth\\ \small TU Wien -- MSc Financial \& Insurance Mathematics}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+% TODO: 150--250 words. State (i) problem: distribution-free interval
+% forecasts for euro-area sovereign spreads; (ii) methods: benchmark suite
+% from random walk to xLSTM plus a zero-shot foundation model, wrapped in a
+% CQR-based conformal layer with adaptive recalibration; (iii) headline
+% finding + the contamination caveat for the zero-shot model.
+\end{abstract}
+
+% Sections 1-2 (Introduction, Related Work) live outside this skeleton for now.
+% \input{sections/introduction}
+% \input{sections/related_work}
+
+\input{sections/data}
+\input{sections/experimental_design}
+\input{sections/models}
+\input{sections/conformal}
+\input{sections/evaluation}
+
+% \input{sections/results}
+% \input{sections/conclusion}
+
+\input{sections/appendix}
+
+\printbibliography
+\end{document}

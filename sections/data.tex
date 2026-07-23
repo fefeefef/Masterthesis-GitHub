@@ -1,0 +1,230 @@
+%========================================================================
+\section{Data and Target Construction}
+\label{sec:data}
+
+% Flughöhe: Eine kompetente Person soll dies OHNE deinen Code reimplementieren
+% können. Beschreibe WAS und WARUM, nicht Funktionssignaturen.
+
+\subsection{Country universe and sample period}
+\label{sec:data:universe}
+
+We study monthly sovereign credit spreads for ten euro-area issuers
+(Austria, Belgium, Spain, Finland, France, Greece, Ireland, Italy, the
+Netherlands, and Portugal). The spread is the difference between the ECB-10y yield of a country and Germany (ECB dataset IRS, series key M.{cc}.L.L40.CI.0000.EUR.N.Z). The sample runs from 2003-04
+to 2026-04: the start is the first month, and the end the last month, in which
+all required data points are simultaneously available.
+
+Greece is an exception. In 2015-07 there was no market data because of the
+capital controls during the Greek crisis. This missing window is carried forward and doesn't lie in the test set. A second limitation of including Greece is the 2012 private-sector
+involvement, which produced a structural break in the spread data.
+
+\subsection{Target variable: delta-spreads}
+\label{sec:data:target}
+
+Let $\spread_{i,t}$ denote the level credit spread of country $i$ at time
+$t$. All models are trained on the \emph{first difference}
+\begin{equation}
+  \dspread_{i,t} \;=\; \spread_{i,t} - \spread_{i,t-1},
+  \label{eq:delta-target}
+\end{equation}
+and every forecast is mapped back to level space before evaluation via
+\begin{equation}
+  \hat{\spread}_{i,t} \;=\; \spread_{i,t-1} + \widehat{\dspread}_{i,t}.
+  \label{eq:back-transform}
+\end{equation}
+Spreads are highly persistent, and taking the first difference removes this
+dominant persistence and avoids spurious level persistence. Evaluation is still
+performed in level space, via \cref{eq:back-transform}.
+
+\subsection{Feature groups and the leakage constraint}
+\label{sec:data:features}
+
+The feature selection is not part of this work, so we adhere to the features
+proposed in \textcite[ECB WP 1781]{afonso2015} with some additions. This is a
+good fit, since \textcite[ECB WP 1781]{afonso2015} investigates spread drivers
+for the same countries and the same monthly data structure that we forecast.
+One caveat is that they use data from 1999-01 to 2010-12, a period that does not
+even cover half of ours, and, as \textcite[ECB WP 1781]{afonso2015} themselves
+show, the predictors of credit spreads change over time.
+
+We use monthly industrial production growth as a monthly GDP proxy, since GDP
+growth is only available quarterly. This follows \textcite[ECB WP 1781]{afonso2015}.
+They use expected debt/GDP and fiscal balance/GDP instead of the realized values
+we use. Expected data would probably yield more signal, but they were not
+available to us. Because realized data are subject to revisions that inject
+information unknown at the reference date, we implement a lag dictionary to
+prevent this data leakage (\cref{sec:data:lags}). We would also have liked to
+use the bid-ask spread, but here too no free data were available.
+\Cref{tab:features_overview} lists all the features we use.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Feature catalogue: identifier, construction, scope and primary
+    source. Country fundamentals enter as differentials vs.\ Germany (DE);
+    global features are identical across all countries.}
+    \label{tab:features_overview}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}clllcl@{}}
+        \toprule
+        \textbf{\#} & \textbf{Identifier} & \textbf{Description} & \textbf{Construction} & \textbf{Scope} & \textbf{Source} \\
+        \midrule
+        1  & \texttt{spread\_lag}              & lagged own spread        & $s_{i,t-1}$                                                                  & local  & \parencite{afonso2015} \\
+        2  & \texttt{vix\_log}                 & log VIX                  & $\log(\mathrm{VIX})$                                                         & global & \parencite{afonso2015} \\
+        3  & \texttt{us\_baa\_aaa}             & Baa$-$Aaa corp.\ spread  & Moody's Baa $-$ Aaa                                                          & global & \parencite{bernoth2004sovereign} \\
+        4  & \texttt{us\_aaa\_treasury}        & US corp$-$Treasury       & Moody's Aaa $-$ 10y UST                                                      & global & \parencite{codogno2003yield} \\
+        5  & \texttt{epu\_log}                 & log EPU Europe           & $\log(\mathrm{EPU})$                                                         & global & \parencite{baker2016epu} \\
+        6  & \texttt{debt\_gdp}                & rel.\ debt/GDP           & $(\text{debt/GDP})_i-(\text{debt/GDP})_{\text{DE}}$                          & local  & \parencite{afonso2015} \\
+        7  & \texttt{debt\_gdp\_sq}            & rel.\ debt/GDP squared   & $(\text{debt/GDP}_i-\text{debt/GDP}_{\text{DE}})^{2}$                        & local  & \parencite{afonso2015} \\
+        8  & \texttt{vix\_log\_x\_debt}        & intl.\ risk $\times$ debt & $(\texttt{vix\_log}-\text{exp.\ mean})\times\texttt{debt\_gdp}(t{-}4)$        & local  & \parencite{afonso2015} \\
+        9  & \texttt{us\_aaa\_treasury\_x\_debt} & US risk $\times$ debt   & $(\texttt{us\_aaa\_treasury}-\text{exp.\ mean})\times\texttt{debt\_gdp}(t{-}4)$ & local  & \parencite{codogno2003yield} \\
+        10 & \texttt{fiscal\_balance}          & rel.\ fiscal balance     & 4Q-mean(B9), rel.\ DE                                                        & local  & \parencite{afonso2015} \\
+        11 & \texttt{debt\_service\_rev}       & interest / revenue       & 4Q-mean(D41PAY)\,/\,4Q-mean(TR), rel.\ DE                                    & local  & \parencite{bernoth2004sovereign} \\
+        12 & \texttt{ip\_growth\_yoy}          & IP growth YoY            & YoY \% growth of IP, rel.\ DE                                                & local  & \parencite{afonso2015} \\
+        13 & \texttt{reer\_log}                & log REER                 & $\log(\text{REER})_i-\log(\text{REER})_{\text{DE}}$                          & local  & \parencite{afonso2015} \\
+        14 & \texttt{liquidity\_share}         & rel.\ market size        & $\text{debt}_i/\sum_{j}\text{debt}_j$ (11 incl.\ DE)                         & local  & \parencite{bernoth2004sovereign} \\
+        15 & \texttt{target2\_gdp}             & TARGET2/GDP              & $(\text{TARGET2}/\text{GDP})\times100$                                       & local  & \parencite{degrauweji2013} \\
+        16 & \texttt{pc2\_core\_periph}        & 2nd principal comp.      & PC2 score (expanding, see text)                                             & global & \parencite{afonso2015} \\
+        17 & \texttt{rating\_num}              & sovereign rating         & $\text{rating}_i-\text{rating}_{\text{DE}}$ (1--17)                          & local  & \parencite{afonso2012sovereign} \\
+        \bottomrule
+    \end{tabular}%
+    }
+\end{table}
+
+\paragraph{Global risk factors.}
+\textcite[ECB WP 1781]{afonso2015} uses only the VIX as a global risk factor;
+we add three more. \textcite{codogno2003yield} showed that US credit risk is a
+spread driver in its own right, so we include \texttt{us\_aaa\_treasury}
+(Moody's Seasoned Aaa Corporate Yield $-$ 10y US Treasury), as well as the
+deviation of \texttt{us\_aaa\_treasury} from its average times the difference in
+debt/GDP ratio to Germany, as proposed by \textcite{codogno2003yield}; entering
+the deviation rather than the level avoids collinearity of this term with the
+debt term. \textcite{bernoth2004sovereign} identified Moody's Baa Corporate
+Yield $-$ Moody's Aaa Corporate Yield as an indicator of investor risk aversion
+and, by that, a driver of sovereign credit spreads. We also include the Economic
+Policy Uncertainty Europe index as a log. It measures how much newspapers report
+on economic uncertainty; its relevance in this context was shown by
+\textcite{bernal2016epu}.
+\footnote{We aimed to include the $us\_hy\_oas$ = US High Yield Option-Adjusted Spread as an indicator of the global risk tolerance, but without a license it was only available three years into the past.}
+
+\paragraph{Fiscal fundamentals and relative market size.}
+\textcite{bernoth2004sovereign} also identified interest expenditure / total
+government revenue (as a difference to Germany) and the outstanding debt of the
+country / sum of the debt of the 11 panel countries (incl.\ DE) as sovereign
+credit spread drivers, so we include them as well. The fiscal balance and the
+debt-service ratio have a strong seasonal character, as seen from a regression
+on seasonal dummies with $R^{2}=0.35$. We therefore replace the quarterly data
+by their trailing four-quarter mean, which removes the seasonal component
+(quarter-dummy $R^{2}\approx0$) while keeping the four-month publication lag. This had to be done since the Seasonally and Calendar Adjusted data was not available here and we had to resort to Non-Seasonally-Adjusted data. The industrial production (IP) index is available as a SCA series, while the fiscal block (government balance B9, interest payable D41PAY, and total revenue TR) relies on non-seasonally adjusted (NSA) data, since Eurostat (e.g., table $gov\_10q\_ggnfa$) does not provide adjusted series for all countries; we apply the trailing four-quarter moving average there as well. Other variables like the real effective exchange rate (REER) and sovereign debt levels inherently do not require seasonal adjustment. For the debt-service ratio, the numerator and denominator each receive the same
+treatment before dividing. The Eurostat quarterly government finance statistics
+are forward-filled until the next datapoint is available.
+
+\paragraph{Sovereign rating.}
+\textcite{afonso2012sovereign} has shown that the numeric sovereign rating on a
+scale of 1--17, as a difference to Germany
+($\text{rating}_i - \text{rating}_{\text{DE}}$), is also relevant, so we include
+it.
+
+\paragraph{Convertibility and capital flight.}
+The Trans-European Automated Real-time Gross settlement Express Transfer System,
+2nd generation, short TARGET2, is a market-based indicator of capital flight.
+\textcite{degrauweji2013} showed that the loss of investor confidence led to a
+bond sell-off and then a liquidity outflow in 2010--11. TARGET2 is what measures
+exactly the accounting counterpart of this liquidity outflow, as shown by
+\textcite{sinnwollmershaeuser2012,krishnamurthy2018}. We use
+$(\text{TARGET2}/\text{GDP})\times100$. \textcite{degrauweji2013} do not use
+TARGET2 as an empirical proxy for their theory. GDP itself is reconstructed as
+$\texttt{gov\_debt\_mio\_eur} / (\texttt{gov\_debt\_pct\_gdp}/100)$, since we
+already have both series.
+
+\paragraph{Country-specific risk.}
+The global risk factors above are identical across countries. To capture
+country-specific risk, we also implement a feature used in \textcite{afonso2015}:
+the deviation of the log VIX from its expanding mean, times the relative debt per
+country. Relative debt is again debt/GDP minus the same for Germany, and we again
+work with the realized debt instead of the expected.
+
+\paragraph{Cross-sectional heterogeneity.}
+\texttt{pc2\_core\_periph} is calculated from the z-standardised country data,
+with a 12-month refit on an expanding window of minimum 36 months. The loadings
+are anchored so that periphery countries always load positive. The missing value
+for Greece is handled by imputing 0. PC2 measures only the core--periphery
+contrast and is not a measure of monetary risk.
+
+Overall, the global features are the same for every country, while the local
+features change from country to country. Each country's data contains all the
+global features as well as the features specific to that country, so every
+country contributes the same 17 features.
+
+\subsection{Publication-lag protocol}
+\label{sec:data:lags}
+
+As already stated, we did not have access to vintage data and had to resort to later published, revised data instead. In the revision process, information can enter that was not yet available in the reference period. That is a form of data leakage we want to prevent. So we employ a lag dictionary: every datapoint in reference period $t$ is moved $k=\lceil \text{lag}/30\rceil$ full months forward, so we can only use the datapoint at $t + k$. Since we are always snapping to the end of the month, we risk overlagging by 29 to 30 days. The target itself is never lagged. Look-ahead bias still remains in the monthly average series (Moody's Aaa/Baa yields, EPU): they appear about 5 days into the next month. We still employ no time lag since we judge
+it negligible and record it here rather than leave it unstated.
+
+
+% Präambel: \usepackage{booktabs}
+\begin{table}[H]
+\centering
+\caption{Publication lag by feature. The shift we impose in real time is
+$k=\lceil \text{days}/30\rceil$ whole months on a month-end series
+(see Note).}
+\label{tab:publication-lags}
+\begin{tabular}{@{}p{4.3cm}p{1.2cm}p{1.4cm}p{5.3cm}@{}}
+\toprule
+\textbf{Feature(s)} & \textbf{Lag (d)} & \textbf{Shift (m)} & \textbf{Source} \\
+\midrule
+\texttt{vix\_log}                                   & 0    & 0  & \parencite{fred_vixcls} \\
+\texttt{epu\_log}$^{\dagger}$                        & 0    & 0  & \parencite[p.\,6, fn.\,8]{baker2016epu} \\
+\texttt{spread\_lag}, \texttt{pc2\_core\_periph}     & 0    & 0  & \parencite{ecb_irs_calendar} \\
+\texttt{us\_aaa\_treasury}$^{\dagger}$, \texttt{us\_baa\_aaa}$^{\dagger}$
+                                                     & 0    & 0  & \parencite{fed_h15_qa} \\
+\texttt{rating\_num}                                 & 0    & 0  & \parencite{spglobal_emea_calendar,afonsofurcerigomes2012} \\
+\texttt{reer\_log}                                   & 30   & 1  & \parencite{eurostat_erteff} \\
+\texttt{target2\_gdp}$^{\ddagger}$                    & 33   & 2  & \parencite{ecb_target_balances} \\
+\texttt{ip\_growth\_yoy}                             & 45   & 2  & \parencite{eurostat_ip_releases} \\
+\texttt{debt\_gdp}, \texttt{debt\_gdp\_sq},
+\texttt{liquidity\_share}                            & 113  & 4  & \parencite{eurostat_gov10qggdebt} \\
+\texttt{fiscal\_balance}, \texttt{debt\_service\_rev}& 113  & 4  & \parencite{eurostat_gov10qggnfa} \\
+\texttt{vix\_log\_x\_debt},
+\texttt{us\_aaa\_treasury\_x\_debt}$^{\ddagger}$      & --   & -- & \parencite{eurostat_gov10qggdebt} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\raggedright\footnotesize
+\textit{Note:} \emph{Lag (d)} reports the provider's documented publication
+delay after the reference period. \emph{Shift (m)} is the lag we actually
+impose, $k=\lceil \text{days}/30\rceil$ whole months, applied as a month-end
+shift of the feature within each country. The forecast target is never
+shifted. Because $k$ rounds up, no value enters the panel before it was
+released; the price we pay is up to roughly 29 days of over-lagging. \\[2pt]
+$^{\dagger}$ The monthly-average series (Moody's Aaa/Baa yields, EPU) appear
+about 5 days into the following month. At monthly frequency that delay rounds
+to a zero-month shift, so a look-ahead of a few days remains. We judge it
+negligible and record it here rather than leave it unstated. \\[2pt]
+$^{\ddagger}$ \emph{Split lag.} When an input combines two series with
+different release calendars, we lag each series on its own calendar before
+combining them. For \texttt{target2\_gdp} $=$ TARGET2$/$GDP the TARGET2
+numerator is shifted by 2 months and the GDP denominator (from quarterly EDP
+debt) by 4 months, which gives $\text{TARGET2}(t{-}2)/\text{GDP}(t{-}4)$. This
+holds the numerator, the part that moves fastest in a crisis, at its shortest
+defensible lag. The interaction terms follow the same logic: in
+$\text{global}(t)\times\text{debt}(t{-}4)$ the debt factor already carries its
+4-month (113 d) lag before it multiplies the contemporaneous global factor
+(lag 0), so we do not lag the product a second time.
+\end{table}
+
+\subsection{Final panel}
+\label{sec:data:panel}
+The final panel covers all 10 countries over 277 months, from 2003-04 to
+2026-04, giving a balanced $10 \times 277 = 2770$ country-month observations.
+Each country carries the same 17 features, of which 5 are global (identical
+across countries) and 12 are local (country-specific). The panel is stored in
+wide format: the index is the month-end date, and the columns are a MultiIndex
+of country and variable. It carries the spread level \emph{unshifted} and holds
+no pre-shifted target; the forecasting label $\dspread_{i,t+1}$ is constructed
+model-side (\cref{sec:data:target}). The only missing value is the Greek spread
+in 2015-07. The temporal train/test structure and the sequence construction are
+described in \cref{sec:model-setup}.
+
+

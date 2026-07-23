@@ -1,0 +1,202 @@
+
+
+%========================================================================
+\section{Experimental Design}
+\label{sec:model-setup}
+%========================================================================
+% One shared protocol for all models -> a fair comparison. This section
+% describes HOW models are trained and evaluated; the architectures are in
+% \cref{sec:models}, the conformal layer in \cref{sec:conformal}.
+
+\subsection{Forecasting task}
+\label{sec:exp:task}
+For each country $i$ and decision month $t$, the models produce three
+conditional quantiles of the one-month-ahead spread change $\dspread_{i,t+1}$
+at levels $\mathcal{T} = \{0.1, 0.5, 0.9\}$, giving a central
+$1-\alpha = 80\%$ prediction interval ($\alpha = 0.20$). The $0.5$ quantile
+serves as the point estimator. The pair $\{0.1, 0.9\}$ was chosen because the
+two pretrained models in the comparison, TiRex and TiRex-2, can only output the
+deciles $\{0.1, 0.2, \dots, 0.9\}$; $0.1$ and $0.9$ are therefore the widest
+levels available to every model without extrapolation. The trained quantile models, the deep models and LightGBM, are fitted with the
+pinball (quantile) loss:
+\begin{equation}
+  \mathcal{L}(\hat{q}, y) \;=\;
+  \frac{1}{|\mathcal{T}|}\sum_{\tau \in \mathcal{T}}
+  \max\!\big(\tau\,(y - \hat{q}_\tau),\; (\tau - 1)(y - \hat{q}_\tau)\big).
+  \label{eq:pinball}
+\end{equation}
+The point-forecast models (Random Walk and ARIMA) instead build their interval
+by adding the empirical quantiles of their in-sample residuals to the point
+forecast, which needs no distributional assumption.
+
+\subsection{Training regimes}
+\label{sec:exp:regimes}
+The deep models are trained in three regimes:
+\begin{itemize}
+  \item \textbf{L} (local): one model per country, trained on up to 277 monthly
+        observations per country.
+  \item \textbf{G} (global): one model on the pooled panel of up to 2770
+        country-months. The country identity is passed to the model, as a
+        learned embedding for the neural networks and as a native categorical
+        feature for LightGBM.
+  \item \textbf{GF} (global fine-tuned): the global model is fully fine-tuned
+        for each country at one tenth of the global training learning rate.
+\end{itemize}
+This gives a fair comparison between a local, a global and a specialised model.
+LightGBM uses only L and G, while the classical and zero-shot models use a
+single setting (\cref{tab:model_selection}).
+
+\subsection{Input sequences and scaling}
+\label{sec:exp:sequences}
+The input is the sequence of the last $W$ monthly feature vectors up to the
+decision month $t$, from which we estimate $\dspread_{t+1}$. Before feeding it to
+the model, we apply a per-country, per-feature (and per-target)
+$z$-standardisation, fitted only on the training window of each refit, so no
+future information enters the scaling. The single missing input (Greece,
+2015-07) is carried forward one month; the target and the evaluation are never
+imputed.
+
+\subsection{Rolling refit and temporal evaluation}
+\label{sec:exp:refit}
+We retrain all models on an expanding training set every 12 months. With the
+training cut off at month $C$, the same model forecasts months
+$C+1, C+2, \dots, C+12$ one step ahead, each using only the data available at
+that point. The first 114 months form the minimal training set. Months 115 to
+150 serve a double role: they are the burn-in set on which the conformal methods
+are calibrated (\cref{sec:conformal}), and the validation set for the
+hyperparameter optimisation. Evaluation takes place on months 151 to 277, that
+is 2015-10 to 2026-04, giving 127 test months per country.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Refit block structure. Burn-in blocks initialise the conformal
+    calibration pool and are not evaluated.}
+    \label{tab:refit_blocks}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Phase} & \textbf{Cutoff months} & \textbf{Forecast months} & \textbf{Evaluated} \\
+        \midrule
+        Burn-in & 114, 126, 138            & 115--150 & no  \\
+        Test    & 150, 162, \dots, 270     & 151--277 & yes \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hyperparameter selection}
+\label{sec:exp:hpo}
+The hyperparameter optimisation of all tuned models uses months 1 to 114 as the
+training set and months 115 to 150 as the validation set. Afterwards the
+hyperparameters are frozen and the models are retrained with them; no
+test-window information enters the hyperparameter selection. Every model with an
+information horizon is restricted to a shared maximum of 24 months, so that no
+model can use a longer lookback than the others. Wherever a loss had to be
+minimised, the selection criterion was the mean pinball loss on the standardised
+$\Delta$ scale, averaged across countries, over the burn-in validation months.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Model selection across families. All trainable models share the
+  refit-block structure, per-country scaling and the 24-month information cap;
+  they differ only as listed here.}
+  \label{tab:model_selection}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{}lllll@{}}
+    \toprule
+    \textbf{Family} & \textbf{Selection} & \textbf{Regimes} & \textbf{Info-horizon HP} & \textbf{Quantiles} \\
+    \midrule
+    Random Walk & none (ARMA(0,0) nesting)        & L        & ---                                   & empirical residuals \\
+    ARMA        & AIC grid, $(p,q)\in\{0..3\}^2$   & L        & $(p,q)$ orders                        & empirical residuals \\
+    LightGBM    & Optuna TPE, 100 trials           & L, G     & lag set $\subseteq\{1,2,3,6,12,24\}$  & quantile objective \\
+    LSTM        & Optuna TPE, 100 trials           & L, G, GF & lookback $\in\{3,6,12,18,24\}$        & pinball loss \\
+    xLSTM       & Optuna TPE, 100 trials           & L, G, GF & lookback $\in\{3,6,12,18,24\}$        & pinball loss \\
+    TiRex, TiRex-2 & none (zero-shot, pretrained)  & ---      & native context window                 & native quantiles \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+\paragraph{LSTM, xLSTM.}
+Both share the same protocol and differ only in architecture. The
+hyperparameters are tuned with Optuna (TPE sampler, seed 42, 20 start-up trials,
+MedianPruner with 20 start-up trials and 3 warm-up steps), using 100 trials per
+study and one study per regime (L, G). Within a trial, training runs for at most
+100 epochs with early stopping (patience 15). The epoch count of the winning
+trial is frozen (regime L: the median of the ten countries' best epochs; regime
+G: the best epoch), and all refits train that same epoch count without early
+stopping. The GF model is obtained by fine-tuning the G model at one tenth of the
+learning rate; the number of fine-tuning epochs is chosen once on the burn-in
+from the grid $\{5,10,20,40\}$. Three seeds (42, 43, 44) are run independently.
+(Selected: xLSTM L $W{=}3$/5 ep., G $W{=}24$/1 ep.; LSTM L $W{=}3$/29 ep., G
+$W{=}3$/10 ep.)
+
+\paragraph{LightGBM.}
+We use the same Optuna protocol (TPE, 100 trials, the same pruner, the same
+burn-in selection), but only the regimes L and G exist: gradient boosting has no
+fine-tuning analogue, so there is no GF. One booster is fitted per quantile.
+Since LightGBM cannot process sequential data, we replace the lookback by an
+ex-ante tabular lag structure: nested lag sets drawn from $\{1,2,3,6,12,24\}$
+plus an optional block of rolling means over $\{3,6,12\}$ months, under the same
+24-month cap. In the G regime the country enters as a native categorical
+feature. Early stopping here acts on boosting rounds.
+
+\paragraph{ARIMA, Random Walk.}
+ARIMA has only the L regime and is therefore fitted per country on the
+differenced target, which makes it an ARIMA$(p,1,q)$ in levels. For a given
+order, the coefficients are estimated by maximum likelihood (exact, via the
+Kalman filter); the order $(p,q)$ is selected by AIC over the grid
+$(p,q)\in\{0,\dots,3\}^2$ (16 candidates) on the burn-in (data up to month 114)
+and frozen per country. The models are therefore not fitted to a point-error
+loss such as MAE or RMSE. The trend is suppressed (\texttt{trend="n"}), so
+ARMA$(0,0)$ nests the random walk. Both models are deterministic, and their
+prediction quantiles come from the empirical quantiles of their in-sample
+one-step residuals, not from a quantile loss. They share the test window and the
+conformal layer with the other models, but none of the selection machinery.
+
+\paragraph{TiRex, TiRex-2.}
+TiRex and TiRex-2 are pretrained time-series foundation models, so they need no
+training and no hyperparameter tuning. Both are used exactly as released by NX-AI
+on Hugging Face (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}), and we use their
+probabilistic output directly. TiRex-2 is additionally run in a covariate
+variant; the variants are described in \cref{sec:models}.
+
+\subsection{Seeds and aggregation}
+\label{sec:exp:seeds}
+The three seeds (42, 43, 44) apply to the neural models, xLSTM and LSTM, only.
+They measure training stochasticity. We report coverage as the mean $\pm$ sd
+across seeds, and downstream we report the span of the median skill across seeds
+as a robustness check. Hyperparameters are tuned once, at seed 42
+(\cref{sec:exp:hpo}), and then frozen. The seeds differ only in the production
+refits. The run loop iterates L, G, GF $\times$ blocks $\times$ seeds. Each seed
+is a fully independent refit/predict chain. Its seed label stays on every
+prediction row through the conformal and diagnostic stages, and predictions are
+never pooled across seeds before the per-chain metrics are computed. The
+level-scale metrics (Winkler score, pinball loss, average width, and median MAE)
+are computed per country, that is, per regime, seed, and country, so that no
+single high-spread country dominates the aggregate. Only the scale-free metrics,
+mean coverage rate and mean crossing rate, are averaged across countries. This is
+the sole cross-country aggregation. The remaining models, RW, ARIMA, LightGBM,
+TiRex, and TiRex-2, are run deterministically with a single seed.
+
+
+
+\subsection{Quantile post-processing}
+\label{sec:exp:rearrange}
+Because the three quantiles are estimated independently, they can cross, which
+would leave the conformal layer downstream with ill-defined interval bounds.
+Before evaluation we therefore sort the three values per forecast, a monotone
+rearrangement \parencite{chernozhukov2010} that guarantees
+$\hat{q}_{0.1} \le \hat{q}_{0.5} \le \hat{q}_{0.9}$. The raw crossing incidence,
+measured before sorting, is logged as a diagnostic and reported per model. The
+step is identical for every model.
+
+\subsection{Conformal prediction layer}
+\label{sec:exp:conformal-ref}
+The benchmarks emit only raw quantiles; no calibration happens inside them. The
+conformal layer runs downstream on every combination of model, regime, seed, and
+country. All methods share one nonconformity score, the CQR score
+$E_t = \max(\hat{q}_{\mathrm{lo},t} - y_t,\; y_t - \hat{q}_{\mathrm{hi},t})$,
+calibrated on a rolling out-of-sample pool. Applying the same set of methods to
+every model lets us trace differences in interval quality back to the models
+rather than to the calibration. The methods, their fixed parameters, and the
+calibration-pool variants are described in \cref{sec:conformal}.
