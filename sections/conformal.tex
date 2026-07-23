@@ -541,28 +541,19 @@ stability.
 \subsection{Zero tuned parameters}
 \label{sec:conformal:params}
 %------------------------------------------------------------------------
-
 No parameter in the conformal calibration layer was tuned or optimized on
-data. Every value comes from one of two ex-ante sources. Either the exact
-value from the foundational paper or a standard default expressed in units of $\bar{S}$ (\cref{eq:burnin-scale}). This
-constraint matters since tuning the conformal layer would make Research Question 3
-circular, because we would then be comparing hyperparameter tuning budgets
-instead of the methods themselves. $\bar{S}$ is derived only from the pre-test
-burn-in months. So this scale adaptation is free of data leakage. We also did
+data. Every value comes from either the exact value from the paper the method stems from or a standard default expressed in units of $\bar{S}$ (\cref{eq:burnin-scale}). This constraint is important since tuning the conformal layer would turn Research Question 3 comparing hyperparameter tuning budgets instead of the methods themselves. $\bar{S}$ is derived only from the pre-test burn-in months. We also did
 no grid-search for the ACI learning rate $\gamma$. We let \texttt{agaci}
-and \texttt{dtaci} determine the grid online. This is the more honest
-approach, but it means we cannot report a single "best" static $\gamma$ for
-our dataset. \cref{tab:cp_params} reproduces the parameter dictionary from our
-execution environment verbatim.
+and \texttt{dtaci} determine the grid online. This is the best approch for comparing the methods itself, but it means we cannot report the best hyperparamters of each conformal method for our dataset. \cref{tab:cp_params} reproduces the parameter dictionary from our execution environment verbatim.
 
 %------------------------------------------------------------------------
 \subsection{Derived prediction streams}
 \label{sec:conformal:derived}
 %------------------------------------------------------------------------
 
-We construct two additional prediction streams purely computationally from
+We construct two additional prediction streams computationally from
 saved model artifacts. No extra training is involved. They serve as the
-control arms for Research Questions (1,2) and go through the same 14
+control groups for Research Questions (1,2) and go through the same 14
 calibration methods as every other stream.
 
 The constant-width twin takes the model's median point forecast and
