@@ -1,0 +1,1028 @@
+%========================================================================
+%  RESULTS -- Schreibgeruest
+%------------------------------------------------------------------------
+%  LESEHILFE (identisch zu evaluation.tex):
+%   * "WAS HIER STEHT" = inhaltliche Checkliste, Satz fuer Satz abarbeiten.
+%   * "ZAHLEN"         = die bereits VERIFIZIERTEN Werte aus dem Run.
+%                        Alle Zahlen unten wurden direkt aus den Tabellen
+%                        gelesen -- du musst nichts nachrechnen, aber du
+%                        darfst auch KEINE Zahl schreiben, die hier nicht
+%                        steht (CLAUDE.md Rigor-Regel).
+%   * "ZITATE"         = biblatex-Keys (alle bereits in references.bib).
+%   * "!! ENTSCHEIDUNG"= Punkt, den DU faellen musst; ich habe ihn bewusst
+%                        offen gelassen (meist Coverage-vs-Winkler).
+%   * "[arXiv-Kuerzung]" = wie das Unterkapitel fuer arXiv eingedampft wird.
+%   * Bloecke zwischen % >>> THESIS-ONLY >>> und % <<< THESIS-ONLY <<<
+%                        fliegen fuer arXiv komplett raus.
+%
+%  DATENHERKUNFT ALLER ZAHLEN IN DIESER DATEI
+%  ------------------------------------------
+%  Diagnostics-Run : run_full_20260803_095330   (03.08.2026, mode=full)
+%  Conformal-Run   : run_full_20260721_145309
+%  Modell-Runs     : rw/arma/tirex/lgbm 21.07. 12:54--12:57,
+%                    xlstm 13:23, lstm 13:55, tirex2 14:14
+%  Panel-Hash      : data_sha256 5f27a412...68ec2e  (IDENTISCH ueber alle
+%                    sieben Modellfamilien -> alle Modelle sahen dasselbe
+%                    33d-TARGET2-Panel. Das ist der Beleg, dass der Rebuild
+%                    sauber durchgezogen wurde -- unbedingt EINMAL im Text
+%                    erwaehnen, das ist ein Reproduzierbarkeits-Argument.)
+%  git commit      : b1811e67b6a92460cdf94e405d29093a5945680f
+%  Kopien der Tabellen liegen im Repo unter  results/tables/*.csv
+%  Story-Report (autom. Findings) unter      results/story_report.md
+%
+%  GRUNDGEROESSEN DES RUNS (in 8.1 nennen, danach nie wieder)
+%   Testfenster        : 127 Monate, 2015-10 bis 2026-04
+%   Laender            : 10
+%   Kombinationen      : 742  (Modell x Regime x Seed x CP-Methode)
+%   Zellen             : 21200 (davon 7420 im Primaer-Pool "rolling")
+%   Kontraste          : 1249 vorregistriert + 66 post-hoc (XM)
+%   Findings           : 816
+%   Modelle            : 12 (6 Basis + 3 const-width-Twins + arma_monthly
+%                            + tirex + tirex2_cov)
+%   Regime             : L, G, GF, GI, ZS
+%   CP-Methoden        : 14
+%   Seeds              : 42, 43, 44 (nur NN)
+%   alpha=0.20, FDR q=0.10, Gate-Schwelle 70%, MCS alpha=0.10,
+%   Block-Bootstrap 6/1000, DQ-Lags 4, Rolling-Coverage-Fenster 36
+%========================================================================
+\section{Results}
+\label{sec:results}
+
+% WAS HIER STEHT (Kapitel-Kopf, 1 Absatz, KEINE Zahlen ausser den Groessen):
+%  - Ein Satz: was ausgewertet wird (742 Kombinationen auf 127 Testmonaten
+%    x 10 Laendern), und dass alle Modellfamilien auf demselben Panel
+%    liefen (data_sha256 identisch).
+%  - Ein Satz Leseanleitung: erst das Gate (8.1), dann Punktprognose (8.2),
+%    dann das Intervall-Ranking (8.3), dann die drei vorregistrierten
+%    Forschungsfragen (8.4-8.6), dann Kovariaten (8.7), Cross-Model+MCS
+%    (8.8), Regime (8.9), Oekonomie (8.10), Robustheit (8.11).
+%  - Ein Satz zur Lesekonvention: negative d_norm bedeutet A besser als B
+%    (Winkler ist ein Verlust); Skill > 0 bedeutet besser als RW/L/native.
+%    -> Das MUSS einmal explizit dastehen, sonst liest der Leser jede
+%       Kontrasttabelle falsch herum.
+%
+% [arXiv-Kuerzung]: bleibt, auf 3 Saetze.
+
+
+%------------------------------------------------------------------------
+\subsection{The evaluation universe and the validity gate}
+\label{sec:res:gate}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Groessen des Auswertungsraums nennen (Liste oben im Kopfkommentar).
+%  2. Das ERGEBNIS DES GATES als erste substanzielle Aussage:
+%     485 von 742 Kombinationen (65.4%) sind admissible.
+%     -> Der Satz, der hier hingehoert: das Gate ist kein Formalismus,
+%        es sortiert ein gutes Drittel des Suchraums aus.
+%  3. Die Gate-Rate NACH CP-METHODE ist die eigentliche Story dieses
+%     Unterkapitels: sie zeigt, dass "native" als Intervallquelle fast
+%     immer fehlkalibriert ist und die CP-Schicht das repariert.
+%     -> Das ist auch schon die halbe Antwort auf RQ3 (8.4). Hier nur
+%        deskriptiv, die Inferenz kommt in 8.4.
+%  4. Ein Satz zur Richtung der Fehlkalibrierung: es ist UEBERdeckung,
+%     nicht Unterdeckung. native-Coverage im Mittel 0.872 statt 0.80.
+%     Das ist wichtig fuers Framing: die Modelle sind nicht "zu optimistisch",
+%     sie sind zu konservativ -> Intervalle unnoetig breit -> teuer
+%     (Anschluss an 8.10 Kapital-Proxy).
+%  5. Gate-Rate nach LAND: GR (0.519) und PT (0.616) am schwersten,
+%     FR (0.864) und FI (0.844) am leichtesten. Ein Satz Interpretation:
+%     die Peripherie mit sprunghaften Spreads ist am schwersten kalibrierbar.
+%  6. Ein Satz Ehrlichkeit (WICHTIG, sonst Referee-Angriff): das Gate
+%     benutzt nur Kupiec+Christoffersen. Der DQ-Test, der zusaetzlich auf
+%     Breite und 4 Lags konditioniert, verwirft in 49.3% aller Zellen
+%     (q<0.10). Bedingte Kalibrierung ist also breitflaechig verletzt,
+%     auch bei Kombinationen, die das Gate passieren. Das MUSS hier stehen
+%     und in 8.12/Limitations wiederholt werden.
+%
+% ZAHLEN (verifiziert):
+%   Gate gesamt          : 485/742 valide  (= 65.4%)
+%   Gate-Rate je CP-Methode (validity_flags.csv / ranking_all.csv):
+%       dtaci_cqr 1.000 | pid_cqr 1.000 | pid_local_cqr 1.000
+%       sfogd_cqr 1.000 | spci_cqr 1.000 | agaci_cqr 0.981
+%       aci_cqr 0.962   | cqr_rolling 0.906 | mondrian_cqr 0.604
+%       pid_tan_cqr 0.283 | decay_ocp_cqr 0.208 | native 0.132
+%       cqr_static 0.057 | saocp_cqr 0.019
+%   Mittlere Coverage je Methode (cells.csv, pool=rolling, alle Zellen):
+%       spci 0.769 | sfogd 0.806 | agaci 0.811 | pid 0.813 | pid_local 0.814
+%       aci 0.815 | dtaci 0.822 | cqr_rolling 0.823 | pid_tan 0.824
+%       cqr_static 0.859 | mondrian 0.860 | native 0.872 | decay_ocp 0.873
+%       saocp 0.917
+%       -> Zielwert ist 0.80. native = +7.2pp, saocp = +11.7pp Ueberdeckung.
+%   Gate-Rate je Modellfamilie: tirex2 0.857 | tirex2_cov 0.857 |
+%       tirex 0.786 | lgbm 0.714 | arma 0.714 | arma_monthly 0.714 |
+%       lgbm_const 0.679 | lstm_const 0.659 | rw 0.643 | xlstm_const 0.643 |
+%       lstm 0.625 | xlstm 0.613
+%   Gate-Rate je Regime: ZS 0.833 | L 0.668 | G 0.643 | GF 0.631 | GI 0.602
+%   Gate-Rate je Land (calibration_tests.csv, cell_valid):
+%       FR 0.864 | FI 0.844 | IT 0.810 | NL 0.771 | AT 0.747 | BE 0.718
+%       ES 0.660 | IE 0.623 | PT 0.616 | GR 0.519
+%   Rohe Ablehnraten ueber alle 7420 Zellen (calibration_tests.csv):
+%       UC : p<0.05 23.4% -> q<0.10 20.6%
+%       IND: p<0.05 16.2% -> q<0.10  6.1%
+%       CC : p<0.05 31.0% -> q<0.10 26.3%
+%       DQ : p<0.05 49.6% -> q<0.10 49.3%
+%   DQ-Ablehnrate je Methode (Auswahl): mondrian 0.291, dtaci 0.300,
+%       pid 0.304, agaci 0.345, cqr_rolling 0.368, aci 0.377, ...,
+%       native 0.562, cqr_static 0.617, sfogd 0.632, spci 0.666,
+%       pid_tan 0.938
+%
+% TABELLE: tab:res_gate unten -- Zahlen sind schon eingetragen, du
+%   schreibst nur die Caption + den Fliesstext drumherum.
+%
+% ZITATE: kupiec1995, christoffersen1998, engle2004caviar, benjamini1995fdr.
+%
+% [arXiv-Kuerzung]: 1 Absatz + tab:res_gate. Der Laender-Schnitt und die
+%   Regime-Gate-Raten fliegen raus.
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Inhalt: Gate-Durchfallquote und mittlere Coverage
+         je Rekalibrierungsmethode. Zielcoverage 0.80.}
+\label{tab:res_gate}
+\begin{tabular}{lccc}
+\toprule
+Method & Admissible share & Mean coverage & DQ rejection rate \\
+\midrule
+\texttt{dtaci\_cqr}      & 1.000 & 0.822 & 0.300 \\
+\texttt{pid\_cqr}        & 1.000 & 0.813 & 0.304 \\
+\texttt{pid\_local\_cqr} & 1.000 & 0.814 & 0.458 \\
+\texttt{sfogd\_cqr}      & 1.000 & 0.806 & 0.632 \\
+\texttt{spci\_cqr}       & 1.000 & 0.769 & 0.666 \\
+\texttt{agaci\_cqr}      & 0.981 & 0.811 & 0.345 \\
+\texttt{aci\_cqr}        & 0.962 & 0.815 & 0.377 \\
+\texttt{cqr\_rolling}    & 0.906 & 0.823 & 0.368 \\
+\texttt{mondrian\_cqr}   & 0.604 & 0.860 & 0.291 \\
+\texttt{pid\_tan\_cqr}   & 0.283 & 0.824 & 0.938 \\
+\texttt{decay\_ocp\_cqr} & 0.208 & 0.873 & 0.525 \\
+\texttt{native}          & 0.132 & 0.872 & 0.562 \\
+\texttt{cqr\_static}     & 0.057 & 0.859 & 0.617 \\
+\texttt{saocp\_cqr}      & 0.019 & 0.917 & 0.523 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%------------------------------------------------------------------------
+\subsection{Point forecasts: nothing beats the random walk}
+\label{sec:res:point}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  Dieses Unterkapitel ist strategisch wichtig: es raeumt die Erwartung ab,
+%  dass es hier um bessere PUNKTprognosen geht, und macht damit den Weg
+%  frei fuer die eigentliche Botschaft (Intervalle). Es ist ein NEGATIVES
+%  Ergebnis und genau deshalb glaubwuerdig -- nicht verstecken, sondern
+%  als bewusstes Framing an den Anfang stellen.
+%  1. MAE-Ratio-Tabelle: NUR tirex2 liegt unter 1 (0.9965), und das ist
+%     ein Vorsprung von 0.35% -- praktisch nicht existent.
+%  2. Alle trainierten Modelle sind SCHLECHTER als der Random Walk:
+%     xlstm 1.104, xlstm_const 1.093, lstm 1.061, lgbm 1.065.
+%     -> Ein Satz: der Aufwand des Trainings zahlt sich auf der
+%        Punktprognose nicht aus.
+%  3. Richtungsprognose: mittlere Trefferquote 0.540 ueber alle Zellen,
+%     der Pesaran--Timmermann-Test ist nur in 7.2% der Zellen auf 5%
+%     signifikant. -> Ein Satz: es gibt praktisch keine ausbeutbare
+%     Richtungsinformation. (Nominal wuerde man bei reinem Zufall 5%
+%     signifikante Tests erwarten -- 7.2% ist kaum mehr. Diesen Vergleich
+%     unbedingt hinschreiben, das ist die ehrliche Lesart.)
+%  4. Kurioses, aber ehrliches Detail: der Random Walk hat die HOECHSTE
+%     Richtungstrefferquote (0.578) -- trivial, weil die RW-Delta-Prognose
+%     konstant null ist und die Vorzeichenkonvention ihm das schenkt.
+%     !! Pruefe im Code kurz nach, wie dir_acc bei konstant-null-Delta
+%        definiert ist, bevor du das interpretierst. Wenn die Konvention
+%        "Vorzeichen 0 zaehlt als Treffer" ist, ist die Zahl ein Artefakt
+%        und du solltest sie als solches benennen statt sie zu deuten.
+%  5. Schlusssatz, der zu 8.3 ueberleitet: die gesamte Differenzierung
+%     zwischen den Modellen findet in der Unsicherheitsquantifizierung
+%     statt, nicht im bedingten Erwartungswert.
+%
+% ZAHLEN (verifiziert, cells.csv pool=rolling, Median ueber Laender):
+%   Modell        MAE-Ratio  RMSE-Ratio  dir_acc  PT p<0.05
+%   tirex2          0.9965     0.9993     0.555     0.100
+%   tirex2_cov      1.0008     0.9997     0.534     0.200
+%   rw              1.0000     1.0000     0.578     0.000
+%   arma_monthly    1.0137     1.0166     0.539     0.200
+%   arma            1.0174     1.0166     0.536     0.200
+%   tirex           1.0202     1.0168     0.539     0.100
+%   lgbm_const      1.0572     1.0406     0.536     0.050
+%   lgbm            1.0649     1.0441     0.535     0.033
+%   lstm            1.0614     1.0549     0.552     0.075
+%   lstm_const      1.0671     1.0565     0.555     0.078
+%   xlstm_const     1.0935     1.0744     0.530     0.056
+%   xlstm           1.1039     1.0801     0.522     0.058
+%   Gesamt: mean dir_acc 0.5397, Anteil PT p<0.05 = 7.2%
+%
+% ZITATE: pesaran1992, hyndman2006mase (skalenfreie Fehlermasse),
+%   dieboldmariano1995 optional.
+%
+% [arXiv-Kuerzung]: 3 Saetze + tab:res_point. PT-Details in eine Fussnote.
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Point-forecast accuracy relative to the random
+         walk; ratios below one indicate an improvement.}
+\label{tab:res_point}
+\begin{tabular}{lcccc}
+\toprule
+Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
+\midrule
+\texttt{tirex2}       & 0.997 & 0.999 & 0.555 & 0.10 \\
+\texttt{rw}           & 1.000 & 1.000 & 0.578 & 0.00 \\
+\texttt{tirex2\_cov}  & 1.001 & 1.000 & 0.534 & 0.20 \\
+\texttt{arma\_monthly}& 1.014 & 1.017 & 0.539 & 0.20 \\
+\texttt{arma}         & 1.017 & 1.017 & 0.536 & 0.20 \\
+\texttt{tirex}        & 1.020 & 1.017 & 0.539 & 0.10 \\
+\texttt{lgbm\_const}  & 1.057 & 1.041 & 0.536 & 0.05 \\
+\texttt{lstm}         & 1.061 & 1.055 & 0.552 & 0.08 \\
+\texttt{lgbm}         & 1.065 & 1.044 & 0.535 & 0.03 \\
+\texttt{lstm\_const}  & 1.067 & 1.057 & 0.555 & 0.08 \\
+\texttt{xlstm\_const} & 1.093 & 1.074 & 0.530 & 0.06 \\
+\texttt{xlstm}        & 1.104 & 1.080 & 0.522 & 0.06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%------------------------------------------------------------------------
+\subsection{Main ranking: interval skill}
+\label{sec:res:ranking}
+%------------------------------------------------------------------------
+% Das ist DAS Kernunterkapitel der Arbeit. Nimm dir hier am meisten Zeit.
+%
+% WAS HIER STEHT:
+%  1. Das Ranking der besten validen Kombination je Modellfamilie
+%     (tab:res_ranking unten, Zahlen eingetragen).
+%  2. Die Kernaussage: das beste valide Paket ist ein ZERO-SHOT-
+%     Foundation-Model ohne jedes Training auf diesen Daten
+%     (tirex2/ZS), mit Winkler-Skill 0.146 gegen RW/L/native. Der beste
+%     klassische Ansatz (rw/L/aci_cqr) kommt auf 0.085.
+%     -> Ein Satz, der die Spannung benennt: dasselbe Modell, das bei der
+%        Punktprognose exakt auf RW-Niveau liegt (8.2), erzeugt die mit
+%        Abstand besten Intervalle. Der Vorsprung liegt vollstaendig in
+%        der Form der praediktiven Verteilung, nicht in ihrem Zentrum.
+%  3. Das xLSTM-Ergebnis EHRLICH aufschreiben. Das ist die namensgebende
+%     Architektur der Arbeit und sie ist die SCHWAECHSTE Familie:
+%     Median-Skill ueber alle Kombis -0.047 (letzter Platz), bestes
+%     valides Paket xlstm/L/native mit 0.094 -- und das ausgerechnet mit
+%     der nativen Quantilausgabe, also OHNE Nutzen aus der CP-Schicht.
+%     Im GI-Regime ist der Skill negativ (-0.042).
+%     -> Das nicht kleinreden. Ein negatives Kernergebnis, das sauber
+%        gemessen wurde, ist wissenschaftlich wertvoller als ein
+%        herbeigeredetes positives. In der Discussion aufgreifen:
+%        277 Monate x 10 Laender sind schlicht zu wenig Daten fuer eine
+%        Architektur dieser Kapazitaet.
+%  4. !! ENTSCHEIDUNG -- COVERAGE VS. WINKLER (CLAUDE.md verbietet mir,
+%     das fuer dich zu entscheiden):
+%     Der Spitzenreiter tirex2/ZS/cqr_static hat Skill 0.1461, aber
+%     mittlere Coverage 0.7496 -- also 5.0pp UNTER dem Ziel von 0.80 --
+%     und passiert das Gate nur in 8 von 10 Laendern.
+%     Der direkte Verfolger tirex2/ZS/decay_ocp_cqr hat Skill 0.1442
+%     (0.0019 weniger, also 1.3% relativer Unterschied), aber Coverage
+%     0.7866 und ist in 10 von 10 Laendern valide; mittlerer absoluter
+%     Coverage-Abstand zum Ziel: 0.0279 gegenueber 0.0680 bei cqr_static.
+%     DREI moegliche Auflösungen -- waehle EINE und begruende sie:
+%       (a) cqr_static als Headline, decay_ocp als robustere Alternative
+%           nennen. Maximiert die Schlagzeile, laedt aber den Vorwurf ein,
+%           dass der Sieger unterdeckt.
+%       (b) decay_ocp als Headline (Coverage-naeher, 100% Gate), cqr_static
+%           als "hoechster Rohskill" in einem Nebensatz. Konservativ,
+%           konsistent mit dem validity-first-Prinzip aus 7.1.
+%       (c) Beide gemeinsam als "tirex2/ZS-Familie, Skill 0.14-0.15"
+%           berichten und die Methodenwahl explizit als offen deklarieren.
+%     MEINE EMPFEHLUNG: (b). Begruendung: du hast in 7.1 validity-first
+%     als tragendes Prinzip vorregistriert. Wenn du dann die Kombination
+%     mit dem groessten Coverage-Fehler zum Sieger kuerst, untergraebst du
+%     dein eigenes Kriterium, und genau das wird ein Referee angreifen.
+%     Aber es ist DEINE Entscheidung -- schreib sie explizit hin.
+%  5. Ein Satz zur Streuung innerhalb tirex2: ueber die 14 CP-Methoden
+%     reicht der Skill von -0.044 (pid_tan) bis 0.146 (cqr_static).
+%     Die Wahl der Rekalibrierungsmethode ist also fuer das Ergebnis
+%     ungefaehr so wichtig wie die Wahl des Modells. Das ist ein
+%     eigenstaendiges Resultat und rechtfertigt den 14-Methoden-Vergleich.
+%  6. Abbildung skill_heatmap.png einbinden (liegt in figures/).
+%
+% ZAHLEN (verifiziert, ranking_all.csv, nur validity_flag=True):
+%   Bestes valides Paket je Modellfamilie:
+%     tirex2/ZS/cqr_static        skill 0.1461  cov 0.750  gate 0.8
+%     tirex2_cov/ZS/native        skill 0.1409  cov 0.839  gate 0.8
+%     lgbm/G/decay_ocp_cqr        skill 0.1394  cov 0.824  gate 0.7
+%     tirex/ZS/native             skill 0.1327  cov 0.813  gate 1.0
+%     lstm_const/G/agaci_cqr      skill 0.1107  cov 0.798  gate 1.0
+%     lgbm_const/G/cqr_rolling    skill 0.0989  cov 0.829  gate 1.0
+%     xlstm/L/native              skill 0.0939  cov 0.817  gate 0.7
+%     rw/L/aci_cqr                skill 0.0852  cov 0.812  gate 1.0
+%     xlstm_const/L/spci_cqr      skill 0.0717  cov 0.756  gate 1.0
+%     lstm/L/pid_cqr              skill 0.0621  cov 0.810  gate 1.0
+%     arma_monthly/L/dtaci_cqr    skill 0.0612  cov 0.809  gate 1.0
+%     arma/L/dtaci_cqr            skill 0.0584  cov 0.813  gate 1.0
+%   Median-Skill ueber ALLE Kombis je Familie (auch invalide):
+%     tirex2 0.118 | tirex2_cov 0.108 | tirex 0.088 | lgbm 0.063 |
+%     lstm_const 0.037 | lgbm_const 0.032 | rw 0.025 | lstm -0.005 |
+%     arma -0.014 | xlstm_const -0.020 | arma_monthly -0.023 | xlstm -0.047
+%   tirex2 ueber alle 14 CP-Methoden (Skill / Coverage / Gate-Anteil):
+%     cqr_static 0.146/0.750/0.8  decay_ocp 0.144/0.787/1.0
+%     native 0.142/0.855/0.7      cqr_rolling 0.132/0.794/1.0
+%     agaci 0.126/0.797/1.0       aci 0.121/0.799/1.0
+%     dtaci 0.120/0.806/1.0       pid 0.116/0.800/1.0
+%     spci 0.080/0.762/1.0        pid_local 0.046/0.802/1.0
+%     mondrian 0.035/0.856/0.9    sfogd 0.017/0.801/0.8
+%     saocp 0.012/0.894/0.3 (INVALIDE)  pid_tan -0.044/0.810/0.6 (INVALIDE)
+%   Bestes valides xlstm-Paket je Regime:
+%     L/native 0.0939 | GF/cqr_rolling 0.0098 | G/pid_cqr -0.0070
+%     | GI/native -0.0423
+%   Skill je Land (valide Kombis, Median): IE 0.231 | PT 0.191 | GR 0.120
+%     | ES 0.095 | BE 0.051 | NL -0.002 | AT -0.015 | FR -0.047
+%     | FI -0.052 | IT -0.070
+%     -> Zwei Saetze wert: der Skill ist stark laenderabhaengig, und
+%        ausgerechnet in Italien (dem groessten Markt) verliert das Feld
+%        im Median gegen den Random Walk.
+%
+% ZITATE: winkler1972, gneiting2007, gneiting2007sharpness,
+%   podest2026tirex2, auer2025tirex, beck2024xlstm.
+%
+% >>> THESIS-ONLY >>>
+% - Vollstaendige Ranking-Tabelle aller 485 validen Kombinationen in den
+%   Anhang (ranking_all.csv, gefiltert auf validity_flag).
+% - Absatz zur Frage, warum ZS so gut abschneidet: keine Schaetzunsicherheit
+%   in den Parametern, weil nichts geschaetzt wird; die praediktive
+%   Verteilung kommt aus einem auf Millionen Zeitreihen vortrainierten
+%   Modell. Gegenargument sauber dagegenstellen: Kontaminationsverdacht
+%   (Release 2026-07-01, Cutoff undokumentiert, Testfenster bis 2026-04)
+%   -> Verweis auf Limitations.
+% - Per-Land-Aufschluesselung der Top-3-Pakete.
+% <<< THESIS-ONLY <<<
+%
+% [arXiv-Kuerzung]: tab:res_ranking + skill_heatmap + 2 Absaetze
+%   (Headline + xLSTM-Negativergebnis). Der Laender-Schnitt in 1 Satz.
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Best admissible package per model family, ranked
+         by median Winkler skill against RW/L/native.}
+\label{tab:res_ranking}
+\begin{tabular}{llccc}
+\toprule
+Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
+\midrule
+\texttt{tirex2}        & ZS / \texttt{cqr\_static}     & 0.146 & 0.750 & 8/10 \\
+\texttt{tirex2\_cov}   & ZS / \texttt{native}          & 0.141 & 0.839 & 8/10 \\
+\texttt{lgbm}          & G / \texttt{decay\_ocp\_cqr}  & 0.139 & 0.824 & 7/10 \\
+\texttt{tirex}         & ZS / \texttt{native}          & 0.133 & 0.813 & 10/10 \\
+\texttt{lstm\_const}   & G / \texttt{agaci\_cqr}       & 0.111 & 0.798 & 10/10 \\
+\texttt{lgbm\_const}   & G / \texttt{cqr\_rolling}     & 0.099 & 0.829 & 10/10 \\
+\texttt{xlstm}         & L / \texttt{native}           & 0.094 & 0.817 & 7/10 \\
+\texttt{rw}            & L / \texttt{aci\_cqr}         & 0.085 & 0.812 & 10/10 \\
+\texttt{xlstm\_const}  & L / \texttt{spci\_cqr}        & 0.072 & 0.756 & 10/10 \\
+\texttt{lstm}          & L / \texttt{pid\_cqr}         & 0.062 & 0.810 & 10/10 \\
+\texttt{arma\_monthly} & L / \texttt{dtaci\_cqr}       & 0.061 & 0.809 & 10/10 \\
+\texttt{arma}          & L / \texttt{dtaci\_cqr}       & 0.058 & 0.813 & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ABBILDUNG: liegt bereits im Repo unter figures/skill_heatmap.png
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[width=\textwidth]{figures/skill_heatmap.png}
+%   \caption{% TODO}
+%   \label{fig:res_skill_heatmap}
+% \end{figure}
+
+
+%------------------------------------------------------------------------
+\subsection{RQ3: does the conformal layer pay off?}
+\label{sec:res:rq3}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Die Frage klar stellen: bringt eine Rekalibrierungsmethode gegenueber
+%     der nativen Quantilausgabe des Modells einen messbaren Vorteil?
+%     Kontrastfamilie RQ3 mit 689 Kontrasten, eigene BH-FDR-Familie.
+%  2. Antwort: JA, aber nur fuer die adaptiven Online-Verfahren, und der
+%     Effekt ist moderat. Die sieben Gewinner-Methoden liegen bei
+%     d_norm zwischen -0.054 und -0.031 (negativ = besser als native),
+%     mit Panel-t zwischen -4.0 und -2.0.
+%  3. Die Kehrseite ausdruecklich nennen: drei Methoden sind SCHLECHTER
+%     als native -- cqr_static (+0.027), saocp (+0.052) und vor allem
+%     pid_tan (+0.102). Die CP-Schicht ist also kein Selbstlaeufer.
+%  4. Der wichtigere Effekt ist nicht der Skill, sondern die VALIDITAET:
+%     native passiert das Gate nur in 13.2% der Faelle, dtaci/pid/
+%     pid_local/sfogd/spci in 100%. Formuliere das als die eigentliche
+%     Antwort auf RQ3: der Gewinn der CP-Schicht ist primaer Kalibrierung,
+%     sekundaer Schaerfe. Das passt exakt zum validity-first-Prinzip.
+%  5. Ein Satz Vorsicht: die Anteile FDR-signifikanter Laender liegen bei
+%     den Gewinnern nur zwischen 0.37 und 0.50 (Median ueber Kontraste).
+%     Bei 10 korrelierten Laendern und 127 Monaten ist das ein
+%     konsistentes, aber kein ueberwaeltigend starkes Signal.
+%
+% ZAHLEN (verifiziert, dm_contrasts.csv, rq=="RQ3", Median ueber die
+%   53 Kontraste je Methode; d_norm negativ = Methode besser als native):
+%   Methode         d_norm   share_a_better  Panel-t   share_sig_FDR
+%   dtaci_cqr       -0.054       0.7          -3.72        0.43
+%   pid_cqr         -0.054       0.8          -3.97        0.50
+%   aci_cqr         -0.047       0.6          -3.46        0.40
+%   cqr_rolling     -0.045       0.6          -3.21        0.37
+%   agaci_cqr       -0.043       0.6          -3.55        0.47
+%   spci_cqr        -0.038       0.6          -2.01        0.40
+%   pid_local_cqr   -0.031       0.7          -2.95        0.37
+%   sfogd_cqr       -0.008       0.5          -1.61        0.30
+%   decay_ocp_cqr   +0.002       0.5          -0.36        0.47
+%   mondrian_cqr    +0.023       0.5          -0.66        0.47
+%   cqr_static      +0.027       0.3          +8.74        0.67
+%   saocp_cqr       +0.052       0.0          +4.03        0.43
+%   pid_tan_cqr     +0.102       0.3          +1.95        0.77
+%   Gesamtmedian RQ3: d_norm -0.0034, share_a_better 0.50, t -1.27
+%     -> WICHTIG: ueber ALLE Methoden gemittelt ist der Effekt fast null.
+%        Erst die Aufspaltung nach Methode zeigt das Bild. Genau so
+%        schreiben, nicht den Gesamtmedian verschweigen.
+%
+% ZITATE: romano2019cqr, gibbs2021aci, gibbs2024dtaci, zaffran2022agaci,
+%   angelopoulos2023pid, xu2023spci, bhatnagar2023sfogd,
+%   angelopoulos2024decay, vovk2003mondrian, dieboldmariano1995,
+%   harvey1997, newey1987, benjamini1995fdr.
+%
+% [arXiv-Kuerzung]: 1 Absatz + die RQ3-Spalte in einer kombinierten
+%   Kontrasttabelle mit RQ1/RQ2.
+
+
+%------------------------------------------------------------------------
+\subsection{RQ1: pooling across countries and fine-tuning}
+\label{sec:res:rq1}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  Drei Teilfragen, drei klar unterschiedliche Antworten -- das ist die
+%  Struktur dieses Unterkapitels.
+%  1. G vs L (globales Pooling gegen laenderlokale Modelle): d_norm +0.017,
+%     also globales Pooling ist im Median SCHLECHTER. Nach Modell:
+%     xlstm +0.040 und lstm +0.019 verlieren durch Pooling deutlich,
+%     nur lgbm gewinnt (-0.014).
+%     -> Interpretation, die du belegen kannst: die neuronalen Modelle
+%        profitieren nicht vom gemeinsamen Training ueber die zehn Laender,
+%        der Gradient-Boosting-Ansatz schon. Plausible Erklaerung
+%        (als Hypothese kennzeichnen, nicht als Befund): die Laender
+%        unterscheiden sich in Spread-Niveau und Volatilitaet um
+%        Groessenordnungen (vgl. Breiten in 8.3), und die NN-Modelle
+%        koennen diese Heterogenitaet mit 277 Monaten nicht lernen.
+%  2. GF vs G (Fine-Tuning nach globalem Pretraining): d_norm -0.006,
+%     also ein kleiner, aber konsistenter Vorteil (share_a_better 0.60).
+%     xlstm profitiert (-0.021), lstm praktisch nicht (+0.001).
+%  3. GF vs GI (Fine-Tuning gegen Laender-Embedding): d_norm -0.054,
+%     share_a_better 0.90, Panel-t -3.33. DAS IST DER STAERKSTE EFFEKT
+%     IN RQ1. Explizites Fine-Tuning schlaegt das gelernte Laender-Embedding
+%     klar. xlstm -0.060, lstm -0.041.
+%     -> Ein Satz: wenn man Laenderheterogenitaet abbilden will, dann
+%        durch nachtraegliche Anpassung der Gewichte, nicht durch eine
+%        zusaetzliche Eingabedimension.
+%  4. Konsistenzcheck mit dem Ranking aus 8.3 -- und hier wird es
+%     unangenehm, also EHRLICH sein: das beste valide xlstm-Paket ist
+%     xlstm/L (0.094), nicht xlstm/GF. Die RQ1-Kontraste sagen "GF besser
+%     als GI" und "GF minimal besser als G", aber das Ranking sagt
+%     "L schlaegt sie alle". Beides ist richtig, weil die Kontraste
+%     paarweise auf identischer CP-Methode rechnen und das Ranking ueber
+%     alle Methoden das Maximum nimmt. Diesen Unterschied ausdruecklich
+%     erklaeren, sonst wirkt das Kapitel widerspruechlich.
+%
+% ZAHLEN (verifiziert, dm_contrasts.csv, rq=="RQ1"):
+%   Kontrast    n    d_norm(Median)  share_a_better  Panel-t(Median)
+%   G vs L     98      +0.0168           0.40           +0.84
+%   GF vs G    84      -0.0060           0.60           -1.33
+%   GF vs GI   84      -0.0543           0.90           -3.33
+%   Aufgeschluesselt nach Modell (d_norm, Median):
+%              G vs L     GF vs G    GF vs GI
+%     lgbm     -0.0138       --          --
+%     lstm     +0.0186     +0.0014     -0.0413
+%     xlstm    +0.0403     -0.0212     -0.0598
+%   Gate-Rate je Regime (aus 8.1): ZS 0.833 | L 0.668 | G 0.643 |
+%     GF 0.631 | GI 0.602
+%   Median-Skill je Regime: ZS +0.101 | L +0.011 | GF -0.009 |
+%     G -0.012 | GI -0.066
+%
+% ZITATE: beck2024xlstm, hochreiter1997lstm, ke2017lightgbm.
+%
+% [arXiv-Kuerzung]: 1 Absatz, die drei Kontraste als Zahlentripel im Satz.
+
+
+%------------------------------------------------------------------------
+\subsection{RQ2: adaptive versus constant interval width}
+\label{sec:res:rq2}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Die Frage: bringt eine vom Modell selbst erzeugte, zeitvariable
+%     Intervallbreite etwas gegenueber einem const-width-Zwilling, der
+%     dieselbe Punktprognose mit konstanter Breite kombiniert?
+%  2. Antwort: NEIN -- im Median ist die adaptive Variante schlechter
+%     (d_norm +0.020, share_a_better 0.40). Das ist ein zweites
+%     substanzielles Negativergebnis und gehoert prominent berichtet.
+%  3. Nach Modell differenzieren, denn das Bild ist nicht einheitlich:
+%     lstm verliert stark durch Adaptivitaet (+0.062 in G, +0.062 in GF,
+%     +0.009 in L), xlstm leicht (+0.014 / +0.006 / +0.005),
+%     lgbm gewinnt leicht (-0.009 in G, -0.018 in L).
+%  4. Der harte Beleg aus dem Ranking (8.3): lstm_const/G/agaci_cqr
+%     (0.111) ist das beste NN-Paket ueberhaupt -- besser als jedes
+%     Paket des adaptiven lstm (bestes: lstm/L/pid_cqr 0.062) und besser
+%     als jedes xlstm-Paket (bestes: 0.094). Ebenso xlstm_const/L/spci
+%     (0.072) gegen die schwachen adaptiven xlstm-Pakete in G/GF/GI.
+%     -> Formuliere die Konsequenz scharf: die zeitvariable Breite, die
+%        die neuronalen Modelle lernen, ist im Mittel Rauschen. Die
+%        nuetzliche Adaptivitaet kommt aus der CP-Schicht (RQ3), nicht
+%        aus dem Modell.
+%  5. Ein Satz Einschraenkung: die staerkste Einzelinstanz im Story-Report
+%     (lstm/G/saocp_cqr, A um 21.7% schlechter, Panel-t 8.41) beruht auf
+%     einer Methode, die das Gate praktisch nie passiert (saocp 1.9%).
+%     Solche Extremwerte nicht als Beleg verwenden -- den Median ueber
+%     die Kontraste zitieren, nicht das Maximum.
+%
+% ZAHLEN (verifiziert, dm_contrasts.csv, rq=="RQ2", 280 Kontraste;
+%   A = adaptiv, B = const-width; d_norm > 0 heisst adaptiv SCHLECHTER):
+%   Gesamtmedian: d_norm +0.0204, share_a_better 0.40, Panel-t +0.91,
+%                 share_sig_FDR 0.27
+%   Nach Modell und Regime (d_norm, Median):
+%              G          GF         L
+%     lgbm   -0.0090      --      -0.0182
+%     lstm   +0.0616   +0.0620    +0.0086
+%     xlstm  +0.0142   +0.0061    +0.0046
+%   Vergleichswerte aus dem Ranking (bestes valides Paket):
+%     lstm_const/G/agaci  0.1107  vs  lstm/L/pid       0.0621
+%     lgbm_const/G/roll   0.0989  vs  lgbm/G/decay     0.1394
+%     xlstm_const/L/spci  0.0717  vs  xlstm/L/native   0.0939
+%     -> Achtung: bei lgbm und xlstm gewinnt das ADAPTIVE Paket im
+%        Ranking, bei lstm das const-Paket. Nur lstm ist eindeutig.
+%        Schreibe das differenziert, nicht pauschal.
+%
+% ZITATE: romano2019cqr, meinshausen2006qrf (Quantilschaetzung als Quelle
+%   der adaptiven Breite), chernozhukov2010 (Rearrangement).
+%
+% [arXiv-Kuerzung]: 1 Absatz, Fokus auf lstm_const als bestes NN-Paket.
+
+
+%------------------------------------------------------------------------
+\subsection{Do covariates matter? The TiRex-2 contrast}
+\label{sec:res:covariates}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  Das ist das sauberste Einzelexperiment der ganzen Arbeit, weil es
+%  ceteris paribus ist: identisches Modell, identisches Testfenster,
+%  identische Rekalibrierung, EINZIGER Unterschied sind die 17 Kovariaten.
+%  1. Ergebnis: der Effekt ist praktisch null. Der direkte
+%     Cross-Model-Kontrast tirex2/ZS/cqr_static gegen
+%     tirex2_cov/ZS/native ergibt d_norm -0.000061, share_a_better 0.50,
+%     Median-p 0.45, Panel-t 0.73 -- also exakt das, was man unter der
+%     Nullhypothese "kein Unterschied" erwartet.
+%  2. Der modellinterne Kovariaten-Kontrast (aus dem TiRex-2-Lauf selbst,
+%     covariate_contrast_tirex2.parquet, 10 Laender) bestaetigt das:
+%     Winkler-Verhaeltnis (cov/uni) zwischen 0.974 und 1.009, Median
+%     ca. 0.996. Die MAE-Differenz liegt zwischen -0.0007 und +0.0028.
+%  3. Ein sauber formulierter Interpretationssatz -- und hier ist
+%     Praezision entscheidend, weil die Aussage leicht ueberdehnt wird:
+%     Das Ergebnis zeigt NICHT, dass makrooekonomische Fundamentaldaten
+%     fuer Sovereign Spreads irrelevant sind. Es zeigt, dass sie diesem
+%     vortrainierten Modell auf diesem Horizont (h=1 Monat) keine
+%     zusaetzliche Information liefern, die es nicht schon aus der
+%     Spread-Historie selbst zieht. Genau so eingrenzen.
+%  4. Verbindung zum Rest der Arbeit: dieselbe Botschaft steckt implizit
+%     schon in 8.2 (kein Modell schlaegt RW im Punkt) und in 8.5
+%     (Pooling ueber Laender hilft nicht). Alle drei zeigen auf dasselbe:
+%     die Monatsvorhersage von Spread-Aenderungen ist nahezu
+%     informationsfrei; was sich unterscheiden laesst, ist die
+%     Unsicherheitsquantifizierung.
+%  5. !! Pruefen bevor du schreibst: der Kontrast in dm_crossmodel.csv
+%     vergleicht cqr_static (uni) gegen native (cov) -- also NICHT
+%     dieselbe CP-Methode. Fuer eine wirklich ceteris-paribus-Aussage
+%     nimm die Zahlen aus covariate_contrast_tirex2.parquet oder
+%     vergleiche in ranking_all.csv methodenweise:
+%       cqr_static: 0.1461 (uni) vs 0.1402 (cov)
+%       native    : 0.1420 (uni) vs 0.1409 (cov)
+%       decay_ocp : 0.1442 (uni) vs 0.1385 (cov)
+%     -> In allen drei Faellen ist die UNIVARIATE Variante minimal besser.
+%        Das ist die ehrlichere und staerkere Formulierung.
+%
+% ZAHLEN (verifiziert):
+%   dm_crossmodel.csv, Zeile "XM tirex2/ZS/cqr_static vs tirex2_cov/ZS/native":
+%     d_norm -0.000061 | share_a_better 0.50 | share_sig 0.00
+%     | median_p 0.4497 | Panel-t 0.728 | median_q 0.693
+%   covariate_contrast_tirex2.parquet (10 Zeilen = 10 Laender):
+%     winkler_ratio: 1.0018, 1.0007, 1.0088, 0.9932, 0.9972,
+%                    0.9740, 0.9742, 0.9932, 0.9991, 0.9748
+%     d_coverage   : zwischen -0.0394 und 0.0000 (cov deckt tendenziell
+%                    etwas WENIGER, weil die Intervalle schmaler werden:
+%                    d_width durchweg negativ, -0.0029 bis -0.0555)
+%   ranking_all.csv, tirex2 vs tirex2_cov, gleiche Methode:
+%     cqr_static 0.1461 / 0.1402 | native 0.1420 / 0.1409
+%     | decay_ocp 0.1442 / 0.1385 | cqr_rolling 0.1316 / 0.1218
+%   MAE-Ratio: tirex2 0.9965 | tirex2_cov 1.0008
+%
+% ZITATE: podest2026tirex2, afonso2015, codogno2003yield,
+%   bernoth2004sovereign (fuer "Fundamentaldaten erklaeren Spreads" --
+%   der Kontrast zu deren Querschnitts-/Niveau-Evidenz ist genau der
+%   Punkt: die erklaeren Niveaus, du prognostizierst Aenderungen).
+%
+% >>> THESIS-ONLY >>>
+% - Per-Land-Tabelle des Kovariaten-Kontrasts (10 Zeilen aus
+%   covariate_contrast_tirex2.parquet, alle fuenf Spalten).
+% - Absatz: warum ein Niveau-Erklaerungsergebnis (Afonso et al.) und ein
+%   Delta-Prognoseergebnis (deins) sich nicht widersprechen.
+% <<< THESIS-ONLY <<<
+%
+% [arXiv-Kuerzung]: 4-5 Saetze. Diese Passage ist fuer das Paper wichtig,
+%   sie ist der originellste Einzelbefund -- nicht zu stark kuerzen.
+
+
+%------------------------------------------------------------------------
+\subsection{Cross-model comparison and the Model Confidence Set}
+\label{sec:res:xm}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  Dieses Unterkapitel ist der Ehrlichkeits-Anker der ganzen Arbeit.
+%  Es sagt: die Rangfolge aus 8.3 ist deskriptiv, aber statistisch NICHT
+%  gesichert. Wenn du das sauber schreibst, ist es ein Qualitaetsmerkmal;
+%  wenn du es weglaesst, ist es der erste Referee-Angriff.
+%  1. XM-Familie: 66 post-hoc-Kontraste zwischen den besten validen
+%     Paketen. Der Selektions-Caveat aus 7.4 muss hier WIEDERHOLT werden:
+%     die Pakete wurden auf denselben Testdaten als "beste" ausgewaehlt,
+%     die Inferenz ist also optimistisch.
+%  2. Ergebnis: KEIN einziger der 66 Kontraste ist nach FDR signifikant.
+%     Der kleinste Median-q-Wert ueber alle 66 Kontraste ist 0.185.
+%     -> Das heisst konkret: der Vorsprung von tirex2 vor dem Random Walk
+%        ist mit 127 Monaten und 10 korrelierten Laendern nicht von null
+%        zu unterscheiden. Genau so hinschreiben.
+%  3. Die groessten Punktschaetzer trotzdem berichten (sie sind die
+%     Effektstaerken, nur eben ohne Signifikanz):
+%     tirex2 vs xlstm_const/L/spci: d_norm -0.116, share 0.8, q 0.185
+%     tirex2 vs arma/L/dtaci:       d_norm -0.074, share 0.9, q 0.255
+%     tirex2 vs rw/L/aci:           d_norm -0.040, share 0.9, q 0.568
+%  4. MCS: der kuratierte Kandidatensatz umfasst 26 Pakete. Ergebnis:
+%     15 Pakete sind in ALLEN 10 Laendern in der MCS, weitere 9 in
+%     mindestens 8. Nur rw/L/native und xlstm/GI/native fallen in der
+%     Haelfte der Laender heraus.
+%     -> Die MCS ist hier praktisch nicht trennscharf. Das ist kein
+%        Fehler deiner Implementierung, sondern eine Aussage ueber die
+%        Datenlage: bei 127 Monaten hat der Hansen-Test zu wenig Power.
+%        Ehrlich als solche berichten. (Genau deshalb hattest du in 7.5
+%        den Kandidatensatz kuratiert -- mit allen 742 waere die MCS
+%        vollstaendig leer an Information gewesen.)
+%  5. MCS-Groesse je Land nennen -- sie variiert und ist selbst informativ:
+%     FI und FR 26 von 26 (kein einziges Paket ausgeschlossen), IE 18,
+%     BE 22. In Irland ist die Trennschaerfe am hoechsten.
+%  6. Schlusssatz: was ueberlebt, ist die QUALITATIVE Ordnung
+%     (Zero-Shot >= LightGBM > klassisch > xLSTM), nicht die numerische
+%     Rangfolge. Alle spaeteren Aussagen im Text so formulieren.
+%
+% ZAHLEN (verifiziert):
+%   dm_crossmodel.csv: 66 Kontraste, min(median_q) = 0.1851,
+%     Anteil mit median_q < 0.10: 0.00
+%   mcs_results.csv: 26 Kandidaten x 10 Laender = 260 Zeilen
+%     in_mcs-Anteil 1.00 fuer 15 Pakete (u.a. tirex2/ZS/cqr_static,
+%       tirex2_cov/ZS/native, tirex/ZS/native, rw/L/aci_cqr,
+%       lgbm/G/decay_ocp_cqr, xlstm/L/native, lstm/L/pid_cqr,
+%       lstm_const/G/agaci_cqr, xlstm_const/L/spci_cqr, ...)
+%     in_mcs-Anteil 0.90: lstm/GI/pid_local, arma_monthly/L/dtaci,
+%       lstm/GF/pid, lgbm_const/L/aci, lgbm/GI/cqr_rolling, arma/L/dtaci
+%     in_mcs-Anteil 0.80: lstm/G/pid, xlstm/G/pid, xlstm/GF/cqr_rolling
+%     in_mcs-Anteil 0.50: rw/L/native (p 0.087), xlstm/GI/native (p 0.090)
+%   MCS-Groesse je Land: FI 26, FR 26, AT 25, IT 25, ES 24, GR 24,
+%     NL 24, PT 24, BE 22, IE 18
+%
+% ZITATE: hansen2011mcs, kunsch1989mbb, dieboldmariano1995, harvey1997,
+%   giacomini2006, diebold2015 (Caveat), benjamini1995fdr.
+%
+% [arXiv-Kuerzung]: 1 Absatz. Der Satz "kein XM-Kontrast ist FDR-signifikant"
+%   und der Satz "die MCS ist nicht trennscharf" MUESSEN beide drin bleiben.
+
+
+%------------------------------------------------------------------------
+\subsection{Regime-conditional behaviour}
+\label{sec:res:regime}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Kalenderregime QE vs Hiking/QT: mittlere Coverage 0.822 (QE) gegen
+%     0.800 (Hiking), mittlerer Winkler 0.559 gegen 0.302.
+%     -> Zwei Beobachtungen: (i) die Intervalle sind in der QT-Phase
+%        NAEHER am Ziel, nicht weiter davon entfernt; (ii) der Winkler
+%        ist in der QT-Phase deutlich niedriger, weil die Spread-Niveaus
+%        und damit die absoluten Breiten kleiner sind. Punkt (ii) ist ein
+%        Skaleneffekt, KEIN Guetegewinn -- unbedingt so kennzeichnen,
+%        sonst liest man es als "Modelle werden im Hiking besser".
+%  2. Volatilitaets-Terzile: Coverage 0.780 (calm) / 0.817 (mid) /
+%     0.841 (stressed). Also die Coverage STEIGT im Stress.
+%     -> Das ist kontraintuitiv und braucht einen Erklaersatz: die
+%        Rekalibrierer weiten die Intervalle nach Volatilitaetsanstiegen
+%        aus, und da Stressphasen persistent sind, ueberschiessen sie.
+%        Die Kehrseite: in ruhigen Phasen sind die Intervalle zu schmal
+%        (0.780 < 0.80). Das ist ein echter, benennbarer Adaptivitaets-
+%        Lag der Online-Verfahren.
+%  3. VIX-Schnitt: Coverage 0.759 (VIX>20) gegen 0.834 (VIX<=20).
+%     -> ACHTUNG, das widerspricht scheinbar Punkt 2. Erklaerung: die
+%        Volatilitaets-Terzile beruhen auf realisierter Spread-Volatilitaet
+%        (rueckwaertsgerichtet, shift(1)), der VIX auf implizierter
+%        Aktienvolatilitaet. VIX-Spitzen kommen SCHNELLER als
+%        Spread-Volatilitaetsanstiege, die Rekalibrierer hinken hinterher.
+%        Das ist eine gute, substanzielle Beobachtung -- ausschreiben.
+%  4. Stress-Drop (stress_drop.csv, valide Kombis): Mittelwert +0.028,
+%     Median +0.029, also im Schnitt hoehere Coverage im Stress.
+%     Die schlechtesten Einzelfaelle sind trotzdem negativ:
+%     lstm/L/decay_ocp -0.039, xlstm/GF/cqr_rolling -0.037,
+%     xlstm/GF/aci -0.036, xlstm/GI/native -0.031.
+%     -> Auffaellig: die Stressanfaelligen sind fast alle xlstm/lstm.
+%  5. F13 (Komplexitaetshypothese) -- das ist der interessanteste
+%     Regime-Befund. Frage: glaenzen komplexe Modelle gerade dann, wenn
+%     es schwierig wird? Antwort: NEIN, das Gegenteil.
+%     Der Vorsprung komplexer Modelle schrumpft von +0.103 (low VIX) auf
+%     +0.025 (high VIX), Delta -0.077. VIX>20 deckt 28% der Testmonate.
+%     Am staerksten faellt tirex2: Skill 0.125 (low VIX) -> -0.003
+%     (high VIX), Delta -0.128. Auch tirex2_cov -0.122 und tirex -0.101.
+%     Bestes komplexes Modell im high-VIX-Regime ist tirex mit 0.019.
+%     -> Das relativiert die Headline aus 8.3 erheblich und MUSS dort
+%        oder spaetestens in der Discussion aufgegriffen werden:
+%        der Zero-Shot-Vorsprung existiert vor allem in ruhigen Maerkten.
+%        Genau in den Phasen, in denen ein Risikomanager das Intervall
+%        braucht, verschwindet er.
+%  6. Ein Satz Methodik-Ehrlichkeit: alle drei Regime-Achsen sind ex ante
+%     (shift(1) bzw. exogener VIX), es gibt kein Look-ahead. Aber: die
+%     Regime-Zellen sind kleiner (VIX>20 = 28% von 127 Monaten, also
+%     ca. 36 Monate), die Coverage-Schaetzer dort entsprechend verrauscht.
+%
+% ZAHLEN (verifiziert, regime_results.csv gejoint auf validity_flag=True,
+%   485 valide Kombis):
+%   calendar   : hiking cov 0.8001 wink 0.3020 | qe cov 0.8217 wink 0.5590
+%   volatility : calm 0.7795 / 0.2990 | mid 0.8166 / 0.4870
+%                | stressed 0.8412 / 0.5644
+%   vix        : high_vix 0.7588 / 0.5055 | low_vix 0.8342 / 0.4333
+%   Coverage-Differenz hiking minus qe je Methode (Auswahl):
+%     aci -0.038 | cqr_static -0.036 | cqr_rolling -0.034 | dtaci -0.031
+%     | spci -0.023 | ... | native +0.002 | saocp +0.034
+%   stress_drop.csv (valide): mean +0.0283, median +0.0290
+%     schlechteste: lstm/L/44/decay_ocp -0.0386 | xlstm/GF/44/cqr_rolling
+%     -0.0365 | xlstm/GF/44/aci -0.0360 | xlstm/GI/42/native -0.0307
+%   Stress-Drop je CP-Methode (Median, valide; klein = stabil):
+%     native +0.005 | pid_tan +0.015 | decay_ocp +0.015 | cqr_rolling
+%     +0.018 | aci +0.025 | saocp +0.026 | agaci +0.027 | mondrian +0.029
+%     | pid +0.030 | dtaci +0.031 | pid_local +0.037 | sfogd +0.038
+%     | spci +0.040 | cqr_static +0.048
+%   vix_complexity.csv (Skill je Modell, high vs low VIX):
+%     Modell        high_vix   low_vix   Delta     komplex?
+%     tirex2         -0.003     0.125    -0.128    ja
+%     tirex2_cov     -0.002     0.120    -0.122    ja
+%     tirex          +0.019     0.119    -0.101    ja
+%     lgbm           +0.018     0.064    -0.046    ja
+%     lstm           -0.048     0.003    -0.052    ja
+%     xlstm          -0.092    -0.027    -0.065    ja
+%     lgbm_const     -0.015     0.032    -0.046    nein
+%     lstm_const     -0.025     0.045    -0.070    nein
+%     rw             -0.011     0.038    -0.049    nein
+%     xlstm_const    -0.032    -0.024    -0.008    nein
+%     arma           -0.030    -0.011    -0.019    nein
+%     arma_monthly   -0.027    -0.011    -0.016    nein
+%   Aggregat aus results/story_report.md (F13): Komplex-vs-Klassisch-
+%     Vorsprung low_vix +0.103 -> high_vix +0.025, Delta -0.077;
+%     VIX>20 = 28% der Testmonate.
+%     !! Diese Aggregatzahl stammt aus dem Story-Report, nicht aus meiner
+%        eigenen Nachrechnung der Modelltabelle -- zitiere sie als
+%        Story-Report-Wert und die Modelltabelle separat, dann bist du
+%        auf der sicheren Seite.
+%
+% ABBILDUNGEN: figures/vix_complexity.png und figures/stress_drop.png
+%   liegen im Repo.
+%
+% ZITATE: krishnamurthy2018 (QE-Datierung), degrauwe2013self bzw.
+%   degrauweji2013 (Selbsterfuellende Dynamik im Stress), fred (VIX-Quelle).
+%
+% >>> THESIS-ONLY >>>
+% - Regime-Timeline-Abbildung + Tabelle der Regime-Definitionen.
+% - Rolling-Coverage-Plot der Top-3-Pakete (figures/rolling_coverage_top3.png)
+%   mit Diskussion der Ausschlaege 2020-03 und 2022.
+% - Bootstrap-CIs fuer die Stress-Deltas.
+% <<< THESIS-ONLY <<<
+%
+% [arXiv-Kuerzung]: 1 Absatz, und darin MUSS der F13-Befund stehen
+%   (Zero-Shot-Vorsprung verschwindet im high-VIX-Regime). Ohne den
+%   ist die Headline unehrlich.
+
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{figures/vix_complexity.png}
+%   \caption{% TODO}
+%   \label{fig:res_vix}
+% \end{figure}
+
+
+%------------------------------------------------------------------------
+\subsection{Economic evaluation}
+\label{sec:res:econ}
+%------------------------------------------------------------------------
+% ERINNERUNG (7.7 + CLAUDE.md): dieser Block ist SEKUNDAER und darf nie
+% zum Rangkriterium werden. Der erste Satz muss das sagen.
+%
+% WAS HIER STEHT:
+%  1. Kapital-Proxy: der Median-Kapitalquotient ueber valide Kombis liegt
+%     bei 0.669 (Spanne 0.551 bis 0.878). Also: valide, rekalibrierte
+%     Intervalle sind im Median rund ein Drittel schmaler als der
+%     breiteste valide Benchmark.
+%  2. Der eigentlich interessante Befund: die Korrelation zwischen
+%     Winkler-Skill und Kapitalquotient betraegt -0.711 (valide Kombis).
+%     Hoher Skill geht also systematisch mit niedrigerem Kapitalbedarf
+%     einher. -> Das ist die Bruecke von der statistischen zur
+%     oekonomischen Metrik und rechtfertigt den Winkler-Score als
+%     Rangkriterium nachtraeglich. Guter, zitierfaehiger Satz.
+%  3. Der Kontrastbefund, der genauso wichtig ist: die Korrelation
+%     zwischen Skill und dem Sharpe der Handelsregel betraegt nur -0.147,
+%     also praktisch null und sogar leicht negativ.
+%     -> Aussage: bessere Intervalle uebersetzen sich in Kapitaleffizienz,
+%        aber NICHT in Handelsgewinne. Genau so schreiben. Das ist ein
+%        ehrlicher Befund und schuetzt dich davor, dass jemand die
+%        Arbeit als Trading-Paper missversteht.
+%  4. Sharpe-Verteilung: Median 0.159, Spanne -0.607 bis 0.621, 68% der
+%     validen Kombis haben positiven Sharpe. Der Active Share ist winzig
+%     (die Regel handelt nur, wenn der Vormonatsspread ausserhalb des
+%     Intervalls lag -- bei ~80% Coverage sind das per Konstruktion
+%     wenige Monate). Beispielwerte: 0.003 bis 0.053.
+%     -> Ein Satz: bei so wenigen aktiven Monaten ist der Sharpe
+%        extrem verrauscht; die Zahl taugt nur zum Methodenvergleich,
+%        nicht als Renditeaussage. Transaktionskosten sind ignoriert.
+%  5. Die Top-Sharpe-Pakete sind NICHT die Top-Skill-Pakete
+%     (lstm/L/pid_cqr 0.621 Sharpe bei nur 0.062 Skill; xlstm/GI/agaci
+%     0.446 Sharpe bei NEGATIVEM Skill -0.111). Das ist die konkrete
+%     Illustration von Punkt 3 -- unbedingt als Beispiel bringen.
+%
+% ZAHLEN (verifiziert, econ_results.csv gejoint mit validity_flag=True,
+%   485 valide Kombis):
+%   median_sharpe    : Median 0.159 | Min -0.607 | Max 0.621 | >0: 68%
+%   median_cap_ratio : Median 0.669 | Min 0.551 | Max 0.878
+%   corr(median_skill, median_sharpe)    = -0.147
+%   corr(median_skill, median_cap_ratio) = -0.711
+%   Top-Sharpe (valide): lstm/L/42/pid_cqr 0.621 (Skill 0.062)
+%     | lstm_const/G/42/spci 0.609 (Skill 0.060)
+%     | lstm_const/GF/43/sfogd 0.484 (Skill 0.016)
+%     | lstm/L/42/dtaci 0.482 (Skill 0.057)
+%     | xlstm/GI/44/agaci 0.446 (Skill -0.111)
+%
+% ZITATE: bcbs2019mar (Basel-Kontext, Proxy-Charakter betonen).
+%
+% [arXiv-Kuerzung]: 3 Saetze -- Kapitalquotient-Median, die beiden
+%   Korrelationen, der "kein Trading-Signal"-Satz. Bei hartem Limit:
+%   ganzes Unterkapitel in eine Fussnote.
+
+
+%------------------------------------------------------------------------
+\subsection{Robustness}
+\label{sec:res:robustness}
+%------------------------------------------------------------------------
+% WAS HIER STEHT (vier Checks aus 7.8, je 2-3 Saetze):
+%  1. KALIBRIERUNGSPOOL. Primaerfall rolling(36) gegen expanding,
+%     rolling(24), rolling(48). Auf den 3180 gemeinsamen Zellen betraegt
+%     die mittlere absolute Coverage-Differenz zu expanding 0.040
+%     (Maximum 0.189), zu rolling24 0.021 (max 0.102), zu rolling48
+%     0.016 (max 0.087).
+%     -> Ehrlicher Satz: die Pool-Wahl ist NICHT vernachlaessigbar; im
+%        Extremfall verschiebt sie die Coverage um fast 19 Prozentpunkte.
+%        Die mittlere Coverage steigt mit laengerem Pool
+%        (rolling24 0.813 < rolling48 0.820 < rolling 0.834
+%        < expanding 0.843), was zur Ueberdeckungsdiagnose aus 8.1 passt:
+%        laengere Pools erben alte, breitere Quantile.
+%     -> Story-Report F8 nennt lstm/GI/cqr_rolling mit 8.9pp Differenz
+%        rolling vs expanding als Extremfall.
+%  2. EX-IRLAND. Spearman-Rangkorrelation der Rankings mit und ohne
+%     Irland: rho = 0.939 ueber die 485 validen Kombis. Die Rangfolge
+%     ist also stabil. ABER das Niveau nicht: der mittlere Skill faellt
+%     um -0.021, und beim Spitzenreiter tirex2/ZS/cqr_static von 0.146
+%     auf 0.103 (-0.043).
+%     -> Zwei Saetze: (i) die Ordnung ist robust, (ii) rund ein Drittel
+%        des absoluten Vorsprungs des Siegers stammt aus Irland allein.
+%        Da IE mit Skill 0.231 das mit Abstand "leichteste" Land ist und
+%        wegen der MNE-/Leprechaun-Verzerrung ohnehin unter Vorbehalt
+%        steht, gehoert das prominent berichtet, nicht in eine Fussnote.
+%     -> Am staerksten leidet lgbm/L: aci von 0.067 auf -0.027,
+%        dtaci von 0.075 auf -0.009, agaci von 0.085 auf 0.009. Also
+%        LightGBM im lokalen Regime lebt fast vollstaendig von Irland.
+%  3. SEEDS. Nur NN-Modelle (588 Kombinationen ueber xlstm/lstm und ihre
+%     const-Zwillinge). Die Seed-Spannweite des Skills betraegt im Median
+%     0.043, im Mittel 0.051, maximal 0.315.
+%     -> Die entscheidende Zahl: in 52% der NN-Kombinationen ist die
+%        Seed-Spannweite GROESSER als der Betrag des Skills selbst.
+%        Das heisst, fuer die Haelfte der NN-Ergebnisse ist die
+%        Initialisierung ein groesserer Effekt als das Ergebnis.
+%        Konsequenz nach der Seed-Disziplin aus 7.8: fuer diese Faelle
+%        werden KEINE Rangaussagen getroffen. Diesen Satz explizit
+%        schreiben -- er entwertet die schwachen xlstm-Zahlen nicht,
+%        er ordnet sie richtig ein.
+%     -> Konkreter Beleg aus dem Story-Report (F9): lstm/G/dtaci_cqr
+%        mit Seed-Spanne 0.043 ueber dem Effekt.
+%     -> Auch relevant fuer 8.3: xlstm/L/native (0.094) hat seed_span
+%        0.102 -- die Spanne ist groesser als der Skill. Das beste
+%        xlstm-Paket ist also seed-fragil. UNBEDINGT dazuschreiben.
+%  4. BURN-IN (F11). Coverage in den ersten 36 Testmonaten gegen den Rest:
+%     im Mittel ueber alle Methoden -0.011, also leichte UNTERdeckung
+%     am Anfang. Der groesste Effekt liegt bei native (-0.066), gefolgt
+%     von decay_ocp (-0.041), saocp (-0.037), cqr_static (-0.034).
+%     Die adaptiven Online-Verfahren zeigen praktisch keinen Burn-in-
+%     Effekt oder sogar das umgekehrte Vorzeichen (aci +0.015,
+%     spci +0.012, dtaci +0.009).
+%     -> Interpretation: der Effekt trifft genau die Methoden, die einen
+%        gefuellten Kalibrierungspool brauchen, und nicht die, die online
+%        nachregeln. Das ist konsistent und selbstlimitierend (mit
+%        wachsendem Pool verschwindet er). Ehrlich, aber ohne Dramatik
+%        berichten.
+%     -> Ein Satz zur Doppelrolle: das HPO-Validierungsfenster dient
+%        gleichzeitig als CP-Initialisierung. Das ist die eigentliche
+%        Sorge hinter F11; die Messung zeigt, dass sie sich in einer
+%        Anfangs-UNTERdeckung aeussert, nicht in kuenstlichem Optimismus.
+%  5. Ein letzter Satz zur Laender-Konsistenz (F7): die mittlere paarweise
+%     Kendall-Rangkorrelation der Kombinations-Rankings zwischen den
+%     Laendern betraegt tau = 0.35. Die Rangfolge ist also nur schwach
+%     laenderuebergreifend stabil -- ein weiteres Argument fuer die
+%     zurueckhaltende Formulierung aus 8.8.
+%
+% ZAHLEN (verifiziert):
+%   cells.csv, mittlere Coverage je pool_mode:
+%     rolling24 0.8127 | rolling48 0.8204 | rolling 0.8341 | expanding 0.8432
+%     Median-Skill: rolling24 +0.0003 | rolling48 +0.0142
+%       | rolling -0.0126 | expanding -0.0111
+%     paarweise |Differenz| auf 3180 gemeinsamen Zellen:
+%       vs expanding  mean 0.0397  max 0.1890
+%       vs rolling24  mean 0.0208  max 0.1024
+%       vs rolling48  mean 0.0156  max 0.0866
+%   robustness_ex_ie.csv (485 valide): mean d_skill -0.0210,
+%     median -0.0176, Spearman rho(mit vs ohne IE) = 0.9392
+%     Top-5 mit/ohne IE: tirex2/cqr_static 0.146->0.103 (-0.043)
+%       | tirex2/decay_ocp 0.144->0.100 | tirex2/native 0.142->0.098
+%       | tirex2_cov/native 0.141->0.097 | tirex2_cov/cqr_static
+%       0.140->0.098
+%     groesste Verschlechterung: lgbm/L/aci -0.094 | lgbm/L/dtaci -0.084
+%       | lgbm/L/agaci -0.077 | arma_monthly/L/cqr_rolling -0.070
+%   ranking_all.csv, seed_span ueber 588 NN-Kombis:
+%     Median 0.0431 | Mittel 0.0514 | Max 0.3146
+%     Anteil mit seed_span > |median_skill|: 0.52
+%   cells.csv, cov_first36 minus cov_rest je Methode:
+%     native -0.0664 | decay_ocp -0.0405 | saocp -0.0371 | cqr_static
+%     -0.0336 | pid_tan -0.0100 | mondrian -0.0038 | agaci -0.0034
+%     | pid_local -0.0025 | sfogd +0.0011 | pid +0.0039 | cqr_rolling
+%     +0.0065 | dtaci +0.0090 | spci +0.0121 | aci +0.0146
+%     Gesamtmittel: -0.0107
+%   story_report.md F7: mittlere paarweise Kendall-tau zwischen
+%     Laendern = 0.35
+%
+% ZITATE: keine neuen Pflichtzitate. Fuer die IE-/Leprechaun-Verzerrung
+%   brauchst du EINE Quelle (CSO Irland "Modified GNI (GNI*)") -- steht
+%   noch aus, siehe offener Punkt am Ende von evaluation.tex.
+%
+% [arXiv-Kuerzung]: 1 Absatz mit vier Stichpunkten inline. Die
+%   Seed-Fragilitaet und der ex-IE-Niveaueffekt MUESSEN drin bleiben.
+
+
+%------------------------------------------------------------------------
+\subsection{Summary of findings}
+\label{sec:res:summary}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: 6-8 nummerierte Saetze, je einer pro Kernbefund, jeweils
+% mit der tragenden Zahl. Das ist die Vorlage fuer Abstract und Conclusion
+% -- schreib es so, dass du es dort fast woertlich wiederverwenden kannst.
+%
+% VORSCHLAG DER REIHENFOLGE (inhaltlich, du formulierst):
+%  (1) Punktprognose: kein Modell schlaegt den Random Walk; das beste
+%      MAE-Verhaeltnis ist 0.997 (tirex2), alle trainierten Modelle
+%      liegen darueber.
+%  (2) Kalibrierung: native Modellquantile sind systematisch ueberdeckend
+%      (0.872 statt 0.80) und passieren das Gate nur in 13% der Faelle;
+%      adaptive CP-Verfahren erreichen 96-100%.
+%  (3) Intervallguete: das beste valide Paket ist ein Zero-Shot-
+%      Foundation-Model (tirex2/ZS, Skill 0.14-0.15) vor dem besten
+%      klassischen Ansatz (rw/L/aci_cqr, 0.085).
+%  (4) Aber: kein einziger der 66 Cross-Model-Kontraste ist FDR-
+%      signifikant (min. median-q 0.185), und die MCS schliesst fast
+%      nichts aus. Die Rangfolge ist deskriptiv.
+%  (5) Kovariaten: der ceteris-paribus-Kontrast ist null
+%      (d_norm -0.00006, p 0.45); 17 makrooekonomische Kovariaten
+%      liefern dem vortrainierten Modell keine Zusatzinformation.
+%  (6) Pooling und Adaptivitaet: globales Pooling hilft den neuronalen
+%      Modellen nicht (+0.017), Fine-Tuning schlaegt Laender-Embedding
+%      klar (-0.054), und modelleigene adaptive Breiten sind im Median
+%      schlechter als konstante (+0.020).
+%  (7) xLSTM: die namensgebende Architektur ist die schwaechste Familie
+%      (Median-Skill -0.047); das beste valide Paket ist seed-fragil
+%      (Skill 0.094 bei Seed-Spanne 0.102).
+%  (8) Regime: der Vorsprung der komplexen Modelle verschwindet im
+%      Stress (Delta -0.077 von low- zu high-VIX; tirex2 von 0.125
+%      auf -0.003).
+%
+% !! Wenn du (3) schreibst, muss die Entscheidung aus 8.3 Punkt 4
+%    (cqr_static vs decay_ocp) hier konsistent durchgezogen sein.
+%
+% [arXiv-Kuerzung]: bleibt vollstaendig, das ist das Rueckgrat des Papers.
+
+
+%========================================================================
+%  ANSCHLUSS-KAPITEL, DIE AUF DIESEM AUFBAUEN (noch nicht angelegt)
+%------------------------------------------------------------------------
+%  Discussion/Limitations -- die Punkte, die hier aufgeworfen wurden:
+%    * Kontaminationsverdacht TiRex-2 (Release 2026-07-01, Cutoff
+%      undokumentiert, Testfenster bis 2026-04). Das entwertet Befund (3)
+%      potenziell vollstaendig und MUSS prominent stehen, nicht in einer
+%      Fussnote.
+%    * DQ-Ablehnung in 49.3% der Zellen -> bedingte Kalibrierung ist auch
+%      im validen Bereich verletzt.
+%    * Fehlende statistische Signifikanz aller Cross-Model-Kontraste.
+%    * Seed-Fragilitaet der NN-Ergebnisse (52%).
+%    * Ex-IE-Niveaueffekt und die irische IP-Verzerrung.
+%    * GR: PSI-Strukturbruch 2012, Gate-Rate nur 0.519.
+%    * Burn-in-Doppelrolle des Validierungsfensters.
+%    * Stichprobe: 277 Monate insgesamt, 127 im Test -- die Obergrenze
+%      fuer alles, was hier gemessen werden kann.
+%  Conclusion -- 1-2 Seiten, gestuetzt auf 8.12.
+%========================================================================

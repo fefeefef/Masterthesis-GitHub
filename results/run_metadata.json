@@ -1,0 +1,114 @@
+{
+  "run_id": "run_full_20260803_095330",
+  "mode": "full",
+  "timestamp": "20260803_095330",
+  "alpha": 0.2,
+  "fdr_q": 0.1,
+  "validity_country_share": 0.7,
+  "mcs_alpha": 0.1,
+  "boot_block": 6,
+  "n_boot": 1000,
+  "dq_lags": 4,
+  "rollcov_window": 36,
+  "first_window": 36,
+  "story_weights": {
+    "E": 0.3,
+    "P": 0.3,
+    "B": 0.2,
+    "R": 0.2
+  },
+  "story_thresholds": [
+    0.6,
+    0.4
+  ],
+  "reference": {
+    "model": "rw",
+    "regime": "L",
+    "cp_method": "native"
+  },
+  "rng_seed": 42,
+  "foundation_doc": "notebooks/diagnostics_foundation.txt",
+  "conformal_run": "run_full_20260721_145309",
+  "source_runs": {
+    "rw": {
+      "run": "run_full_20260721_125438",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_random_walk/run_full_20260721_125438",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "arma": {
+      "run": "run_full_20260721_125443",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_arima/run_full_20260721_125443",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "tirex": {
+      "run": "run_full_20260721_125744",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_tirex/run_full_20260721_125744",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "tirex2": {
+      "run": "run_full_20260721_141453",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_tirex2/run_full_20260721_141453",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "lgbm": {
+      "run": "run_full_20260721_125600",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_lightgbm/run_full_20260721_125600",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "xlstm": {
+      "run": "run_full_20260721_132357",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_xlstm/run_full_20260721_132357",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    },
+    "lstm": {
+      "run": "run_full_20260721_135514",
+      "path": "/Users/felix/Documents/Masterthesis/notebooks/results_lstm/run_full_20260721_135514",
+      "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+      "alpha": 0.2
+    }
+  },
+  "data_sha256": "5f27a4124f9334152ac9648d0c7308de42cc1a61cd891fc2397109068168ec2e",
+  "families_missing": [],
+  "countries": [
+    "AT",
+    "BE",
+    "ES",
+    "FI",
+    "FR",
+    "GR",
+    "IE",
+    "IT",
+    "NL",
+    "PT"
+  ],
+  "seeds_present": [
+    "42",
+    "43",
+    "44"
+  ],
+  "n_cells": 21200,
+  "n_contrasts": 1249,
+  "n_findings": 816,
+  "git_commit": "b1811e67b6a92460cdf94e405d29093a5945680f",
+  "versions": {
+    "numpy": "2.1.3",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "python": "3.13.1"
+  },
+  "runtime_breakdown": {
+    "metric_engine_seconds": 214.6,
+    "calibration_tests_seconds": 2.8,
+    "contrasts_seconds": 11.3,
+    "xm_contrasts_seconds": 0.6,
+    "mcs_seconds": 4.4,
+    "econ_seconds": 4.6,
+    "total_seconds": 247.2
+  }
+}
