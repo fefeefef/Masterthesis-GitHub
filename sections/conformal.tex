@@ -197,7 +197,7 @@ with the primary setting $w = 36$. The pool the methods can draw from is a rolli
 Pool-reading methods are \texttt{cqr\_rolling}, \texttt{aci}, \texttt{agaci},
 \texttt{dtaci}, \texttt{spci} and \texttt{mondrian}; the online trackers never
 access $\mathcal{P}_t$ and carry a state instead.
-We cannot calculate a score for the Greek spread in 2015-07/08 since there is no data available. The online methods skip these months and the pool methods never see them. These months lie within the burn-in set; the test set is complete for all countries, as already discussed in \cref{sec:data}.
+We cannot calculate a score for the Greek spread in 2015-07/08 (only 2015-07 is missing, but without $s_{t-1}$ in 2015-08 there is no level anchor for the back transformation) since there is no data available. The online methods skip these months and the pool methods never see them. These months lie within the burn-in set. The test set is complete for all countries, as already discussed in \cref{sec:data}.
 
 % SCHREIBE: Absatz Lückenmonate (2 Sätze).
 %  - Griechenland 2015-07/08: keine verwertbare Realisierung -> kein Score.
@@ -647,9 +647,7 @@ deviations. We list them here for transparency.
   since our one-sided CQR score fixes the interval through the
   $(1-\alphamis)$-quantile alone.
 
-  \item In rare cases, driven by extreme $\alpha_t$ values in ACI, the calibrated interval inverts (lower bound above upper bound). We repair
-  this by swapping the edges and log the event with a \texttt{crossed\_cal}
-  flag.
+  \item In rare cases the calibrated interval inverts (lower bound above upper bound). We repair this by swapping the edges and log the event with \texttt{crossed\_cal} flag.
 
   \item As noted in \cref{sec:conformal:window}, the width terciles used for
   \texttt{mondrian} are a design decision, not a theoretical requirement.

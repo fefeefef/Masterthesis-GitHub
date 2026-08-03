@@ -88,11 +88,7 @@ is 2015-10 to 2026-04, giving 127 test months per country.
 The hyperparameter optimisation of all tuned models uses months 1 to 114 as the
 training set and months 115 to 150 as the validation set. Afterwards the
 hyperparameters are frozen and the models are retrained with them; no
-test-window information enters the hyperparameter selection. Every model with an
-information horizon is restricted to a shared maximum of 24 months, so that no
-model can use a longer lookback than the others. Wherever a loss had to be
-minimised, the selection criterion was the mean pinball loss on the standardised
-$\Delta$ scale, averaged across countries, over the burn-in validation months.
+test-window information enters the hyperparameter selection. Every  trainable model with an information horizon is restricted to a shared maximum of 24 months, so that no model can use a longer lookback than the others. TiRex and TiRex2 use the full expanding level history, which gives an information advantage to these models. Wherever a loss had to be minimised, the selection criterion was the mean pinball loss on the standardised $\Delta$ scale, averaged across countries, over the burn-in validation months.
 
 \begin{table}[htbp]
   \centering\small
