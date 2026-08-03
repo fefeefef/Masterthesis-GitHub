@@ -648,6 +648,76 @@ deviations. We list them here for transparency.
   $(1-\alphamis)$-quantile alone.
 
   \item In rare cases the calibrated interval inverts (lower bound above upper bound). We repair this by swapping the edges and log the event with \texttt{crossed\_cal} flag.
+%------------------------------------------------------------------------
+% !! UEBERARBEITEN 2026-08-03 -- "in rare cases" ist als pauschale Aussage
+%    NICHT HALTBAR und im Aggregat irrefuehrend. Der Mechanismus ist hier
+%    korrekt beschrieben, aber die Haeufigkeit wird nirgends quantifiziert,
+%    obwohl sie berechnet vorliegt (cells.csv, Spalte crossed_cal_rate).
+%    Quantilkreuzung ist ein Standard-Angriffspunkt bei Quantilregression --
+%    unquantifiziert stehenzulassen ist ein unnoetiges Risiko.
+%
+% WAS DER SATZ STATTDESSEN SAGEN MUSS (Zahlen verifiziert, cells.csv,
+% pool=rolling, 7420 Zellen):
+%   Gesamtmittel ueber alle Zellen : 0.451% der kalibrierten Intervalle
+%   Nur zulaessige Kombinationen   : 0.398%
+%   Anteil Zellen ganz OHNE Kreuzung: 81.7% (nur 18.3% haben ueberhaupt eine)
+%   -> Fuer den Durchschnitt ist "rare" also richtig. Der Punkt ist die
+%      VERTEILUNG, nicht der Mittelwert.
+%
+%   Mittlere Kreuzungsrate je Methode (in %):
+%     pid_tan_cqr 2.554 | sfogd_cqr 0.813 | pid_local_cqr 0.758 |
+%     cqr_static 0.724  | spci_cqr 0.370  | pid_cqr 0.288 |
+%     aci_cqr 0.209     | agaci_cqr 0.195 | dtaci_cqr 0.178 |
+%     cqr_rolling 0.177 | decay_ocp_cqr 0.028 | mondrian_cqr 0.024 |
+%     native 0.000      | saocp_cqr 0.000
+%   -> ZWEI Aussagen, die du daraus machen solltest:
+%      (a) native und saocp kreuzen EXAKT NIE -- bei native per
+%          Konstruktion (keine Rekalibrierung), bei saocp wegen der in
+%          Punkt 2 oben genannten Nichtnegativitaet der Radien. Das ist
+%          ein schoener Konsistenz-Check der Implementierung und
+%          bestaetigt die dort behauptete Domaeneneigenschaft empirisch.
+%      (b) pid_tan liegt mit 2.554% eine Groessenordnung ueber dem Feld.
+%          Zusammen mit dem schlechtesten Median-Skill aller Methoden
+%          (-0.119) und der hoechsten Breiten-Ablehnrate im DQ (97.4%,
+%          siehe Limitations L1) ergibt das EIN konsistentes Bild: die
+%          in Punkt 1 oben beschriebene Adaption des D-Terms
+%          destabilisiert den Regler. Diese drei Zahlen gehoeren
+%          miteinander verknuepft -- das ist eine echte
+%          Implementierungs-Erkenntnis, kein Schoenheitsfehler.
+%
+%   AUSREISSER, den du benennen musst (sonst findet ihn der Gutachter):
+%     xlstm/L/seed42/cqr_static/IE -> 77.95% Kreuzungsrate,
+%     Coverage 0.598, mittlere Breite 0.129.
+%     Weitere Faelle >25%: xlstm/GF/44/cqr_static/IE (37.0%),
+%     tirex2/ZS/42/cqr_static/PT (32.3%), xlstm/L/44/cqr_static/BE (29.1%),
+%     xlstm/GI/44/cqr_static/IE (26.0%), lstm/L/44/cqr_static/IE (25.2%).
+%     Insgesamt 18 von 530 cqr_static-Zellen ueber 5%.
+%     MECHANISMUS (so erklaeren): der CQR-Score E = max(q_lo - y, y - q_hi)
+%     wird negativ, wenn die Rohquantile das Ziel bereits umschliessen.
+%     Ist der statische Kalibrierungsoffset stark negativ, schrumpft er
+%     das Intervall bis unter null Breite. cqr_static kann diesen Offset
+%     nicht nachfuehren -- die adaptiven Verfahren korrigieren sich
+%     innerhalb weniger Monate heraus, cqr_static bleibt darauf sitzen.
+%     -> Deshalb konzentrieren sich ALLE Extremfaelle auf cqr_static.
+%     -> DAS IST RELEVANT FUER 8.3: cqr_static ist die Methode des
+%        Spitzenreiters tirex2/ZS. Sein PT-Wert von 32.3% Kreuzungen
+%        gehoert in die Entscheidung cqr_static-vs-decay_ocp mit hinein
+%        (decay_ocp: 0.028%). Das ist ein WEITERES Argument fuer
+%        Variante (b) in 8.3 Punkt 4.
+%
+% FORMULIERUNGSVORSCHLAG (ersetzt den Satz oben):
+%   "Crossing is rare on average (0.45% of all calibrated intervals, and
+%   81.7% of cells never cross) but it is not uniformly distributed: it
+%   concentrates in \texttt{pid\_tan} (2.55%) and, as isolated extreme
+%   cases, in \texttt{cqr\_static}, where a strongly negative static
+%   offset cannot be adapted away. We repair the inversion by swapping
+%   the edges and log every event in \texttt{crossed\_cal}."
+%
+% !! CONFORMAL_FACTS.md ist an dieser Stelle FALSCH -- dort ist die
+%    Kreuzungsrate als "selten wegen ACI" gerahmt. Tatsaechlich kreuzen
+%    die ACI-Verfahren kaum (0.209%); der Treiber ist pid_tan. Beim
+%    Uebernehmen von Textbausteinen aus dieser Datei aufpassen.
+%------------------------------------------------------------------------
 
   \item As noted in \cref{sec:conformal:window}, the width terciles used for
   \texttt{mondrian} are a design decision, not a theoretical requirement.

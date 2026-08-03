@@ -93,6 +93,33 @@
 %     (q<0.10). Bedingte Kalibrierung ist also breitflaechig verletzt,
 %     auch bei Kombinationen, die das Gate passieren. Das MUSS hier stehen
 %     und in 8.12/Limitations wiederholt werden.
+%     -> AUSGEBAUT 2026-08-03: die Zerlegung dieser 49.3% (es ist fast
+%        vollstaendig der BREITEN-Regressor, nicht die Lags) steht im
+%        Limitations-Block L1 am Ende dieser Datei. Hier nur die Zahl und
+%        einen Vorwaertsverweis setzen -- die Erklaerung gehoert nicht in
+%        den deskriptiven Teil.
+%  7. QUANTILKREUZUNG -- NEU EINZUFUEGEN 2026-08-03. Wird in
+%     \cref{sec:conformal:notes} als Mechanismus beschrieben ("in rare
+%     cases the calibrated interval inverts"), aber im Ergebnisteil nie
+%     quantifiziert. Zwei Saetze genuegen, und sie schuetzen dich gegen
+%     einen Standard-Angriff auf Quantilregression.
+%     ZAHLEN (cells.csv, Spalte crossed_cal_rate, pool=rolling):
+%       Gesamtmittel 0.451% | nur zulaessige Kombis 0.398%
+%       81.7% aller Zellen kreuzen NIE
+%       native und saocp_cqr: exakt 0.000% (bei native per Konstruktion,
+%         bei saocp wegen der nichtnegativen Radien -- das bestaetigt die
+%         in \cref{sec:conformal:notes} Punkt 2 behauptete
+%         Domaeneneigenschaft empirisch, ein Satz wert)
+%       pid_tan_cqr 2.554% -- eine Groessenordnung ueber dem Feld
+%       cqr_static 0.724% im Mittel, aber mit Extremfaellen bis 77.95%
+%         (xlstm/L/seed42/IE); 18 von 530 cqr_static-Zellen ueber 5%
+%     -> DER SATZ, DER HIER HINGEHOERT: Kreuzung ist im Mittel
+%        vernachlaessigbar, aber sie ist nicht gleichverteilt, und sie
+%        trifft ausgerechnet cqr_static -- die Methode des
+%        Spitzenreiters. tirex2/ZS/cqr_static hat in PT eine
+%        Kreuzungsrate von 32.3%. Das ist ein weiteres Argument in der
+%        Entscheidung unter 8.3 Punkt 4 und sollte dort verlinkt werden.
+%        (decay_ocp_cqr zum Vergleich: 0.028%.)
 %
 % ZAHLEN (verifiziert):
 %   Gate gesamt          : 485/742 valide  (= 65.4%)
@@ -299,6 +326,79 @@ Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
 %     ungefaehr so wichtig wie die Wahl des Modells. Das ist ein
 %     eigenstaendiges Resultat und rechtfertigt den 14-Methoden-Vergleich.
 %  6. Abbildung skill_heatmap.png einbinden (liegt in figures/).
+%  7. WINKLER-DEKOMPOSITION UND TAIL-ASYMMETRIE -- NEU EINZUFUEGEN
+%     2026-08-03. Diese Groessen sind in \cref{sec:eval:validity}
+%     EINGEFUEHRT (Zerlegung in Breite, Unterschreitungs- und
+%     Ueberschreitungs-Penalty, daraus die Tail-Asymmetrie), aber im
+%     gesamten Ergebnisteil NICHT BERICHTET. Sie liegen fertig in
+%     cells.csv (Spalten width, under_pen, over_pen, tail_asym).
+%     Eine Metrik einzufuehren und dann nie zu verwenden ist eine
+%     offene Flanke -- entweder hier berichten oder in 7.2 streichen.
+%     Ich empfehle berichten: die Zahlen sagen etwas Nichttriviales.
+%
+%     WAS ZU SCHREIBEN IST (ein Absatz, 4-6 Saetze):
+%     (a) Woraus der Score besteht. Ueber die zulaessigen Kombinationen:
+%           mittlere Breite        0.3301
+%           Unterschreitungsstrafe 0.0521
+%           Ueberschreitungsstrafe 0.0715
+%         Die Breite macht 72.8% des mittleren Winkler-Scores aus.
+%         -> Satz: der Score wird von der Schaerfe dominiert, nicht von
+%            den Verletzungen. Das ist die Erklaerung dafuer, warum das
+%            Ranking so stark mit der Intervallbreite korreliert und
+%            warum ein leicht unterdeckendes Verfahren wie
+%            tirex2/cqr_static ueberhaupt vorne landen kann.
+%     (b) Die Tail-Asymmetrie (Anteil UNTERER an allen Verletzungen;
+%         0.5 = symmetrisch). Ueber alle Zellen: Mittel 0.5049,
+%         Median 0.5000 -- die Verletzungen sind der ANZAHL nach
+%         praktisch symmetrisch verteilt.
+%     (c) ABER: die Strafen sind es nicht (0.0715 oben gegen 0.0521
+%         unten, also +37% Uebergewicht auf der Oberseite). Gleich viele
+%         Verletzungen, aber die nach OBEN sind im Mittel deutlich
+%         teurer.
+%         -> Das ist der interessante Satz des Absatzes: wenn der Spread
+%            aus dem Intervall laeuft, dann nach oben und weiter.
+%            Oekonomisch plausibel (Spread-Ausweitungen sind sprunghaft,
+%            Einengungen graduell) und konsistent mit der bekannten
+%            Rechtsschiefe von Kreditspreads. NICHT als kausale Aussage
+%            formulieren, sondern als Beobachtung, die zur bekannten
+%            Verteilungsform passt.
+%         -> Konsequenz benennen: ein SYMMETRISCHER CQR-Score kann diese
+%            Asymmetrie strukturell nicht abbilden. Das ist ein
+%            Kandidat fuer Future Work (asymmetrische oder
+%            zweiseitig-getrennte Score-Familien) und gehoert in die
+%            Discussion verlinkt.
+%     (d) Ein Satz zur Modellordnung -- die klassischen Modelle sind am
+%         staerksten unterseitig fehlgewichtet, die komplexen am
+%         wenigsten. Nicht ueberinterpretieren, aber die Richtung ist
+%         konsistent.
+%
+% ZAHLEN FUER PUNKT 7 (verifiziert, cells.csv, pool=rolling, nur
+% validity_flag=True):
+%   Tail-Asymmetrie je Modellfamilie (Mittel):
+%     xlstm 0.483 | tirex2 0.510 | tirex2_cov 0.532 | lstm 0.533 |
+%     lstm_const 0.540 | xlstm_const 0.540 | tirex 0.555 |
+%     lgbm_const 0.577 | rw 0.604 | arma 0.608 | lgbm 0.611 |
+%     arma_monthly 0.618
+%   Tail-Asymmetrie je Land (Mittel) -- die groessere Streuung:
+%     FI 0.431 | IT 0.444 | BE 0.502 | FR 0.504 | AT 0.551 | NL 0.552 |
+%     ES 0.567 | PT 0.572 | GR 0.594 | IE 0.642
+%     -> Spanne 0.43 bis 0.64. Die Laenderheterogenitaet ist groesser als
+%        die Modellheterogenitaet. Passt zum Kendall-Befund in 8.9
+%        (tau 0.346) und stuetzt die dortige Aussage von einer anderen
+%        Seite -- diese Verbindung explizit ziehen, sie ist gratis.
+%   Tail-Asymmetrie je CP-Methode (Mittel, nur zulaessige Kombis):
+%     cqr_static 0.471 | mondrian 0.522 | decay_ocp 0.522 |
+%     sfogd 0.528 | dtaci 0.529 | pid 0.530 | pid_local 0.533 |
+%     cqr_rolling 0.536 | saocp 0.540 | aci 0.540 | agaci 0.543 |
+%     spci 0.553 | native 0.556 | pid_tan 0.562
+%     -> Spannweite nur 0.47-0.56: die Wahl der CP-Methode veraendert die
+%        Asymmetrie kaum. Das ist ein NICHT-Befund und genau deshalb
+%        berichtenswert: die Rekalibrierungsschicht korrigiert das
+%        Niveau der Coverage, aber nicht ihre Schiefe. Ein Satz.
+%
+% ZITATE fuer Punkt 7: winkler1972, gneiting2007 (Zerlegung properer
+%   Scores), romano2019cqr (Symmetrie des CQR-Scores als strukturelle
+%   Grenze).
 %
 % ZAHLEN (verifiziert, ranking_all.csv, nur validity_flag=True):
 %   Bestes valides Paket je Modellfamilie:
@@ -1008,21 +1108,28 @@ Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
 
 
 %========================================================================
-%  ANSCHLUSS-KAPITEL, DIE AUF DIESEM AUFBAUEN (noch nicht angelegt)
+%  ANSCHLUSS-KAPITEL
 %------------------------------------------------------------------------
-%  Discussion/Limitations -- die Punkte, die hier aufgeworfen wurden:
-%    * Kontaminationsverdacht TiRex-2 (Release 2026-07-01, Cutoff
-%      undokumentiert, Testfenster bis 2026-04). Das entwertet Befund (3)
-%      potenziell vollstaendig und MUSS prominent stehen, nicht in einer
-%      Fussnote.
-%    * DQ-Ablehnung in 49.3% der Zellen -> bedingte Kalibrierung ist auch
-%      im validen Bereich verletzt.
-%    * Fehlende statistische Signifikanz aller Cross-Model-Kontraste.
-%    * Seed-Fragilitaet der NN-Ergebnisse (52%).
-%    * Ex-IE-Niveaueffekt und die irische IP-Verzerrung.
-%    * GR: PSI-Strukturbruch 2012, Gate-Rate nur 0.519.
-%    * Burn-in-Doppelrolle des Validierungsfensters.
-%    * Stichprobe: 277 Monate insgesamt, 127 im Test -- die Obergrenze
-%      fuer alles, was hier gemessen werden kann.
+%  LIMITATIONS -- seit 2026-08-03 ein eigenes Kapitel:
+%    sections/limitations.tex, eingebunden in main.tex nach diesem Kapitel.
+%    Alle Punkte, die in diesem Results-Kapitel aufgeworfen werden, sind
+%    dort in acht Unterkapiteln ausgeschrieben (9.1 Kontamination,
+%    9.2 Gate/DQ, 9.3 Inferenz+Power, 9.4 Seeds, 9.5 Stichprobe/Panel,
+%    9.6 Designentscheidungen, 9.7 Oekonomie, 9.8 Scope).
+%    -> Neue Limitationen NICHT mehr hier sammeln, sondern direkt dort
+%       einsortieren. Diese Liste ist bewusst geloescht, damit es keine
+%       zweite Wahrheit gibt.
+%    -> Aus diesem Kapitel sollten Vorwaertsverweise gesetzt werden:
+%       8.1 Gate -> \cref{sec:lim:gate}
+%       8.2 Punktprognose -> \cref{sec:lim:scope} (PT-Artefakt, DM-Test)
+%       8.3 Ranking -> \cref{sec:lim:contamination} und \cref{sec:lim:seeds}
+%       8.8 Cross-Model/MCS -> \cref{sec:lim:inference}
+%       8.11 Robustheit -> \cref{sec:lim:sample} (ex-IE) und
+%                          \cref{sec:lim:design} (Pool-Fenster)
+%
+%  Discussion -- noch nicht angelegt. Abgrenzung zu den Limitations:
+%    dort steht, was die Befunde BEDEUTEN (warum Zero-Shot gewinnt, warum
+%    xLSTM verliert, was das fuer die Praxis heisst), hier steht, wo sie
+%    an ihre Grenzen stossen. Nicht vermischen.
 %  Conclusion -- 1-2 Seiten, gestuetzt auf 8.12.
 %========================================================================

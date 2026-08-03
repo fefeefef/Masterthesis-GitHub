@@ -197,13 +197,30 @@ We use the same reference for all calculated skills (Random Walk per country).
 %  6. Ein Satz Ehrlichkeit: kleine T pro Zelle (127 Monate, im Stress
 %     weniger) -> Tests sind niedrig-power; deshalb Gate nachsichtig (7.1).
 %
-% ZAHLEN AUS:
-%   coverage_diagnostics.parquet (5258 x 17): family, model, method, country,
-%       n_test, violations, coverage, pval_uc, pval_ind, pval_cc, pval_dq,
-%       qval_uc, qval_ind, qval_cc, qval_dq, wsc_width, method_tier
-%   master_summary.parquet -> mean_coverage, UC_reject_rate, CC_reject_rate,
-%       mean_WSC (worst-slab / width-scaled coverage, falls im Text erwaehnt)
-%   coverage_rejection_summary.parquet (Aggregat der Ablehnraten)
+% ZAHLEN AUS (korrigiert 2026-08-03 -- die frueher hier genannten Dateien
+% coverage_diagnostics.parquet / master_summary.parquet /
+% coverage_rejection_summary.parquet stammen aus der ABGELOESTEN taeglichen
+% v5.3-Pipeline und existieren im aktuellen Lauf nicht mehr. Nicht danach
+% suchen, die Zahlen stehen woanders):
+%   results/tables/calibration_tests.csv (7420 x 15):
+%       model, regime, seed, cp_method, country, n_viol,
+%       p_uc, p_ind, p_cc, p_dq, q_uc, q_ind, q_cc, q_dq, cell_valid
+%       -> 7420 = 742 Kombinationen x 10 Laender, Primaerfall pool=rolling
+%   results/tables/validity_flags.csv (742 x 6):
+%       model, regime, seed, cp_method, valid_country_share, validity_flag
+%   results/tables/cells.csv -> coverage, cov_se_mbb, cov_first36, cov_rest
+%       (Coverage-Ebene je Land x Kombination x pool_mode)
+%   Aggregierte Ablehnraten sind NICHT vorberechnet -- sie entstehen als
+%   Mittel ueber die q-Spalten von calibration_tests.csv. Die in 8.2
+%   berichteten Werte (UC 20.6% / IND 6.1% / CC 26.3% / DQ 49.3% bei
+%   q<0.10) sind genau diese Mittel.
+%
+% ZUSATZ ZU PUNKT 4 (DQ), beim Schreiben mit aufnehmen: der Breiten-
+%   Regressor ist kein Beiwerk, sondern der Grund, warum DQ so viel
+%   haerter verwirft als IND. Hier nur den Test einfuehren; die
+%   Zerlegung und ihre Konsequenz stehen im Limitations-Block L1 am
+%   Ende von results.tex. EINEN Vorwaertsverweis setzen, damit der
+%   Leser den 49.3%-Wert in 8.2 nicht unerklaert stehen sieht.
 %
 % ZITATE: kupiec1995, christoffersen1998, engle2004caviar, benjamini1995fdr.
 We want our prediction intervals to cover 80\% of the realized data points. To measure our hit rate we use the empirical coverage. It is the fraction of test points inside the interval,
@@ -483,22 +500,56 @@ when $q_{(i)}\ge 0.10$.
 %  4. Burn-in-Diagnostik: Coverage in den ersten 36 Testmonaten vs. Rest
 %     (F11) -> prueft, ob die Burn-in-Doppelrolle (HPO-Val = CP-Init) das
 %     fruehe Testfenster verzerrt. Selbstlimitierend, ehrlich ausweisen.
+%  5. LAENDER-KONSISTENZ DER RANKINGS (F7) -- NEU EINZUFUEGEN 2026-08-03.
+%     Diese Kennzahl wird in 8.9 BERICHTET, aber bisher nirgends
+%     EINGEFUEHRT. Das ist eine Luecke: der Leser trifft dort auf ein
+%     Kendall-tau ohne Definition. Hier gehoert die Methode hin.
+%     WAS ZU SCHREIBEN IST (2-4 Saetze + Gleichung unten):
+%       Motivation: alle Aggregate dieser Arbeit sind Mediane UEBER die
+%       zehn Laender (Skalenregel, \cref{sec:eval:skill}). Ein Median ist
+%       nur dann eine sinnvolle Zusammenfassung, wenn die Laender
+%       ueberhaupt dieselbe Rangordnung erzeugen. Wenn nicht, gibt es
+%       nicht EINE Geschichte, sondern zehn.
+%       Konstruktion: fuer jedes Laenderpaar (i,j) wird der Kendall-Rang-
+%       korrelationskoeffizient tau_b zwischen den Skill-Vektoren der 742
+%       Kombinationen gebildet; berichtet wird das Mittel ueber alle
+%       45 = C(10,2) Paare. Kendall statt Spearman, weil tau robust
+%       gegenueber den vielen nahezu gebundenen Raengen im Mittelfeld ist
+%       (und weil die Robustheits-Checks 1-2 bereits Spearman-rho auf
+%       einer ANDEREN Achse verwenden -- Verwechslung vermeiden, das im
+%       Text kurz sagen).
+%     GLEICHUNG (einfuegen, Nummer anpassen):
+%       tau_b = (C - D) / sqrt((C + D + T_x)(C + D + T_y)),
+%       wobei C die konkordanten, D die diskordanten Paare und T_x, T_y
+%       die nur in x bzw. nur in y gebundenen Paare zaehlen.
+%     LESEREGEL, die du vorab fixieren solltest (sonst ist die
+%       Interpretation in 8.9 post hoc): tau nahe 1 = eine gemeinsame
+%       Rangordnung, Aggregation gerechtfertigt; tau um 0.3-0.4 =
+%       substanzielle Laenderheterogenitaet, Medianaussagen bleiben
+%       gueltig, aber "das beste Verfahren" ist laenderabhaengig;
+%       tau nahe 0 = Aggregation nicht interpretierbar.
 %
 % ZAHLEN AUS:
-%   Pool-Fenster: separate Run-Artefakte je Fenster (rolling24/36/48/expanding)
-%   ex-IE: Reaggregation im diagnostics-NB (Spearman-rho)
-%   Seeds: per_target_results_*.parquet ueber Seeds gruppiert
-%   Burn-in: coverage_diagnostics ueber Zeitfenster geschnitten
-%   (F8/F11/F13-Story-IDs stehen in story_candidates.txt)
+%   Pool-Fenster: cells.csv, Spalte pool_mode (rolling/expanding/
+%       rolling24/rolling48) -- alle vier liegen im SELBEN Lauf, keine
+%       separaten Run-Artefakte
+%   ex-IE: results/tables/robustness_ex_ie.csv (742 x 16), Spalten
+%       median_skill, median_skill_exie, d_skill
+%   Seeds: ranking_all.csv, Spalte seed_span
+%   Burn-in: cells.csv, Spalten cov_first36 und cov_rest
+%   Laender-Konsistenz (F7): berechnet aus cells.csv, pool=rolling,
+%       Pivot Kombination x Land auf der Spalte skill
+%       -> mittleres tau 0.346 | Median 0.344 | Min 0.073 | Max 0.650
 %
-% ZITATE: keine neuen Pflichtzitate. IE-Verzerrung ggf. mit Quelle belegen
-%   (siehe TODO unten -- offener Punkt).
+% ZITATE: kendall1938 (tau), benjamini1995fdr. IE-Verzerrung ggf. mit
+%   Quelle belegen (siehe TODO unten -- offener Punkt).
+%   !! kendall1938 fehlt noch in references.bib -- eintragen.
 
-% TODO Prosa 1-4 als kompakte Liste/Absatz. Jeder Check = 1 Satz Motivation
+% TODO Prosa 1-5 als kompakte Liste/Absatz. Jeder Check = 1 Satz Motivation
 %   + 1 Satz Kennzahl.
 
-% [arXiv-Kuerzung]: 1 Absatz mit 4 Stichpunkten inline ("Pool-Fenster 24/36/48
-%   + expanding, ex-IE, Seed-Spannen, Burn-in-Coverage").
+% [arXiv-Kuerzung]: 1 Absatz mit 5 Stichpunkten inline ("Pool-Fenster 24/36/48
+%   + expanding, ex-IE, Seed-Spannen, Burn-in-Coverage, Laender-Kendall").
 
 
 %========================================================================

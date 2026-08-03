@@ -1,0 +1,780 @@
+%========================================================================
+%  LIMITATIONS -- Schreibgeruest
+%------------------------------------------------------------------------
+%  LESEHILFE (identisch zu evaluation.tex und results.tex):
+%   * "WAS HIER STEHT" = inhaltliche Checkliste, Satz fuer Satz abarbeiten.
+%   * "ZAHLEN"         = die bereits VERIFIZIERTEN Werte aus dem Run.
+%                        Alle Zahlen unten wurden direkt aus den Tabellen
+%                        gelesen -- du musst nichts nachrechnen, aber du
+%                        darfst auch KEINE Zahl schreiben, die hier nicht
+%                        steht (CLAUDE.md Rigor-Regel).
+%   * "ZITATE"         = biblatex-Keys. Fehlende Keys sind unten markiert.
+%   * "!! ENTSCHEIDUNG"= Punkt, den DU faellen musst.
+%   * "[arXiv-Kuerzung]" = wie das Unterkapitel fuer arXiv eingedampft wird.
+%   * Bloecke zwischen % >>> THESIS-ONLY >>> und % <<< THESIS-ONLY <<<
+%                        fliegen fuer arXiv komplett raus.
+%
+%  DATENHERKUNFT ALLER ZAHLEN IN DIESER DATEI
+%  ------------------------------------------
+%  Identisch zu results.tex: Diagnostics-Run run_full_20260803_095330,
+%  Conformal-Run run_full_20260721_145309, Panel-Hash 5f27a412...68ec2e,
+%  git commit b1811e67. Tabellenkopien unter results/tables/*.csv.
+%  AUSNAHME: die DQ-Zerlegung in 9.2 und der Punktprognose-Test in 9.3
+%  sind POST-HOC-Rechnungen vom 2026-08-03, die NICHT aus den
+%  Run-Artefakten stammen -- sie sind an Ort und Stelle als solche
+%  markiert und muessen als Amendment deklariert werden.
+%
+%  GLIEDERUNGSLOGIK DIESES KAPITELS (bewusst gewaehlt, nicht willkuerlich)
+%  ----------------------------------------------------------------------
+%  Reihenfolge = absteigende Bedrohung fuer die Kernaussage der Arbeit:
+%   9.1 Kontamination      -> kann Befund (3) VOLLSTAENDIG entwerten
+%   9.2 Gate/DQ            -> relativiert das zentrale Guetesiegel
+%   9.3 Inferenz/Power     -> relativiert JEDE Rangaussage
+%   9.4 Seed-Fragilitaet   -> relativiert die NN-Ergebnisse speziell
+%   9.5 Stichprobe/Panel   -> die harte Obergrenze von allem
+%   9.6 Designentscheidungen-> was die Konstruktion praedeterminiert
+%   9.7 Oekonomie          -> Proxy, kein Backtest
+%   9.8 Scope              -> was die Arbeit NICHT behauptet
+%  Diese Reihenfolge ist selbst ein Argument: wer zuerst die gefaehrlichste
+%  Limitation nennt, wirkt nicht defensiv, sondern souveraen. NICHT
+%  umsortieren, um Unangenehmes nach hinten zu schieben.
+%
+%  GRUNDREGEL FUER DEN TON: jede Limitation braucht (i) was genau das
+%  Problem ist, (ii) die Zahl, die es belegt, (iii) in welche RICHTUNG es
+%  die Ergebnisse verzerrt, (iv) was dagegen getan wurde ODER warum nichts
+%  getan werden konnte. Punkt (iii) ist der, den die meisten Arbeiten
+%  weglassen -- er ist der, der dich vom Gutachter unterscheidet.
+%========================================================================
+\section{Limitations}
+\label{sec:limitations}
+
+% WAS HIER STEHT (Kapitel-Kopf, 1 kurzer Absatz, 4-5 Saetze):
+%  - Ein Satz Rahmung: die Befunde aus \cref{sec:results} gelten innerhalb
+%    eines vorregistrierten Protokolls (\cref{sec:evaluation}); dieses
+%    Kapitel benennt, wo das Protokoll an seine Grenzen stoesst.
+%  - Ein Satz Unterscheidung, die du unbedingt machen solltest: es gibt
+%    (a) Limitationen des DESIGNS (bewusste Entscheidungen mit Kosten) und
+%    (b) Limitationen der EVIDENZ (was die Daten nicht hergeben). Beide
+%    stehen hier, aber sie sind nicht dasselbe -- Leser verwechseln das.
+%  - Ein Satz Vorwaertsverweis: die schwerwiegendste Limitation (9.1)
+%    betrifft ausgerechnet das bestplatzierte Modell.
+%  - KEIN Understatement ("minor caveats", "as with any study"). Solche
+%    Formeln lesen sich als Verharmlosung und provozieren genau die
+%    Nachfrage, die du vermeiden willst.
+%  - Ein Satz, dass alle hier genannten Punkte die Rangfolge der Befunde
+%    NICHT umkehren, sondern ihre Reichweite begrenzen -- sofern du das
+%    nach dem Schreiben noch guten Gewissens sagen kannst. Wenn nicht:
+%    weglassen, nicht abschwaechen.
+
+% TODO Prosa Kapitelkopf.
+
+% [arXiv-Kuerzung]: Kopf bleibt (3 Saetze).
+
+
+%------------------------------------------------------------------------
+\subsection{Pretraining contamination of the zero-shot models}
+\label{sec:lim:contamination}
+%------------------------------------------------------------------------
+% WARUM DAS ZUERST KOMMT: die Kernaussage der Arbeit ist, dass ein
+% Zero-Shot-Foundation-Model die besten Intervalle liefert
+% (\cref{sec:res:ranking}). Genau dieses Modell ist das einzige, dessen
+% Trainingsdaten du nicht kennst. Wenn diese Limitation greift, ist
+% Befund (3) nicht abgeschwaecht, sondern hinfaellig. Deshalb Absatz 1.
+%
+% WAS HIER STEHT:
+%  1. Der Sachverhalt nuechtern: TiRex-2 wurde am 2026-07-01 released; der
+%     Pretraining-Cutoff ist nicht dokumentiert. Das Evaluationsfenster
+%     laeuft 2015-10 bis 2026-04, endet also VOR dem Release, liegt aber
+%     potenziell vollstaendig im Pretraining-Zeitraum.
+%     -> Verweis \cref{sec:models:tirex2} (dort steht der Caveat kurz).
+%  2. Warum das bei Staatsanleihen-Spreads besonders heikel ist: die
+%     zugrundeliegenden Renditereihen sind oeffentlich, langjaehrig und
+%     in nahezu jedem grossen Zeitreihen-Korpus enthalten. Es braucht
+%     also keinen exotischen Datensatz, damit Kontamination plausibel ist
+%     -- die Standardquellen genuegen.
+%  3. WAS DAGEGEN SPRICHT (ehrlich beide Seiten, nicht nur die
+%     bequeme). Drei Gegenargumente, die du machen kannst:
+%     (a) Die Punktprognose ist NICHT besser als der Random Walk
+%         (MAE-Ratio 0.9965, Panel-t -0.498, kein Land FDR-signifikant,
+%         siehe 9.3). Ein Modell, das die Zielreihe memoriert haette,
+%         muesste im Median glaenzen -- es tut es nicht.
+%         -> Das ist dein STAERKSTES Gegenargument. Ausbauen.
+%     (b) Der Vorsprung liegt vollstaendig in der Breite der praediktiven
+%         Verteilung, nicht in ihrem Zentrum. Memorierung wuerde primaer
+%         das Zentrum treffen.
+%     (c) Im high-VIX-Regime verschwindet der Vorsprung (F13: tirex2 von
+%         0.125 auf -0.003). Ein memorierendes Modell haette gerade in
+%         den auffaelligen Stressmonaten einen Vorteil, nicht dort einen
+%         Einbruch.
+%  4. WAS DAFUER SPRICHT / was ungeloest bleibt: keines der drei
+%     Argumente ist ein Beweis. Ohne dokumentierten Cutoff ist die Frage
+%     empirisch nicht entscheidbar. Das genau so hinschreiben.
+%  5. Was ein sauberer Test waere (Future Work, konkret): Evaluation auf
+%     einem Fenster NACH dem Release (ab 2026-07), oder auf einer
+%     Spread-Definition, die so in keiner oeffentlichen Quelle steht.
+%     Beides ist hier nicht moeglich -- Fenster zu kurz bzw. ausserhalb
+%     des Datenstands.
+%  6. !! ENTSCHEIDUNG: wie prominent? Meine Empfehlung: Ein Satz im
+%     Abstract, ein Absatz in der Introduction, dieses Unterkapitel, und
+%     eine Fussnote an der Stelle in \cref{sec:res:ranking}, wo tirex2
+%     zum Sieger erklaert wird. NICHT nur hier. Wenn ein Gutachter das
+%     zuerst in den Limitations findet, liest es sich wie ein Eingestaendnis;
+%     wenn es vorne steht, wie Souveraenitaet.
+%
+% ZAHLEN (verifiziert):
+%   Release TiRex-2       : 2026-07-01
+%   Pretraining-Cutoff    : undokumentiert
+%   Evaluationsfenster    : 2015-10 bis 2026-04 (127 Monate)
+%   MAE-Ratio tirex2      : 0.9965 (Median ueber Laender)
+%   Panel-t Punktprognose : -0.498 (n.s.), 0/10 Laender FDR-signifikant
+%   F13 tirex2            : low_vix +0.1255 -> high_vix -0.0025
+%   Betroffene Modelle    : tirex, tirex2, tirex2_cov (alle ZS)
+%   Nicht betroffen       : rw, arma, arma_monthly, lgbm, lstm, xlstm
+%                           und deren const-Twins (lokal trainiert)
+%
+% ZITATE: podest2026tirex2, auer2025tirex.
+%
+% [arXiv-Kuerzung]: bleibt VOLLSTAENDIG. Das ist der Punkt, an dem ein
+%   arXiv-Leser als Erstes haengt -- hier zu kuerzen waere ein Fehler.
+
+
+%------------------------------------------------------------------------
+\subsection{The admissibility gate does not test what the methods fail at}
+\label{sec:lim:gate}
+%------------------------------------------------------------------------
+% WARUM DAS DIE WICHTIGSTE METHODISCHE LIMITATION IST:
+%  Das Zulaessigkeitsgate (\cref{def:gate}) liest ausschliesslich q_UC und
+%  q_CC. Beide Tests konditionieren nur auf die VERGANGENHEIT der
+%  Verletzungsfolge (Kupiec auf gar nichts, Christoffersen auf I_{t-1}).
+%  Der DQ-Test konditioniert zusaetzlich auf die AKTUELLE INTERVALLBREITE
+%  -- und genau dieser Regressor ist es, der die Ablehnungen treibt.
+%  Das Gate laesst also systematisch Kombinationen durch, deren bedingte
+%  Kalibrierung entlang der Breitenachse verletzt ist.
+%
+% ZAHLEN (post hoc nachgerechnet 2026-08-03 auf calibrated_all.parquet des
+% Runs run_full_20260721_145309, 7420 Zellen x 127 Monate = 942340 Zeilen;
+% dieselbe Wald-Statistik und dieselbe BH-FDR-Familie wie im Haupt-DQ):
+%   Zerlegung der DQ-Regression, Ablehnraten bei FDR q<0.10:
+%     DQ voll  (const + 4 Lags + Breite, df=6)   49.3%   [= Wert aus 8.2]
+%     ohne Breite (const + 4 Lags, df=5)         20.8%   (roh p<0.05: 27.7%)
+%     nur Breite  (const + Breite,  df=2)        68.9%
+%     Breiten-Koeffizient gamma allein, chi2(1)  53.2%   (roh p<0.05: 52.4%)
+%   -> Der Satz, der hier hingehoert: NIMMT MAN DEN BREITEN-REGRESSOR
+%      HERAUS, faellt die Ablehnrate von 49.3% auf 20.8%, also praktisch
+%      auf das UC-Niveau (20.6%). Die DQ-Ablehnungen sind fast
+%      vollstaendig ein Breiten-Phaenomen, nicht ein Lag-Phaenomen.
+%      (Die Christoffersen-IND-Rate von nur 6.1% sagt dasselbe von der
+%      anderen Seite: zeitliches Clustering ist NICHT das Problem.)
+%
+% RICHTUNG DES EFFEKTS (das ist die eigentliche Aussage):
+%   Von den 3949 Zellen mit FDR-signifikantem gamma haben 99.9% ein
+%   NEGATIVES gamma; Median gamma = -1.631.
+%   Interpretation, die du ausschreiben musst: gamma<0 heisst, in Monaten
+%   mit breitem Intervall liegt I_t - alpha unter null (Ueberdeckung), in
+%   Monaten mit schmalem Intervall darueber (Unterdeckung). Die
+%   Breitensteuerung reagiert in die RICHTIGE Richtung, aber sie
+%   UEBERSCHIESST: sie macht zu weit auf, wenn sie aufmacht, und zu weit
+%   zu, wenn sie zumacht. Marginal mittelt sich das auf ~0.80 heraus --
+%   deshalb sieht Kupiec nichts. Das ist der Lehrbuchfall von bedingter
+%   Fehlkalibrierung, die von marginaler Coverage maskiert wird.
+%
+% DER TRADE-OFF ZWISCHEN DEN METHODENKLASSEN (tab:lim_dq unten ist schon
+% befuellt -- du schreibst nur Caption und Fliesstext):
+%   -> Zwei saubere Fehlermodi, die du als Ergebnis verkaufen kannst:
+%      (i)  STATISCHE Verfahren (native, cqr_static, saocp, decay_ocp)
+%           haben geclusterte Verletzungen (Lags 40-54%) bei
+%           unauffaelliger Breite (7-20%). Sie adaptieren nicht.
+%      (ii) ONLINE-TRACKER (pid, spci, sfogd, pid_local, aci, agaci,
+%           dtaci) beseitigen das Clustering fast vollstaendig
+%           (pid_cqr: 1.5%!) und erzeugen dafuer die ueberschiessende
+%           Breitenreaktion (50-97%).
+%      FORMULIERUNGSVORSCHLAG: "the conformal layer trades temporal
+%      dependence of violations for width-conditional dependence."
+%      Das ist eine eigenstaendige Aussage ueber RQ3 und gehoert
+%      zusaetzlich in \cref{sec:res:rq3} verlinkt.
+%   ANMERKUNG zu mondrian_cqr: niedrigste DQ-Gesamtablehnrate aller
+%      Methoden (0.291, siehe tab:res_gate) -- die Konditionierung auf
+%      Volatilitaetskategorien funktioniert also genau dort, wo
+%      unkonditionale Verfahren brechen. Das ist die in
+%      diagnostics_foundation.txt Paragraph 6 VORREGISTRIERTE Erwartung
+%      und sie trifft zu. Aber: Gate-Rate nur 0.604 und Skill -0.028 --
+%      bedingt gut kalibriert, unbedingt zu breit. Ein Satz wert.
+%
+% DER UNBEQUEME TEIL (unbedingt hinschreiben, sonst ist es Schoenfaerberei):
+%   Auf den 485 VALIDEN Kombinationen (4850 Zellen) lauten die Raten:
+%     DQ voll 42.5% | gamma 65.5% | reine Lags 8.2%
+%   Die gamma-Ablehnrate ist im validen Bereich also HOEHER als im
+%   Gesamtdurchschnitt (65.5% vs. 53.2%). Grund: das Gate selektiert
+%   bevorzugt die Online-Tracker (Gate-Rate 0.96-1.00, siehe tab:res_gate)
+%   -- also genau die Methodenklasse mit dem Breitenproblem. Der Satz, der
+%   hier stehen muss: "the admissibility gate does not merely fail to
+%   detect this failure mode -- it actively selects for it."
+%
+% BETROFFENHEIT NACH MODELLFAMILIE (gamma-Ablehnrate, FDR q<0.10):
+%   xlstm 71.0 | lstm 60.8 | tirex2 60.0 | tirex 51.4 | tirex2_cov 51.4 |
+%   lgbm 44.3 | xlstm_const 43.8 | lstm_const 41.6 | arma_monthly 37.9 |
+%   arma 36.4 | lgbm_const 35.4 | rw 30.7
+%   -> Ein Satz: die Ordnung folgt der Modellkomplexitaet fast monoton,
+%      und der Random Walk ist am wenigsten betroffen -- er hat schlicht
+%      die geringste Breitenvariation, die falsch konditioniert sein
+%      koennte. Nicht ueberinterpretieren, aber erwaehnen.
+%
+% !! EHRLICHKEITS-PFLICHT (sonst ist es HARKing):
+%   Diese Zerlegung steht NICHT in diagnostics_foundation.txt. Sie ist
+%   eine POST-HOC-Diagnostik, motiviert durch die hohe DQ-Ablehnrate im
+%   Hauptlauf. Sie erzeugt kein neues Finding und aendert kein Ranking --
+%   sie erklaert eine bereits vorregistriert berichtete Zahl. Trotzdem:
+%   als solche deklarieren, mit Datum (2026-08-03), und in
+%   diagnostics_foundation.txt Paragraph 11 als Amendment eintragen.
+%   Formulierung: "post hoc decomposition of a pre-registered statistic,
+%   reported to explain rather than to establish."
+%
+% WAS DARAUS FOLGT (Absatz 3, konstruktiv statt nur selbstkritisch):
+%   1. Ein Gate, das q_DQ einschliesst, waere schaerfer -- aber es haette
+%      bei n=127 kaum noch Kandidaten uebrig gelassen (42.5% der validen
+%      Zellen fallen). Das ist ein echter Power-vs-Strenge-Trade-off,
+%      keine Nachlaessigkeit. So framen.
+%   2. Der Befund motiviert direkt zukuenftige Arbeit: breitenkonditionale
+%      Rekalibrierung (Mondrian mit Breiten- statt Volatilitaetsklassen)
+%      oder ein Tracker mit gedaempfter Breitenreaktion.
+%   3. Fuer die Praxis: wer die Intervalle als Risikomass nutzt, bekommt
+%      in ruhigen Monaten zu wenig und in bewegten zu viel Kapital
+%      angesetzt -- Anschluss an den Kapital-Proxy in \cref{sec:res:econ}.
+%
+% ZITATE: engle2004caviar (DQ), christoffersen1998, kupiec1995,
+%   gneiting2007sharpness (bedingte vs. marginale Kalibrierung),
+%   vovk2003mondrian (Mondrian als Ausweg), benjamini1995fdr.
+%
+% [arXiv-Kuerzung]: 1 Absatz + tab:lim_dq. Die Modellfamilien-Aufschluesselung
+%   und Punkt 2/3 der Folgerungen fliegen raus.
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Decomposition of the DQ rejections: share of
+         cells rejected at FDR $q<0.10$ by the width coefficient alone
+         versus by the lag-only specification.}
+\label{tab:lim_dq}
+\begin{tabular}{lcc}
+\toprule
+Method & Width coefficient & Lags only \\
+\midrule
+\texttt{pid\_tan\_cqr}   & 0.974 & 0.325 \\
+\texttt{spci\_cqr}       & 0.908 & 0.040 \\
+\texttt{sfogd\_cqr}      & 0.845 & 0.170 \\
+\texttt{pid\_local\_cqr} & 0.813 & 0.058 \\
+\texttt{pid\_cqr}        & 0.653 & 0.015 \\
+\texttt{aci\_cqr}        & 0.583 & 0.132 \\
+\texttt{agaci\_cqr}      & 0.572 & 0.060 \\
+\texttt{dtaci\_cqr}      & 0.521 & 0.060 \\
+\texttt{cqr\_rolling}    & 0.506 & 0.126 \\
+\texttt{mondrian\_cqr}   & 0.483 & 0.057 \\
+\texttt{cqr\_static}     & 0.202 & 0.536 \\
+\texttt{decay\_ocp\_cqr} & 0.191 & 0.404 \\
+\texttt{native}          & 0.132 & 0.477 \\
+\texttt{saocp\_cqr}      & 0.070 & 0.445 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%------------------------------------------------------------------------
+\subsection{Statistical power and the limits of the comparative inference}
+\label{sec:lim:inference}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: dieses Unterkapitel hat DREI Teile. Schreib sie als
+% drei Absaetze, nicht als Liste -- sie bauen aufeinander auf.
+%
+% ---- ABSATZ 1: DIE RANGFOLGE IST DESKRIPTIV ----
+%  Der wichtigste Satz des ganzen Kapitels, und er gehoert hierher:
+%  KEINER der 66 Cross-Model-Kontraste ist FDR-signifikant. Der kleinste
+%  Median-q-Wert ueber alle 66 liegt bei 0.1851.
+%  ZAHLEN:
+%    Staerkster Kontrast (und trotzdem n.s.):
+%      XM tirex2/ZS/cqr_static vs xlstm_const/L/spci_cqr
+%      d_norm -0.1156 | Panel-t -3.5488 | median-q 0.1851 | 40% der Laender
+%    Zweitstaerkster:
+%      XM tirex2_cov/ZS/native vs xlstm_const/L/spci_cqr
+%      d_norm -0.1109 | Panel-t -4.1586 | median-q 0.1963 | 40%
+%  -> Beachte die Spannung, die du benennen MUSST: der Panel-t liegt bei
+%     -3.55 bzw. -4.16, also deutlich ueber jedem konventionellen
+%     kritischen Wert -- und trotzdem ueberlebt der Kontrast die
+%     FDR-Korrektur ueber die Laender nicht. Das ist kein Widerspruch,
+%     sondern zeigt die zwei verschiedenen Fragen: der Panel-t fragt
+%     "ist der Effekt im Mittel ueber die Laender da?", der Laenderanteil
+%     fragt "ist er in einzelnen Laendern nachweisbar?". Erklaeren, sonst
+%     wirkt es wie ein Fehler.
+%  -> KONSEQUENZ, die du explizit ziehen musst: alle Rangaussagen in
+%     \cref{sec:res:ranking} sind DESKRIPTIV. Formulierungen wie "X
+%     outperforms Y" muessen im ganzen Dokument zu "X ranks above Y"
+%     werden. Das ist eine Durchsicht-Aufgabe, keine Stilfrage.
+%
+% ---- ABSATZ 2: DIE MCS DISKRIMINIERT NICHT ----
+%  ZAHLEN:
+%    Kandidaten je Land : 26 (kuratiert, nicht alle 742)
+%    Inklusionsrate     : 0.915 ueber alle Kandidaten x Laender
+%    In 10/10 Laendern  : 15 von 26 Kandidaten
+%    p-Werte            : Median 0.189, Maximum 0.406
+%  -> Der Satz: die MCS eliminiert bei n=127 praktisch nichts. Die in
+%     diagnostics_foundation.txt Paragraph 4.3 vorweggenommene
+%     Nicht-Trennschaerfe ("Inklusion ~0.93") ist eingetreten, und die
+%     Kuratierung des Kandidatensatzes hat sie NICHT verhindert.
+%  -> Ehrlich: das ist ein Null-Befund des Verfahrens, nicht der Modelle.
+%     Er sagt nicht "alle Modelle sind gleich gut", sondern "diese
+%     Stichprobe kann sie nicht trennen". Der Unterschied ist wichtig.
+%
+% ---- ABSATZ 3: DM-VARIANZ MIT HAC-LAG 0 ----
+%  WAS DER PUNKT IST:
+%   Der paarweise DM-Test (\cref{sec:eval:comparison}) schaetzt die
+%   Varianz des mittleren Verlustdifferentials mit der einfachen
+%   Stichprobenvarianz, also HAC-Lag 0. Die Begruendung ist
+%   lehrbuchkonform: bei Prognosehorizont h sind die Fehlerdifferentiale
+%   mechanisch bis Lag h-1 autokorreliert, und bei h=1 ist h-1=0.
+%   In diesem Design ist der Horizont aber NICHT die einzige Quelle
+%   serieller Korrelation:
+%     (i)  Refit alle 12 Monate: alle Prognosen innerhalb eines Blocks
+%          teilen denselben Parametervektor, ihre Fehler sind daher
+%          innerhalb des Blocks korreliert (siehe tab:refit_blocks).
+%     (ii) Die adaptiven CP-Methoden tragen Zustand ueber die Zeit
+%          (ACI-Fehlerintegral, PID-Integralterm, SAOCP-Expertengewichte);
+%          zwei aufeinanderfolgende Intervalle sind daher nicht
+%          unabhaengig konstruiert.
+%   Beide Kanaele erzeugen positive Autokorrelation in d_t, die die
+%   Lag-0-Varianz ignoriert. Unterschaetzte Varianz -> aufgeblaehte
+%   |t|-Werte -> ZU KLEINE p-Werte. Die Einzel-Land-DM-p-Werte sind also
+%   systematisch zu optimistisch, und zwar in bekannter Richtung.
+%
+%  WAS DAGEGEN TATSAECHLICH GETAN WURDE (nicht nur vorgeschlagen --
+%  implementiert, Code: diagnostics_master_v2.ipynb, Zelle 15, Funktionen
+%  _nw_tstat und run_contrast):
+%   Der zeitgeclusterte Panel-t (\cref{sec:eval:comparison}) ist die
+%   Absicherung. Zweistufig:
+%     Schritt 1: die pro Land skalenfrei normierten Differentiale
+%       d_{i,t}/Wbar_i^ref werden JE MONAT ueber die 10 Laender gemittelt.
+%       Das buendelt den gemeinsamen Schock in EINE Monatszahl, statt ihn
+%       zehnmal zu zaehlen (Querschnittskorrelation der Euro-Spreads).
+%     Schritt 2: auf dieser 127-Monats-Reihe wird der t-Wert des
+%       Mittelwerts mit Newey-West-Langfristvarianz gebildet
+%       (Bartlett-Kernel, Lag 3):
+%       sigma^2_LR = gamma_0 + 2*sum_{l=1}^{3} (1 - l/4) * gamma_l.
+%       Das faengt genau die Rest-Autokorrelation ab, die Lag 0 verpasst.
+%   Das ist die praktikable Ein-Achsen-Variante der Driscoll-Kraay-Logik
+%   (Querschnitt-Mittelung + HAC ueber Zeit). WICHTIG fuer die
+%   Ehrlichkeit: sie beansprucht KEINE volle zweidimensionale
+%   Driscoll-Kraay-Kovarianz -- das explizit hinschreiben.
+%   -> Spalte t_panel in dm_contrasts.csv; auf ihr beruhen alle
+%      RQ-Aussagen in \cref{sec:res:rq3} bis \cref{sec:res:rq2}.
+%
+%  WAS TROTZDEM OFFEN BLEIBT (das ist die eigentliche Limitation):
+%   1. Die PRO-LAND-DM-Tests selbst bleiben unkorrigiert. Aus ihnen
+%      entstehen die q-Werte, und aus den q-Werten die Spalte
+%      share_sig_fdr ("Anteil FDR-signifikanter Laender"), die in jeder
+%      Kontrast-Tabelle steht. Diese Anteile sind daher nach oben
+%      verzerrt. Wo du sie berichtest, gehoert ein Halbsatz dazu.
+%   2. Lag 3 ist eine Konvention, kein datengetriebener Wert (kein
+%      Newey-West-Andrews-Plugin, keine Sensitivitaetsanalyse ueber
+%      Lag 0/3/6/12). Als Wahl deklarieren, nicht als Optimum.
+%   3. Der Panel-t setzt implizit voraus, dass die Querschnittsmittelung
+%      die Laenderkorrelation VOLLSTAENDIG absorbiert. Bei stark
+%      heterogenen Laendern (mittleres Kendall-tau 0.346, siehe 9.5)
+%      ist das eine Naeherung.
+%
+%  PRAKTISCHE KONSEQUENZ -- und warum sie hier klein ausfaellt:
+%   Der wichtigste Cross-Model-Befund ist ohnehin ein NICHT-Befund
+%   (Absatz 1). Eine Verzerrung, die p-Werte ZU KLEIN macht, kann diesen
+%   Befund nicht erzeugt haben -- sie wuerde in die Gegenrichtung wirken.
+%   Der Nicht-Befund ist also robust gegen genau diese Limitation. Das
+%   ist ein starkes Argument und gehoert hingeschrieben. Betroffen sind
+%   dagegen die RQ1/RQ2-Kontraste, wo Signifikanz BEHAUPTET wird (z.B.
+%   RQ2 lstm/GF native: t_panel 8.18, share_sig_fdr 0.633) -- dort ist
+%   der Panel-t die tragende Zahl, nicht der Laenderanteil.
+%
+% >>> THESIS-ONLY >>>
+% - Absatz zur Power-Rechnung: bei n=127 und alpha=0.20 erwartet man
+%   25.4 Verletzungen. Um eine Coverage von 0.75 gegen 0.80 auf 5% Niveau
+%   zu trennen, braucht der Kupiec-LR-Test deutlich mehr Beobachtungen.
+%   Wenn du das rechnest, rechne es SAUBER und schreib die Annahmen dazu
+%   -- sonst weglassen. Es ist kein Pflichtteil.
+% - Absatz zum Verhaeltnis Panel-t vs. Laenderanteil an einem konkreten
+%   Beispiel durchgerechnet.
+% <<< THESIS-ONLY <<<
+%
+% ZITATE: dieboldmariano1995, harvey1997, newey1987, hansen2011mcs,
+%   kunsch1989mbb, benjamini1995fdr, giacomini2006 (dokumentierte
+%   Scope-Entscheidung: bei h=1, festem Refit-Protokoll und identischen
+%   Informationsmengen faellt der GW-Vorteil mit diesem Design weitgehend
+%   zusammen -- bewusst nicht implementiert).
+%   !! FEHLEN NOCH in references.bib: driscollkraay1998, petersen2009.
+%      Beide werden fuer den Panel-t-Absatz gebraucht -- eintragen.
+%
+% [arXiv-Kuerzung]: Absatz 1 bleibt vollstaendig (er ist die
+%   Kernrelativierung), Absatz 2 auf 2 Saetze, Absatz 3 in eine Fussnote
+%   zum DM-Absatz in \cref{sec:eval:comparison}.
+
+
+%------------------------------------------------------------------------
+\subsection{Seed fragility of the neural results}
+\label{sec:lim:seeds}
+%------------------------------------------------------------------------
+% WAS HIER STEHT:
+%  1. Der Sachverhalt: fuer xLSTM und LSTM laeuft die komplette Pipeline
+%     pro Seed (42/43/44); Prognosen werden nie ueber Seeds gemischt
+%     (\cref{sec:exp:seeds}). Die Seed-Spanne des Skills ist damit ein
+%     direktes Mass fuer den Zufallsanteil im Ergebnis.
+%  2. DIE ZAHL, die weh tut: bei 51.7% der 588 NN-Kombinationen ist die
+%     Seed-Spanne des Median-Skills GROESSER als der Betrag des
+%     Median-Skills selbst. Bei ueber der Haelfte der neuronalen
+%     Ergebnisse ist die Initialisierung also einflussreicher als der
+%     gemessene Effekt.
+%  3. Der Fall, den du namentlich nennen musst, weil er das beste
+%     xLSTM-Paket ist: xlstm/L/native hat Median-Skill 0.0939 bei einer
+%     Seed-Spanne von 0.1022. Das beste Ergebnis der namensgebenden
+%     Architektur liegt innerhalb seiner eigenen Seed-Streuung.
+%     -> Das nicht relativieren. Es ist ein sauber gemessenes negatives
+%        Resultat und gehoert genau so berichtet.
+%  4. Was das Protokoll dagegen tut: die Ex-ante-Regel aus
+%     diagnostics_foundation.txt Paragraph 4.4 verbietet eine Rangaussage,
+%     wenn das Vorzeichen des Kontrasts nicht ueber alle Seeds stabil ist;
+%     betroffene Faelle werden als F9 ausgewiesen und die Aussage
+%     unterbleibt. Das ist die richtige Reaktion, aber sie heilt das
+%     Problem nicht, sie macht es nur sichtbar.
+%  5. Was NICHT getan wurde und warum: drei Seeds sind wenig. Fuenf oder
+%     zehn waeren belastbarer, kosten aber die komplette Kette
+%     (Modell -> CP -> Diagnostik) pro zusaetzlichem Seed. Als bewusste
+%     Ressourcenentscheidung deklarieren, nicht als Versehen.
+%  6. Ein Satz zur Richtung der Verzerrung: Seed-Rauschen ist
+%     unsystematisch, es verzerrt den Median ueber Kombinationen also
+%     nicht in eine Richtung -- aber es blaeht die Streuung auf und macht
+%     einzelne Spitzenwerte unzuverlaessig. Wer den BESTEN Seed
+%     berichtete, wuerde nach oben verzerren; hier wird nicht selektiert.
+%
+% ZAHLEN (verifiziert, ranking_all.csv, Spalte seed_span):
+%   NN-Kombinationen gesamt (lstm/xlstm inkl. const-Twins) : 588
+%   davon seed_span > |median_skill|                       : 51.7%
+%   xlstm/L/native : median_skill 0.0939, seed_span 0.1022
+%   Seeds          : 42, 43, 44 (nur NN; lgbm deterministisch mit
+%                    deterministic=True, rw/arma/tirex/tirex2 ohnehin)
+%   F9-Findings im Story-Report: 3 Instanzen, Score je 0.44
+%
+% ZITATE: keine Pflichtzitate. Optional eine Quelle zur
+%   Seed-Varianz in Deep-Learning-Benchmarks, falls du eine hast --
+%   sonst weglassen, die eigene Zahl traegt den Punkt.
+%
+% [arXiv-Kuerzung]: 2 Saetze (die 51.7% und der xlstm/L/native-Fall).
+%   Diese beiden Zahlen MUESSEN drin bleiben.
+
+
+%------------------------------------------------------------------------
+\subsection{Sample size, cross-section and country heterogeneity}
+\label{sec:lim:sample}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: das ist die "harte Obergrenze"-Sektion. Vier Punkte.
+%
+%  1. STICHPROBE. Panel 10 Laender x 277 Monate = 2770 Beobachtungen;
+%     davon 127 Monate je Land im Test. Das ist die Obergrenze fuer
+%     alles, was hier gemessen werden kann, und der gemeinsame Nenner
+%     von 9.3 (Power) und 9.4 (Seeds).
+%     -> Ein Satz, der die Verbindung zum xLSTM-Ergebnis zieht:
+%        277 Monate sind fuer eine Architektur dieser Kapazitaet wenig.
+%        Das ist die plausibelste Erklaerung fuer das negative
+%        Kernergebnis und gehoert hier statt in \cref{sec:res:ranking}.
+%
+%  2. QUERSCHNITTSKORRELATION. Zehn Euro-Spreads sind keine zehn
+%     unabhaengigen Evidenzstuecke. Adressiert per Panel-t (9.3), aber
+%     nicht eliminiert. Die effektive Zahl unabhaengiger Beobachtungen
+%     ist unbekannt und kleiner als 1270.
+%
+%  3. LAENDERHETEROGENITAET. Das mittlere paarweise Kendall-tau zwischen
+%     den Kombinations-Rankings der Laender betraegt 0.346.
+%     ZAHLEN (verifiziert, aus cells.csv, pool=rolling, Pivot
+%     Kombination x Land auf skill; 45 Laenderpaare):
+%       Mittel 0.3457 | Median 0.3436 | Min 0.0734 | Max 0.6496
+%       Niedrigste Paare : FI-GR 0.073 | IE-IT 0.082 | GR-IT 0.097
+%       Hoechste Paare   : ES-PT 0.650 | GR-PT 0.623 | ES-GR 0.563
+%       Mittleres tau je Land (am wenigsten anschlussfaehig zuerst):
+%         IT 0.225 | FI 0.280 | FR 0.335 | NL 0.341 | IE 0.341 |
+%         GR 0.345 | AT 0.373 | PT 0.392 | ES 0.408 | BE 0.418
+%     -> DIE INTERPRETATION, die du ziehen musst: die hoechsten
+%        Korrelationen liegen zwischen den Peripherielaendern
+%        (ES/PT/GR), die niedrigsten zwischen Kern und Peripherie
+%        (FI-GR 0.073). Es gibt also nicht EINE Rangordnung, sondern
+%        mindestens zwei Regime im Querschnitt. Medianaussagen ueber
+%        alle zehn Laender bleiben gueltig, aber "das beste Verfahren"
+%        ist laenderabhaengig. Das relativiert jede Einzelempfehlung.
+%     -> QUERVERBINDUNG, die gratis ist: die Tail-Asymmetrie streut
+%        ueber Laender staerker (0.431 bis 0.642) als ueber Modelle
+%        (0.483 bis 0.618), siehe \cref{sec:res:ranking}. Zwei
+%        unabhaengige Kennzahlen sagen dasselbe. Explizit verknuepfen.
+%
+%  4. EINZELNE LAENDER. Zwei Faelle, die eigene Saetze brauchen:
+%     (a) GRIECHENLAND. Gate-Rate nur 0.519 -- das mit Abstand am
+%         schwersten kalibrierbare Land. Dazu der PSI-Strukturbruch 2012
+%         (vgl. \cref{sec:data:universe}) und die fehlenden Monate
+%         2015-07/08 (Kapitalkontrollen, liegen im Burn-in, nicht im
+%         Test). WICHTIG: es gibt EINEN Lauf inklusive GR und KEINEN
+%         ex-GR-Robustheitscheck. Das ehrlich als offene Flanke
+%         benennen und als Future Work markieren -- nicht so tun, als
+%         waere es geprueft.
+%     (b) IRLAND. Der bewertungsseitige ex-IE-Check
+%         (\cref{sec:eval:robustness}) zeigt: die ORDNUNG des Rankings
+%         ist stabil (Spearman-rho 0.9630, Kendall-tau 0.8493), das
+%         NIVEAU nicht. Der Median-Skill des Siegers faellt von 0.1461
+%         auf 0.1027, wenn Irland aus der Aggregation genommen wird --
+%         ein Drittel des Vorsprungs haengt an einem Land.
+%         Median d_skill ueber alle Kombinationen -0.0118; bei 35.6%
+%         der Kombinationen aendert sich der Skill um mehr als 0.02.
+%         -> Der Satz: Rangaussagen sind robust, Effektgroessen nicht.
+%            Wo du eine Skill-ZAHL nennst, gehoert diese Sensitivitaet
+%            dazu.
+%     Gate-Rate je Land vollstaendig (calibration_tests.csv, cell_valid):
+%       GR 0.519 | PT 0.616 | IE 0.623 | ES 0.660 | BE 0.718 |
+%       AT 0.747 | NL 0.771 | IT 0.810 | FI 0.844 | FR 0.864
+%       -> Ein Satz Interpretation: die Peripherie mit sprunghaften
+%          Spreads ist am schwersten kalibrierbar, und zwar monoton.
+%
+% ZITATE: kendall1938 (tau), benjamini1995fdr.
+%   !! kendall1938 FEHLT in references.bib -- eintragen.
+%      driscollkraay1998 und petersen2009 ebenfalls (siehe 9.3).
+%
+% [arXiv-Kuerzung]: Punkte 1-3 auf einen Absatz, Punkt 4 auf zwei Saetze
+%   (GR-Gate-Rate und der ex-IE-Niveaueffekt 0.146 -> 0.103). Der
+%   ex-IE-Effekt MUSS drin bleiben.
+
+
+%------------------------------------------------------------------------
+\subsection{Design decisions that bound the results}
+\label{sec:lim:design}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: Limitationen, die aus BEWUSSTEN Entscheidungen folgen.
+% Abgrenzung zum Rest des Kapitels im ersten Satz klarmachen: hier geht
+% es nicht um fehlende Evidenz, sondern um Kosten getroffener Wahlen.
+% Sechs Punkte, je 2-3 Saetze. Reihenfolge nach Tragweite.
+%
+%  1. SYMMETRISCHER CQR-SCORE. Der Score E = max(q_lo - y, y - q_hi) ist
+%     einseitig definiert und behandelt beide Intervallraender gleich.
+%     Die Daten sind aber nicht symmetrisch: bei praktisch gleicher
+%     ANZAHL von Verletzungen oben und unten (Tail-Asymmetrie im Mittel
+%     0.5049) ist die Ueberschreitungsstrafe deutlich groesser als die
+%     Unterschreitungsstrafe (0.0715 gegen 0.0521, also +37%).
+%     -> Wenn der Spread aus dem Intervall laeuft, dann nach oben und
+%        weiter. Ein symmetrischer Score kann das strukturell nicht
+%        abbilden. Als Future Work benennen (asymmetrische oder
+%        zweiseitig getrennte Score-Familien).
+%     -> Nicht kausal formulieren, nur als Beobachtung, die zur
+%        bekannten Rechtsschiefe von Kreditspreads passt.
+%
+%  2. BURN-IN-DOPPELROLLE. Das Validierungsfenster dient sowohl der
+%     Hyperparameterwahl als auch der Initialisierung des
+%     Kalibrierpools. Diagnostiziert (F11), Effekt klein und
+%     selbstlimitierend:
+%       Coverage erste 36 Testmonate minus Rest, Mittel ueber alle
+%       Kombinationen: -1.07pp; groesste Einzeldifferenz bei native
+%       mit -6.64pp.
+%     -> Ein Satz: der Anfangsoptimismus existiert, ist auf die nicht
+%        rekalibrierten Streams konzentriert und verschwindet mit
+%        wachsendem Pool.
+%
+%  3. KALIBRIERPOOL-FENSTER. Primaerfall rolling 36; die Varianten
+%     rolling24/rolling48/expanding sind Robustheitspaesse und gelten
+%     nur fuer pool-lesende Methoden (Online-Tracker lesen den Pool
+%     nicht -- deren Spalten sind in den Varianten identisch).
+%     ZAHLEN (cells.csv, mittlere Coverage / Median-Skill je pool_mode):
+%       expanding 0.8432 / -0.0111 | rolling  0.8341 / -0.0126 |
+%       rolling24 0.8127 /  0.0003 | rolling48 0.8204 /  0.0142
+%     -> Die Fenstergroesse verschiebt die Coverage um bis zu 3pp. Das
+%        ist kein Nebeneffekt, sondern eine echte Designabhaengigkeit.
+%     -> F8-Bruch mit dem groessten Ausschlag: lstm/GI/cqr_rolling mit
+%        8.9pp Coverage-Differenz rolling vs. expanding.
+%     -> EHRLICH: die vorregistrierte Erwartung war, dass SPCI wegen
+%        Pool-Duennbesetzung bricht. Getroffen hat es cqr_rolling.
+%        SPCI ist mit 0.769 (rolling) vs 0.795 (expanding)
+%        vergleichsweise stabil. Die Vorhersage war FALSCH und das
+%        gehoert so berichtet -- eine widerlegte Vorregistrierung ist
+%        ein Qualitaetsmerkmal, kein Makel.
+%
+%  4. QUANTILKREUZUNG. Im Mittel vernachlaessigbar (0.451% aller
+%     kalibrierten Intervalle; 81.7% der Zellen kreuzen nie; auf den
+%     validen Kombinationen 0.398%), aber ungleich verteilt:
+%       pid_tan_cqr 2.554% | cqr_static 0.724% mit Extremfaellen
+%       bis 77.95% (xlstm/L/seed42/IE); 18 von 530 cqr_static-Zellen
+%       liegen ueber 5%.
+%     -> Mechanismus in \cref{sec:conformal:notes} erklaeren, hier nur
+%        die Konsequenz: cqr_static ist die Methode des Spitzenreiters,
+%        und tirex2/ZS/cqr_static hat in PT eine Kreuzungsrate von
+%        32.3%. Das gehoert in die Methodenwahl in
+%        \cref{sec:res:ranking} hinein (decay_ocp_cqr: 0.028%).
+%
+%  5. REGIME-KONVENTIONEN. Zwei Festlegungen, die Ergebnisse mitbestimmen:
+%     (a) Die ersten 12 Testmonate haben keinen Volatilitaetswert (das
+%         rollierende Fenster sieht nur Testrealisationen) und werden
+%         neutral als "mid" gefuehrt. Konvention, dokumentiert per
+%         Amendment 2026-07-10.
+%     (b) Der VIX-Schwellenwert 20 ist ex ante fixiert, aber
+%         konventionell gewaehlt; VIX>25 wird nur nachrichtlich
+%         mitgefuehrt.
+%     -> Ein Satz: beide Festlegungen sind vor der Auswertung getroffen,
+%        aber keine ist datengetrieben optimiert. Genau so schreiben.
+%     -> WICHTIG UND UNBEQUEM: die beiden Stressdefinitionen liefern
+%        GEGENSAETZLICHE Vorzeichen. Ueber die Volatilitaetsterzile
+%        STEIGT die Coverage im Stress (calm 0.7795 -> stressed 0.8412),
+%        ueber den VIX FAELLT sie (low 0.8342 -> high 0.7588). Das sind
+%        dieselben Daten unter zwei Stratifizierungen. Erklaerbar (das
+%        Vol-Terzil ist laenderspezifisch und rueckwaertsgewandt, der
+%        VIX global und gleichzeitig), aber du MUSST es adressieren --
+%        sonst fragt es der Gutachter.
+%
+%  6. FESTE SPLITS UND REFIT-FREQUENZ. Der 12-Monats-Refit ist empirisch
+%     abgesichert (F10: Median-Effekt ueber 14 Kontraste 0.65%, nur 14%
+%     FDR-signifikant), aber nur GEGEN monatliches Refit und nur fuer
+%     ARMA. Fuer die NN-Modelle gibt es keinen entsprechenden Check --
+%     der Rechenaufwand waere prohibitiv. Als Luecke benennen.
+%     -> Ausnahme, die du nennen solltest: bei cqr_static ist der
+%        Refit-Effekt mit 6.4% (Panel-t 39.15) deutlich. Der statische
+%        Kalibrierpool reagiert auf die Refit-Frequenz, die adaptiven
+%        Verfahren nicht. Konsistent und erklaerbar.
+%
+% ZITATE: romano2019cqr (Symmetrie des CQR-Scores), winkler1972,
+%   gneiting2007, vovk2003mondrian, xu2023spci.
+%
+% [arXiv-Kuerzung]: Punkte 1, 3 und 5(b) bleiben; 2, 4, 6 in einen
+%   Sammelsatz. Der Widerspruch der beiden Stressdefinitionen MUSS
+%   drin bleiben.
+
+
+%------------------------------------------------------------------------
+\subsection{The economic evaluation is a proxy, not a backtest}
+\label{sec:lim:econ}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: kurz halten (1 Absatz), aber praezise. Der Abschnitt
+% \cref{sec:eval:economic} rahmt die Oekonomie bereits als ergaenzende
+% Evidenz -- hier steht, was das konkret ausschliesst.
+%
+%  1. Die Handelsregel hat KEINE Transaktionskosten, keine Bid-Ask-
+%     Spannen, keine Finanzierungskosten und keine Kapazitaetsgrenzen.
+%     Sie ist ausschliesslich KOMPARATIV zu lesen, nie als erzielbare
+%     Rendite.
+%  2. Die tatsaechliche Aktivitaet ist minimal: der Signalfilter
+%     (Position nur wenn 0 nicht im Intervall liegt) laesst im Median
+%     nur rund 2% der Monate zu Trades werden. Ein Sharpe-Wert, der auf
+%     so wenigen aktiven Monaten beruht, ist statistisch praktisch
+%     bedeutungslos.
+%     ZAHLEN: Median-Sharpe ueber valide Kombinationen 0.159; 67.6%
+%     positiv; Maximum 0.621 (lstm/L/pid_cqr) bei active_share 0.020.
+%  3. Der Kapitalproxy setzt "Intervallbreite proportional zur
+%     Kapitalunterlegung" -- eine dokumentierte Vereinfachung der
+%     FRTB-Logik, keine Umsetzung der Regeltexte.
+%  4. DER INTERESSANTE TEIL, den du nicht weglassen solltest, weil er
+%     die beiden Kennzahlen gegeneinander stellt:
+%       corr(Median-Skill, Kapitalquotient) = -0.711
+%       corr(Median-Skill, Median-Sharpe)   = -0.147
+%     -> Intervallguete zahlt auf die Kapitalkennzahl ein, aber kaum auf
+%        die Handelsperformance. Anders gesagt: der Nutzen besserer
+%        Intervalle liegt im Risikomanagement, nicht im Alpha. Das ist
+%        eine substanzielle Aussage und rechtfertigt, dass der
+%        Oekonomie-Block ueberhaupt existiert.
+%     -> Vorzeichen erklaeren: ein NIEDRIGER Kapitalquotient ist gut
+%        (engere valide Intervalle), deshalb ist die negative
+%        Korrelation mit dem Skill der erwuenschte Zusammenhang.
+%        Unbedingt dazuschreiben, sonst liest es sich falschherum.
+%
+% ZAHLEN AUS: results/tables/econ_results.csv (742 x 7), Spalten
+%   median_sharpe, active_share, median_cap_ratio; gejoint auf
+%   ranking_all.csv ueber (model, regime, seed, cp_method), gefiltert
+%   auf validity_flag.
+%
+% ZITATE: bcbs2019mar (FRTB).
+%   !! FEHLT in references.bib: leitchtanner1991 (Leitch & Tanner 1991,
+%      "Economic forecast evaluation: profits versus the conventional
+%      error measures", AER 81(3), 580-590). Wird in
+%      diagnostics_foundation.txt Paragraph 7 als Begruendung des ganzen
+%      Blocks zitiert -- gehoert hier her.
+%
+% [arXiv-Kuerzung]: 3 Saetze. Die beiden Korrelationen bleiben, der Rest
+%   in einen Halbsatz.
+
+
+%------------------------------------------------------------------------
+\subsection{Scope: what this study does not claim}
+\label{sec:lim:scope}
+%------------------------------------------------------------------------
+% WAS HIER STEHT: der Abschluss. Kein Jammern, sondern eine praezise
+% Abgrenzung. Fuenf Punkte, je 1-2 Saetze. Das ist die Sektion, die dem
+% Gutachter zeigt, dass du weisst, was du gemessen hast.
+%
+%  1. KEINE KAUSALITAET. Alle Befunde sind praediktiv-komparativ
+%     innerhalb dieses Protokolls. Kein Feature-Effekt wird kausal
+%     interpretiert, auch nicht der Kovariaten-Kontrast
+%     tirex2_cov - tirex2.
+%
+%  2. KEINE PUNKTPROGNOSE-UEBERLEGENHEIT. Das Framework testet
+%     MAE-vs-RW nicht als vorregistrierte Hypothese; die MAE-Ratios sind
+%     deskriptiv (\cref{sec:eval:skill}, Punktdimension).
+%     -> POST-HOC NACHGETRAGEN 2026-08-03 und als Amendment zu
+%        deklarieren: DM/HLN auf |e|-Differentialen plus Panel-t
+%        (NW Lag 3) fuer tirex2/ZS gegen rw/L ergibt Panel-t -0.498,
+%        0 von 10 Laendern FDR-signifikant, 5 von 10 Laendern mit
+%        MAE-Ratio unter 1. Der Vorsprung von 0.35% ist Rauschen.
+%     -> KONTROLLE, die den Test wertvoll macht: dieselbe Prozedur auf
+%        arma/L gegen rw/L ergibt Panel-t +2.447 (arma signifikant
+%        SCHLECHTER, FI mit q 0.0040). Der Test hat also Power, wenn ein
+%        Effekt vorhanden ist. Bei tirex2 findet er keinen, weil keiner
+%        da ist. Das ist eine echte Nicht-Ablehnung, keine
+%        Power-Schwaeche -- diesen Kontrollbefund unbedingt mitschreiben.
+%     -> WEITERER POST-HOC-BEFUND, der eine offene Frage aus
+%        \cref{sec:res:point} schliesst: die Richtungstrefferquote des
+%        Random Walk (0.5827, hoechster Wert im Feld) ist ein ARTEFAKT.
+%        Die RW-Delta-Prognose ist konstant null, damit wird der Nenner
+%        der PT-Statistik exakt null und der Test ist undefiniert --
+%        pt_stat ist in 90% der rw-Zellen NaN. Die Zahl ist schlicht der
+%        Anteil der Monate ohne Spread-Anstieg, und "0% signifikante
+%        PT-Tests" heisst "Test undefiniert", nicht "keine Evidenz".
+%        Als Artefakt benennen, nicht deuten.
+%        Zum Vergleich das Gesamtbild: mittlere Trefferquote 0.5397,
+%        7.74% der DEFINIERTEN PT-Tests auf 5% signifikant (bei reinem
+%        Zufall erwartet man 5%). Praktisch keine ausbeutbare
+%        Richtungsinformation.
+%
+%  3. F12 IST LEER -- und zwar per Konstruktion. Der vorregistrierte
+%     Finding-Typ "Punkt- vs. Intervalldivergenz" verlangt
+%     MAE-Ratio < 0.98 bei negativem Skill. Das beste MAE-Verhaeltnis im
+%     gesamten Feld ist 0.9965. Die Bedingung kann nicht erfuellt werden.
+%     -> Das AKTIV berichten, nicht verschweigen. Ein leerer
+%        vorregistrierter Finding-Typ ist ein Beleg dafuer, dass der
+%        Katalog vorher feststand und nicht nachtraeglich passend
+%        gemacht wurde. Von den 13 Typen F1-F13 haben 12 Instanzen
+%        erzeugt, F12 keine.
+%
+%  4. GIACOMINI-WHITE NICHT IMPLEMENTIERT. Dokumentierte
+%     Scope-Entscheidung, kein Versehen: bei h=1, festem Refit-Protokoll
+%     und identischen Informationsmengen faellt der GW-Vorteil
+%     (bedingte Prognosefaehigkeit, Schaetzunsicherheit) mit diesem
+%     Design weitgehend zusammen. Begruendung in
+%     diagnostics_foundation.txt Paragraph 4.1.
+%
+%  5. NACHTRAEGLICHE ERGAENZUNGEN, vollstaendig deklariert. Fuer die
+%     Nachvollziehbarkeit alle Post-hoc-Rechnungen an EINER Stelle
+%     auflisten, mit Datum und der Aussage, ob sie ein Finding erzeugen:
+%       (a) DQ-Zerlegung (9.2), 2026-08-03 -- erklaert eine
+%           vorregistrierte Zahl, erzeugt kein Finding, aendert kein
+%           Ranking.
+%       (b) Punktprognose-DM gegen RW (9.3 / Punkt 2 oben), 2026-08-03 --
+%           erzeugt kein Finding, bestaetigt einen deskriptiv bereits
+%           berichteten Nicht-Befund.
+%       (c) Laender-Kendall-tau (9.5) -- war als F7 vorregistriert, aber
+%           in \cref{sec:eval:robustness} nicht eingefuehrt; die Methode
+%           ist nachgetragen, die Zahl stammt aus dem Hauptlauf.
+%     -> Alle drei gehoeren auch in diagnostics_foundation.txt
+%        Paragraph 11 (Amendments) mit demselben Datum. Der Text hier
+%        und das Protokoll dort muessen uebereinstimmen.
+%
+% >>> THESIS-ONLY >>>
+% - Ein Absatz zur Reproduzierbarkeit: identischer data_sha256 ueber
+%   alle sieben Modellfamilien, git-Commit, Versionsstand, Laufzeiten.
+%   Das gehoert eigentlich in den Anhang, passt aber als Gegengewicht
+%   ans Ende der Limitations -- es zeigt, was SEHR wohl abgesichert ist.
+% <<< THESIS-ONLY <<<
+%
+% ZITATE: giacomini2006, pesaran1992, benjamini1995fdr.
+%
+% [arXiv-Kuerzung]: Punkte 1-3 auf einen Absatz, 4-5 in eine Fussnote.
+%   Punkt 2 (kein Punktprognose-Vorsprung) MUSS drin bleiben -- er ist
+%   das Gegengewicht zur Kontaminationsdebatte in 9.1.
