@@ -279,7 +279,17 @@ Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
 \subsection{Main ranking: interval skill}
 \label{sec:res:ranking}
 %------------------------------------------------------------------------
-The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calibrations per model famly. As we can see the best Performing Modell is $tirex2/ZS/cqr\_static$ followed by $tirex2\_cov/ZS/native$ with respective median winkler skills of $0.146$/ $0.141$ and mean coverage of $0.75/0.839$. With both beeing admissible in only 8/10 countries. The best two valid Models are zero shot foundation models that wasnt trained on the data during this study. The first model that has been trained by ourselfes is $lgbm/G/decay\_ocp\_cqr$, it is ranked third, with a median winkler skill of $0.139$ and mean coverage of $0.824$. The best classical approach $rw/L/aci\_cqr$ reached 8th place with a median winkler skill of $0.085$, mean coverage of $0.812$ and beeing admissable in all 10 countries. The same Model that is equal at point forecasting to the random walk beats it at producing prediction intervalls. This leads us to the conclusion that the advantage of the Model is soley in the predicting the distribution not the center. The xLSTM familie turned out to be the wort perfroming with a median skill over all combinations of $-0.047$.The best valid combination of the Familie is $xlstm/L/native$ with $0.094$ and without usage of the CP layer. In the GI regime we also see a negative skill of $-0.042$.
+The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calibrations per model famly. As we can see the best Performing Modell is $tirex2/ZS/cqr\_static$ followed by $tirex2\_cov/ZS/native$ with respective median winkler skills of $0.146$/ $0.141$ and mean coverage of $0.75/0.839$. With both beeing admissible in only 8/10 countries. The best two valid Models are zero shot foundation models that wasnt trained on the data during this study.\\ 
+The first model that has been trained by ourselfes is $lgbm/G/decay\_ocp\_cqr$, it is ranked third, with a median winkler skill of $0.139$ and mean coverage of $0.824$. The best classical approach $rw/L/aci\_cqr$ reached 8th place with a median winkler skill of $0.085$, mean coverage of $0.812$ and beeing admissable in all 10 countries. The same Model that is equal at point forecasting to the random walk beats it at producing prediction intervalls. This leads us to the conclusion that the advantage of the Model is soley in the predicting the distribution not the center. The xLSTM familie turned out to be the wort perfroming with a median skill over all combinations of $-0.047$.The best valid combination of the Familie is $xlstm/L/native$ with $0.094$ and without usage of the CP layer. In the GI regime we also see a negative skill of $-0.042$.\\
+
+In Table ~\ref{tab:res_tirex2_cp} we take a closer look at the winning Model family tirex2/ZS. We see that the second best performing (winkler skill) CP method $decay\_ocp\_cqr$ only has a difference, in winkler skill, of 0.002 to the elading Model but its coverage (0.787) is way closer to the target of 0.8 and its admissable in all 10 countries. Inside this familie the Median skill reaches from $-0.044$ $(pid\_tan)$ up to $0.146$ $(cqr\_static)$. We conclude that the choice of the calibration method is as important to the outcome as the choice of the underlying Model.
+\begin{figure}[htbp]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=1.15\textwidth]{figures/skill_heatmap.png}}
+    \caption{Heatmap zur Übersicht der Modell-Skills.}
+    \label{fig:skill_heatmap}
+\end{figure}
+
 % Das ist DAS Kernunterkapitel der Arbeit. Nimm dir hier am meisten Zeit.
 %
 % WAS HIER STEHT:
@@ -327,12 +337,14 @@ The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calib
 %     mit dem groessten Coverage-Fehler zum Sieger kuerst, untergraebst du
 %     dein eigenes Kriterium, und genau das wird ein Referee angreifen.
 %     Aber es ist DEINE Entscheidung -- schreib sie explizit hin.
+
 %  5. Ein Satz zur Streuung innerhalb tirex2: ueber die 14 CP-Methoden
 %     reicht der Skill von -0.044 (pid_tan) bis 0.146 (cqr_static).
 %     Die Wahl der Rekalibrierungsmethode ist also fuer das Ergebnis
 %     ungefaehr so wichtig wie die Wahl des Modells. Das ist ein
 %     eigenstaendiges Resultat und rechtfertigt den 14-Methoden-Vergleich.
 %  6. Abbildung skill_heatmap.png einbinden (liegt in figures/).
+
 %  7. WINKLER-DEKOMPOSITION UND TAIL-ASYMMETRIE -- NEU EINZUFUEGEN
 %     2026-08-03. Diese Groessen sind in \cref{sec:eval:validity}
 %     EINGEFUEHRT (Zerlegung in Breite, Unterschreitungs- und
@@ -342,7 +354,8 @@ The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calib
 %     Eine Metrik einzufuehren und dann nie zu verwenden ist eine
 %     offene Flanke -- entweder hier berichten oder in 7.2 streichen.
 %     Ich empfehle berichten: die Zahlen sagen etwas Nichttriviales.
-%
+
+Decomposing the Winkler score leads to the following results: The average interval width is 0.3301. The average penalty for the real value being under the interval is 0.0521 and the average penalty for the real value being over the interval is 0.0714. The width makes up $72.8\%$ of the average winkelr score. We conclude that the score is dominated by the sharpness of the intervals not by the violations. This explaines why a Model that is undercovering like $tirex2/cqr\_static$ is in the lead. The tail asymetry is the ratio of lower violations to all violations. On average over all cells it was 0.5059 with the median being 0.5. We conclude that they are basically symetical distributed. But the penalties are not. High violations cause an average penalty of 0.0715 while lower violations only cause an average penalty of 0.0521, that is a discrepancy of 37$\%$. We conclude that the likelihood of leaving the interval in each direction is the same, but if the next point is outside of the interval the high violations are expected to be further from the interval than the lower ones. This is consistent with the know right skewed ness of credit spreads. A symmetric CQR score cant learn these patterns. 
 %     WAS ZU SCHREIBEN IST (ein Absatz, 4-6 Saetze):
 %     (a) Woraus der Score besteht. Ueber die zulaessigen Kombinationen:
 %           mittlere Breite        0.3301
@@ -402,7 +415,7 @@ The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calib
 %        Asymmetrie kaum. Das ist ein NICHT-Befund und genau deshalb
 %        berichtenswert: die Rekalibrierungsschicht korrigiert das
 %        Niveau der Coverage, aber nicht ihre Schiefe. Ein Satz.
-%
+The tail asymmetrie between all conformal prediction modells ranges from 0.47 to 0.56. This shows that the CP only correct for the coverage but not the symmetrie. 
 % ZITATE fuer Punkt 7: winkler1972, gneiting2007 (Zerlegung properer
 %   Scores), romano2019cqr (Symmetrie des CQR-Scores als strukturelle
 %   Grenze).
@@ -460,6 +473,8 @@ The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calib
 %
 % [arXiv-Kuerzung]: tab:res_ranking + skill_heatmap + 2 Absaetze
 %   (Headline + xLSTM-Negativergebnis). Der Laender-Schnitt in 1 Satz.
+The zero shot models where pretrained on millions of time series data and gained their predictive distribution that way. It is possible that the model already saw the date we are working with in this pre training, since the TiRex2 Model was released in 2026-07-01 and our testing window until 2026-04. More about that in \cref{sec:res:limitations}.\\
+In Table ~\ref{tab:res_percountry} we how the top 3 packages and the best classical benchmark perform on all 10 counties. All Models represented in the Table reach the highest skill on Ireland. While the top three Models reach the lowest skill on Finland the classical method reaches its lowest skill on Italy (-0.049). None of the top three Models have a negative skill in any countrie. The classical package is the only one out of the 4 to be admissible on all 10 countries. 
 
 \begin{table}[t]
 \centering
@@ -522,13 +537,38 @@ Method & Median skill & Mean coverage & Admissible countries \\
 \end{tabular}
 \end{table}
 
-% ABBILDUNG: liegt bereits im Repo unter figures/skill_heatmap.png
-% \begin{figure}[t]
-%   \centering
-%   \includegraphics[width=\textwidth]{figures/skill_heatmap.png}
-%   \caption{% TODO}
-%   \label{fig:res_skill_heatmap}
-% \end{figure}
+\begin{table}[t]
+\centering\small
+\caption{% TODO Caption. Per-country skill and coverage of the three
+         leading packages and of the best classical benchmark. Skill is
+         relative to RW/L/\texttt{native} of the same country; coverage
+         target is 0.80. $\dagger$ marks a country in which the
+         calibration null is rejected (FDR $q<0.10$), i.e.\ a cell that
+         fails the admissibility gate.}
+\label{tab:res_percountry}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{2}{c}{\texttt{tirex2}/ZS} & \multicolumn{2}{c}{\texttt{tirex2\_cov}/ZS} & \multicolumn{2}{c}{\texttt{lgbm}/G} & \multicolumn{2}{c}{\texttt{rw}/L} \\
+& \multicolumn{2}{c}{\texttt{cqr\_static}} & \multicolumn{2}{c}{\texttt{native}} & \multicolumn{2}{c}{\texttt{decay\_ocp\_cqr}} & \multicolumn{2}{c}{\texttt{aci\_cqr}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Country & Skill & Cov. & Skill & Cov. & Skill & Cov. & Skill & Cov. \\
+\midrule
+AT & 0.103 & 0.811 & 0.097 & 0.819 & 0.120 & 0.780 & $0.002$ & 0.835 \\
+BE & 0.190 & 0.835 & 0.185 & 0.835 & 0.159 & 0.898$^\dagger$ & 0.148 & 0.795 \\
+ES & 0.212 & 0.780 & 0.206 & 0.787 & 0.174 & 0.843 & 0.180 & 0.827 \\
+FI & 0.013 & 0.772 & 0.008 & 0.843 & 0.010 & 0.795 & $-0.027$ & 0.819 \\
+FR & 0.026 & 0.740 & 0.033 & 0.827 & 0.014 & 0.772 & $-0.006$ & 0.780 \\
+GR & 0.336 & 0.780 & 0.315 & 0.898$^\dagger$ & 0.192 & 0.882$^\dagger$ & 0.196 & 0.858 \\
+IE & 0.410 & 0.598$^\dagger$ & 0.444 & 0.858 & 0.272 & 0.835 & 0.386 & 0.748 \\
+IT & 0.017 & 0.780 & 0.023 & 0.803 & 0.008 & 0.748 & $-0.049$ & 0.803 \\
+NL & 0.064 & 0.843 & 0.068 & 0.819 & 0.039 & 0.772 & 0.022 & 0.819 \\
+PT & 0.248 & 0.559$^\dagger$ & 0.295 & 0.898$^\dagger$ & 0.243 & 0.913$^\dagger$ & 0.318 & 0.835 \\
+\midrule
+Median / mean & 0.146 & 0.750 & 0.141 & 0.839 & 0.139 & 0.824 & 0.085 & 0.812 \\
+Admissible & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{7/10} & \multicolumn{2}{c}{10/10} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 %------------------------------------------------------------------------
