@@ -207,6 +207,119 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
   \end{tabular}
 \end{table}
 
+\section{Result breakdowns}
+\label{app:breakdowns}
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Per-country breakdown. Gate rate is the share of
+         admissible cells; median skill is over admissible combinations;
+         tail asymmetry is the share of lower violations; base rate is
+         $\max(p_{\uparrow},1-p_{\uparrow})$ of the realised direction.}
+\label{tab:app_country}
+\begin{tabular}{lccccc}
+\toprule
+Country & Gate rate & Median skill & Tail asym. & Base rate & Mean Kendall $\tau$ \\
+\midrule
+GR & 0.519 & $ 0.120$ & 0.594 & 0.591 & 0.345 \\
+PT & 0.616 & $ 0.191$ & 0.572 & 0.646 & 0.392 \\
+IE & 0.623 & $ 0.231$ & 0.642 & 0.575 & 0.341 \\
+ES & 0.660 & $ 0.095$ & 0.567 & 0.583 & 0.408 \\
+BE & 0.718 & $ 0.051$ & 0.502 & 0.559 & 0.418 \\
+AT & 0.747 & $-0.015$ & 0.551 & 0.583 & 0.373 \\
+NL & 0.771 & $-0.002$ & 0.552 & 0.591 & 0.341 \\
+IT & 0.810 & $-0.070$ & 0.444 & 0.575 & 0.225 \\
+FI & 0.844 & $-0.052$ & 0.431 & 0.598 & 0.280 \\
+FR & 0.864 & $-0.047$ & 0.504 & 0.520 & 0.335 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Tail asymmetry (share of lower violations among
+         all violations; 0.5 is symmetric) over admissible combinations,
+         by model family and by recalibration method.}
+\label{tab:app_tail}
+\begin{tabular}{lc@{\hskip 2cm}lc}
+\toprule
+Model & Tail asym. & Method & Tail asym. \\
+\midrule
+\texttt{xlstm}        & 0.483 & \texttt{cqr\_static}     & 0.471 \\
+\texttt{tirex2}       & 0.510 & \texttt{mondrian\_cqr}   & 0.522 \\
+\texttt{tirex2\_cov}  & 0.532 & \texttt{decay\_ocp\_cqr} & 0.522 \\
+\texttt{lstm}         & 0.533 & \texttt{sfogd\_cqr}      & 0.528 \\
+\texttt{lstm\_const}  & 0.540 & \texttt{dtaci\_cqr}      & 0.529 \\
+\texttt{xlstm\_const} & 0.540 & \texttt{pid\_cqr}        & 0.530 \\
+\texttt{tirex}        & 0.555 & \texttt{pid\_local\_cqr} & 0.533 \\
+\texttt{lgbm\_const}  & 0.577 & \texttt{cqr\_rolling}    & 0.536 \\
+\texttt{rw}           & 0.604 & \texttt{saocp\_cqr}      & 0.540 \\
+\texttt{arma}         & 0.608 & \texttt{aci\_cqr}        & 0.540 \\
+\texttt{lgbm}         & 0.611 & \texttt{agaci\_cqr}      & 0.543 \\
+\texttt{arma\_monthly}& 0.618 & \texttt{spci\_cqr}       & 0.553 \\
+                      &       & \texttt{native}          & 0.556 \\
+                      &       & \texttt{pid\_tan\_cqr}   & 0.562 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Mean coverage (\%) by calibration-pool window.
+         Target is 80\%. Online trackers do not read the pool, so the
+         window variants do not apply to them.}
+\label{tab:app_pool}
+\begin{tabular}{lcccc}
+\toprule
+Method & rolling 36 & expanding & rolling 24 & rolling 48 \\
+\midrule
+\texttt{aci\_cqr}        & 81.5 & 84.2 & 81.7 & 81.8 \\
+\texttt{agaci\_cqr}      & 81.1 & 82.3 & 81.5 & 81.5 \\
+\texttt{cqr\_rolling}    & 82.3 & 85.3 & 80.7 & 83.6 \\
+\texttt{cqr\_static}     & 85.9 & 85.9 & --   & --   \\
+\texttt{decay\_ocp\_cqr} & 87.3 & 87.3 & --   & --   \\
+\texttt{dtaci\_cqr}      & 82.2 & 84.8 & 81.8 & 82.7 \\
+\texttt{mondrian\_cqr}   & 86.0 & 86.6 & 87.8 & 85.1 \\
+\texttt{native}          & 87.2 & 87.2 & --   & --   \\
+\texttt{pid\_cqr}        & 81.3 & 81.3 & --   & --   \\
+\texttt{pid\_local\_cqr} & 81.4 & 81.4 & --   & --   \\
+\texttt{pid\_tan\_cqr}   & 82.4 & 82.4 & --   & --   \\
+\texttt{saocp\_cqr}      & 91.7 & 91.7 & --   & --   \\
+\texttt{sfogd\_cqr}      & 80.6 & 80.6 & --   & --   \\
+\texttt{spci\_cqr}       & 76.9 & 79.5 & 74.2 & 77.7 \\
+\midrule
+All cells                & 83.4 & 84.3 & 81.3 & 82.0 \\
+Median skill             & $-0.013$ & $-0.011$ & $0.000$ & $0.014$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Left: seed dispersion of the neural families.
+         Right: median skill of the best admissible package per family,
+         recomputed with Ireland excluded from the aggregation.}
+\label{tab:app_fragility}
+\begin{tabular}{lccc@{\hskip 1.2cm}lcc}
+\toprule
+NN family & Med.\ span & Max span & span $>|$skill$|$ & Best package & Skill & ex-IE \\
+\midrule
+\texttt{lstm\_const}  & 0.015 & 0.062 & 0.238 & \texttt{tirex2}       & 0.146 & 0.103 \\
+\texttt{xlstm\_const} & 0.045 & 0.126 & 0.587 & \texttt{tirex2\_cov}  & 0.141 & 0.097 \\
+\texttt{lstm}         & 0.046 & 0.315 & 0.685 & \texttt{lgbm}         & 0.139 & 0.120 \\
+\texttt{xlstm}        & 0.051 & 0.142 & 0.506 & \texttt{tirex}        & 0.133 & 0.094 \\
+                      &       &       &       & \texttt{lstm\_const}  & 0.111 & 0.087 \\
+                      &       &       &       & \texttt{lgbm\_const}  & 0.099 & 0.071 \\
+                      &       &       &       & \texttt{xlstm}        & 0.094 & 0.053 \\
+                      &       &       &       & \texttt{rw}           & 0.085 & 0.022 \\
+                      &       &       &       & \texttt{xlstm\_const} & 0.072 & 0.068 \\
+                      &       &       &       & \texttt{lstm}         & 0.062 & 0.031 \\
+                      &       &       &       & \texttt{arma\_monthly}& 0.061 & $-0.005$ \\
+                      &       &       &       & \texttt{arma}         & 0.058 & $-0.002$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % optional weitere Anhänge:
 \section{Additional descriptive statistics}
 \label{app:descriptive}

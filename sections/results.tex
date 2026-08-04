@@ -47,7 +47,7 @@
 %========================================================================
 \section{Results}
 \label{sec:results}
-
+We evaluate 742 combinations (Modell x Regime x Seed x CP-Methode) over 127 Months and 10 countries with all Models run on the same panel of data ($data\_sha256$). First we discuss the Gating that decides wether we evaluate a combination further, then the results of the point forecasting followed by the intervall ranking. Next the findings regarding the research questions are beeing classified, the impact the covariates and Regimes on the outcome acesssed. The winners of the Cross Model MCS acessed will be announced and finaly we will discuss the robustness of the results. Since we are using the winkler score as our main scoring mechanism a lower score means better and negative d norm means one model is performing better than the other. A positive skill means the Model performed better than the reference model (Random walk with native quintiles). 
 % WAS HIER STEHT (Kapitel-Kopf, 1 Absatz, KEINE Zahlen ausser den Groessen):
 %  - Ein Satz: was ausgewertet wird (742 Kombinationen auf 127 Testmonaten
 %    x 10 Laendern), und dass alle Modellfamilien auf demselben Panel
@@ -68,6 +68,11 @@
 \subsection{The evaluation universe and the validity gate}
 \label{sec:res:gate}
 %------------------------------------------------------------------------
+We are working with 742 combinations on 127 Test months over 10 countries. Only 65,4 percent of all combinations (485) suvived the validity Gate. We see that the Gate is no formalism, it sorts out about a third of all combinations. \\
+As we see in the table the nativ models have difficulties passing the gate. This is due to the fact that they are very conservative with an average coverage of 0.872 instead of 0.8. The Problem is solved by the various conformal methods. Greece and Portugal have with respectively 0.519 and 0.616 the lowest acceptance rates. France (0.864) and Finland (0.844) have the highest acceptance rates. This shows that the prediction intervalls for the spreads of the periphery countries are harder to calibrate. The Gate only uses the Kupiec and Christoffersen test the DQ Test that additionaly tests for 4 lags and with rejects 49.3$\%$ of all cobinations (q<0.10) \cref{sec:res:limitations}. This shows that Conditional calibrations is violated even in combinations that pass the Gate \cite{kupiec1995, christoffersen1998, engle2004caviar, benjamini1995fdr}.\\
+Quantile crossing occurs when the model output for the lower bound is higher than the one for the higher bound. For us it occurs in 0.451$\%$ of predictions and in $0.398\%$ of predictions from accepted combinations. $81.7\%$ of combinations never produce quantile crossing, with native and $saocp\_cqr$ having $0\%$ \cref{sec:conformal:notes}.
+$pid\_tan\_cqr$ has, with $2.554\%$, the highest crossing rate. $cqr\_static$ has $0.724\%$ \cref{sec:res:ranking} crossing rate but in extreme cases (xlstm/L/seed42/IE) up to $77.95\%$. 18 out of $cqr\_static$ cells have above $5\%$ crossing rate.
+Crossing is on average negligible, but not equality distributed
 % WAS HIER STEHT:
 %  1. Groessen des Auswertungsraums nennen (Liste oben im Kopfkommentar).
 %  2. Das ERGEBNIS DES GATES als erste substanzielle Aussage:
@@ -193,6 +198,7 @@ Method & Admissible share & Mean coverage & DQ rejection rate \\
 \subsection{Point forecasts: nothing beats the random walk}
 \label{sec:res:point}
 %------------------------------------------------------------------------
+Only TiRex2 beats the random walk with an advantage of $0.35\%$, as can be seen in Table ~\ref{tab:res_point}. All the Models that were trained on the task performed worse than the random walk: xlstm 1.104, $xlstm\_const$ 1.093, lstm 1.061, lgbm 1.065. This leads to the conclusion that the effort of training a Model for point forecasting in this case is not worth the effort. The Models predict the right direction on average in 0.5397$\%$ with the Pesaran Timmermann Test beeing signifacnt at $5\%$ in $7.2\%$ of cells only. This shows that there is no relevant dicational gained from the Models. A forecast is counted as positive if the future value is predicted to be bigger that the current one. Since the random walk always predicts no change it produces negative predictions only and by that is an indicator of how often, percentage wise, the spread went down. The distinction of the Models happens in the next chapter when we talk about, when we talk about uncertainty quantification
 % WAS HIER STEHT:
 %  Dieses Unterkapitel ist strategisch wichtig: es raeumt die Erwartung ab,
 %  dass es hier um bessere PUNKTprognosen geht, und macht damit den Weg
@@ -273,6 +279,7 @@ Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
 \subsection{Main ranking: interval skill}
 \label{sec:res:ranking}
 %------------------------------------------------------------------------
+The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calibrations per model famly. As we can see the best Performing Modell is $tirex2/ZS/cqr\_static$ followed by $tirex2\_cov/ZS/native$ with respective median winkler skills of $0.146$/ $0.141$ and mean coverage of $0.75/0.839$. With both beeing admissible in only 8/10 countries. The best two valid Models are zero shot foundation models that wasnt trained on the data during this study. The first model that has been trained by ourselfes is $lgbm/G/decay\_ocp\_cqr$, it is ranked third, with a median winkler skill of $0.139$ and mean coverage of $0.824$. The best classical approach $rw/L/aci\_cqr$ reached 8th place with a median winkler skill of $0.085$, mean coverage of $0.812$ and beeing admissable in all 10 countries. The same Model that is equal at point forecasting to the random walk beats it at producing prediction intervalls. This leads us to the conclusion that the advantage of the Model is soley in the predicting the distribution not the center. The xLSTM familie turned out to be the wort perfroming with a median skill over all combinations of $-0.047$.The best valid combination of the Familie is $xlstm/L/native$ with $0.094$ and without usage of the CP layer. In the GI regime we also see a negative skill of $-0.042$.
 % Das ist DAS Kernunterkapitel der Arbeit. Nimm dir hier am meisten Zeit.
 %
 % WAS HIER STEHT:
@@ -457,7 +464,14 @@ Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
 \begin{table}[t]
 \centering
 \caption{% TODO Caption. Best admissible package per model family, ranked
-         by median Winkler skill against RW/L/native.}
+         by median Winkler skill against RW/L/native.         Under a stricter, post hoc gate requiring all ten countries,
+         four of the twelve selections change: \texttt{tirex2} to
+         \texttt{decay\_ocp\_cqr} (0.144), \texttt{tirex2\_cov} to
+         \texttt{decay\_ocp\_cqr} (0.139), \texttt{lgbm} to
+         \texttt{agaci\_cqr} (0.128), and \texttt{xlstm} to
+         \texttt{cqr\_rolling} (0.068); the remaining eight are
+         unchanged. The ordering of the leading group is unaffected, but
+         \texttt{xlstm} then ranks below the random walk.}
 \label{tab:res_ranking}
 \begin{tabular}{llccc}
 \toprule
@@ -475,6 +489,35 @@ Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
 \texttt{lstm}          & L / \texttt{pid\_cqr}         & 0.062 & 0.810 & 10/10 \\
 \texttt{arma\_monthly} & L / \texttt{dtaci\_cqr}       & 0.061 & 0.809 & 10/10 \\
 \texttt{arma}          & L / \texttt{dtaci\_cqr}       & 0.058 & 0.813 & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. All 14 recalibration methods applied to
+         \texttt{tirex2}/ZS. Skill is the median Winkler skill against
+         RW/L/\texttt{native}; $\dagger$ marks combinations that fail the
+         admissibility gate.}
+\label{tab:res_tirex2_cp}
+\begin{tabular}{lccc}
+\toprule
+Method & Median skill & Mean coverage & Admissible countries \\
+\midrule
+\texttt{cqr\_static}     & 0.146 & 0.750 & 8/10 \\
+\texttt{decay\_ocp\_cqr} & 0.144 & 0.787 & 10/10 \\
+\texttt{native}          & 0.142 & 0.855 & 7/10 \\
+\texttt{cqr\_rolling}    & 0.132 & 0.794 & 10/10 \\
+\texttt{agaci\_cqr}      & 0.126 & 0.797 & 10/10 \\
+\texttt{aci\_cqr}        & 0.121 & 0.799 & 10/10 \\
+\texttt{dtaci\_cqr}      & 0.120 & 0.806 & 10/10 \\
+\texttt{pid\_cqr}        & 0.116 & 0.800 & 10/10 \\
+\texttt{spci\_cqr}       & 0.080 & 0.762 & 10/10 \\
+\texttt{pid\_local\_cqr} & 0.046 & 0.802 & 10/10 \\
+\texttt{mondrian\_cqr}   & 0.035 & 0.856 & 9/10 \\
+\texttt{sfogd\_cqr}      & 0.017 & 0.801 & 8/10 \\
+\texttt{saocp\_cqr}$^\dagger$    & 0.012 & 0.894 & 3/10 \\
+\texttt{pid\_tan\_cqr}$^\dagger$ & $-0.044$ & 0.810 & 6/10 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -598,6 +641,55 @@ Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
 % ZITATE: beck2024xlstm, hochreiter1997lstm, ke2017lightgbm.
 %
 % [arXiv-Kuerzung]: 1 Absatz, die drei Kontraste als Zahlentripel im Satz.
+
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. Pre-registered contrast families. Effect is the
+         median normalised loss differential $\bar d/\bar W^{\text{ref}}$;
+         NEGATIVE values mean A is better. Share A better is the median
+         fraction of countries favouring A; FDR-sig.\ is the fraction of
+         contrasts with median $q<0.10$.}
+\label{tab:res_contrasts}
+\begin{tabular}{lrrrrr}
+\toprule
+Contrast & $n$ & Effect & Share A better & Panel $t$ & FDR-sig. \\
+\midrule
+\multicolumn{6}{l}{\emph{Panel A --- RQ3: method vs.\ \texttt{native}}} \\
+\texttt{dtaci\_cqr}      & 53 & $-0.054$ & 0.70 & $-3.72$ & 0.28 \\
+\texttt{pid\_cqr}        & 53 & $-0.054$ & 0.80 & $-3.97$ & 0.17 \\
+\texttt{aci\_cqr}        & 53 & $-0.047$ & 0.60 & $-3.46$ & 0.34 \\
+\texttt{cqr\_rolling}    & 53 & $-0.045$ & 0.60 & $-3.21$ & 0.34 \\
+\texttt{agaci\_cqr}      & 53 & $-0.043$ & 0.60 & $-3.55$ & 0.11 \\
+\texttt{spci\_cqr}       & 53 & $-0.039$ & 0.60 & $-2.01$ & 0.23 \\
+\texttt{pid\_local\_cqr} & 53 & $-0.031$ & 0.70 & $-2.95$ & 0.21 \\
+\texttt{sfogd\_cqr}      & 53 & $-0.008$ & 0.50 & $-1.61$ & 0.17 \\
+\texttt{decay\_ocp\_cqr} & 53 & $+0.002$ & 0.50 & $-0.36$ & 0.45 \\
+\texttt{mondrian\_cqr}   & 53 & $+0.023$ & 0.50 & $-0.66$ & 0.40 \\
+\texttt{cqr\_static}     & 53 & $+0.027$ & 0.30 & $+8.74$ & 0.85 \\
+\texttt{saocp\_cqr}      & 53 & $+0.052$ & 0.00 & $+4.03$ & 0.28 \\
+\texttt{pid\_tan\_cqr}   & 53 & $+0.102$ & 0.30 & $+1.95$ & 0.94 \\
+\midrule
+\multicolumn{6}{l}{\emph{Panel B --- RQ1: pooling and fine-tuning}} \\
+\texttt{lgbm}: G vs.\ L      & 14 & $-0.014$ & 0.65 & $-0.48$ & 0.00 \\
+\texttt{lstm}: G vs.\ L      & 42 & $+0.019$ & 0.40 & $+0.95$ & 0.21 \\
+\texttt{lstm}: GF vs.\ G     & 42 & $+0.001$ & 0.40 & $+0.02$ & 0.07 \\
+\texttt{lstm}: GF vs.\ GI    & 42 & $-0.041$ & 0.80 & $-2.67$ & 0.07 \\
+\texttt{xlstm}: G vs.\ L     & 42 & $+0.040$ & 0.40 & $+1.25$ & 0.14 \\
+\texttt{xlstm}: GF vs.\ G    & 42 & $-0.021$ & 0.80 & $-2.79$ & 0.07 \\
+\texttt{xlstm}: GF vs.\ GI   & 42 & $-0.060$ & 0.90 & $-4.93$ & 0.14 \\
+\midrule
+\multicolumn{6}{l}{\emph{Panel C --- RQ2: adaptive vs.\ constant width}} \\
+\texttt{lgbm}/L    & 14 & $-0.018$ & 0.65 & $-1.60$ & 0.07 \\
+\texttt{lgbm}/G    & 14 & $-0.009$ & 0.60 & $-0.61$ & 0.00 \\
+\texttt{xlstm}/L   & 42 & $+0.005$ & 0.50 & $-0.34$ & 0.07 \\
+\texttt{xlstm}/GF  & 42 & $+0.006$ & 0.50 & $+0.45$ & 0.07 \\
+\texttt{lstm}/L    & 42 & $+0.009$ & 0.40 & $-0.21$ & 0.00 \\
+\texttt{xlstm}/G   & 42 & $+0.014$ & 0.50 & $+0.23$ & 0.07 \\
+\texttt{lstm}/G    & 42 & $+0.062$ & 0.10 & $+3.23$ & 0.29 \\
+\texttt{lstm}/GF   & 42 & $+0.062$ & 0.10 & $+3.07$ & 0.57 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 %------------------------------------------------------------------------
@@ -901,7 +993,28 @@ Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
 %   \caption{% TODO}
 %   \label{fig:res_vix}
 % \end{figure}
-
+\begin{table}[t]
+\centering
+\caption{% TODO Caption. The eight largest cross-model contrasts by
+         absolute effect size, out of 66. Effect as in
+         \cref{tab:res_contrasts}; negative means A is better. None of
+         the 66 contrasts is significant after FDR correction.}
+\label{tab:res_xm}
+\begin{tabular}{llrrrr}
+\toprule
+A & B & Effect & Share A better & Panel $t$ & median $q$ \\
+\midrule
+\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.116$ & 0.8 & $-3.55$ & 0.185 \\
+\texttt{tirex2\_cov}/ZS/\texttt{native}    & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.111$ & 0.9 & $-4.16$ & 0.196 \\
+\texttt{tirex}/ZS/\texttt{native}          & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.101$ & 1.0 & $-3.26$ & 0.263 \\
+\texttt{lgbm}/G/\texttt{decay\_ocp\_cqr}   & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.090$ & 0.7 & $-2.92$ & 0.270 \\
+\texttt{lstm\_const}/G/\texttt{agaci\_cqr} & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.080$ & 0.8 & $-2.43$ & 0.352 \\
+\texttt{tirex2\_cov}/ZS/\texttt{native}    & \texttt{arma}/L/\texttt{dtaci\_cqr}        & $-0.075$ & 0.9 & $-3.09$ & 0.217 \\
+\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{lstm}/L/\texttt{pid\_cqr}          & $-0.074$ & 0.9 & $-3.09$ & 0.253 \\
+\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{arma}/L/\texttt{dtaci\_cqr}        & $-0.074$ & 0.9 & $-2.50$ & 0.255 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %------------------------------------------------------------------------
 \subsection{Economic evaluation}
