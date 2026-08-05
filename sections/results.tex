@@ -575,6 +575,7 @@ Admissible & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{8/10} & \multicolumn{
 \subsection{RQ3: does the conformal layer pay off?}
 \label{sec:res:rq3}
 %------------------------------------------------------------------------
+We wanted to find out wether the CP calibration methods led to an imporvement in performance when compared to the native quantile output of the Models. The answer is yes but only for the adaptive online CP methods with a moderate effect. The seven winning methods have a $d\_norm$ ranging from -0.054 to -0.031 with Pantel-t between -4 and -2. Three Methods performe worse thatn the native: $cqr\_static (+0.027), saocp (+0.052),pid\_tan (+0.102)$. The conformal layer is no miracle remedy that always works. The most important effect is not the skill but the validity. Native Model output only passes the Gate in 13.3$\%$ of cases while $dtaci/pid/pid\_local/sfogd/spci$ pass in $100\%$ of cases. We conclude that the mains trength of the conformal method is calibrating to the wanted coverage and not so much sharpness. After the FDR correction the rate of winning Models ranges only from 0.37 to 0.50. On 10 correlated countries and 127 Months this is a consistent but not overwhelming signal.
 % WAS HIER STEHT:
 %  1. Die Frage klar stellen: bringt eine Rekalibrierungsmethode gegenueber
 %     der nativen Quantilausgabe des Modells einen messbaren Vorteil?
@@ -624,12 +625,40 @@ Admissible & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{8/10} & \multicolumn{
 %
 % [arXiv-Kuerzung]: 1 Absatz + die RQ3-Spalte in einer kombinierten
 %   Kontrasttabelle mit RQ1/RQ2.
-
+\begin{table}[htbp]
+  \centering
+  \caption{Results for RQ3: Comparison of CP methods against native model output (median across 53 contrasts per method). Negative $d_{\text{norm}}$ indicates superiority of the CP method.}
+  \label{tab:rq3_results}
+  \begin{tabular}{l c c c c}
+    \toprule
+    \textbf{Method} & $d_{\text{norm}}$ & \textbf{Share } $A > \text{native}$ & \textbf{Panel } $t$ & \textbf{Share Sig. (FDR)} \\
+    \midrule
+    \texttt{dtaci\_cqr}     & $-0.054$ & $0.7$ & $-3.72$ & $0.43$ \\
+    \texttt{pid\_cqr}       & $-0.054$ & $0.8$ & $-3.97$ & $0.50$ \\
+    \texttt{aci\_cqr}       & $-0.047$ & $0.6$ & $-3.46$ & $0.40$ \\
+    \texttt{cqr\_rolling}   & $-0.045$ & $0.6$ & $-3.21$ & $0.37$ \\
+    \texttt{agaci\_cqr}     & $-0.043$ & $0.6$ & $-3.55$ & $0.47$ \\
+    \texttt{spci\_cqr}      & $-0.038$ & $0.6$ & $-2.01$ & $0.40$ \\
+    \texttt{pid\_local\_cqr}& $-0.031$ & $0.7$ & $-2.95$ & $0.37$ \\
+    \midrule
+    \texttt{sfogd\_cqr}     & $-0.008$ & $0.5$ & $-1.61$ & $0.30$ \\
+    \texttt{decay\_ocp\_cqr}& $+0.002$ & $0.5$ & $-0.36$ & $0.47$ \\
+    \texttt{mondrian\_cqr}  & $+0.023$ & $0.5$ & $-0.66$ & $0.47$ \\
+    \midrule
+    \texttt{cqr\_static}    & $+0.027$ & $0.3$ & $+8.74$ & $0.67$ \\
+    \texttt{saocp\_cqr}     & $+0.052$ & $0.0$ & $+4.03$ & $0.43$ \\
+    \texttt{pid\_tan\_cqr}   & $+0.102$ & $0.3$ & $+1.95$ & $0.77$ \\
+    \midrule
+    \textbf{Overall Median RQ3} & $-0.0034$ & $0.50$ & $-1.27$ & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 %------------------------------------------------------------------------
 \subsection{RQ1: pooling across countries and fine-tuning}
 \label{sec:res:rq1}
 %------------------------------------------------------------------------
+We wanted to find out if one global Model for all countries out performes one lokal Model for each countrie. 
 % WAS HIER STEHT:
 %  Drei Teilfragen, drei klar unterschiedliche Antworten -- das ist die
 %  Struktur dieses Unterkapitels.
