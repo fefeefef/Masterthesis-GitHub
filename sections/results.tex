@@ -658,58 +658,236 @@ We wanted to find out wether the CP calibration methods led to an imporvement in
 \subsection{RQ1: pooling across countries and fine-tuning}
 \label{sec:res:rq1}
 %------------------------------------------------------------------------
-We wanted to find out if one global Model for all countries out performes one lokal Model for each countrie. 
-% WAS HIER STEHT:
-%  Drei Teilfragen, drei klar unterschiedliche Antworten -- das ist die
-%  Struktur dieses Unterkapitels.
-%  1. G vs L (globales Pooling gegen laenderlokale Modelle): d_norm +0.017,
-%     also globales Pooling ist im Median SCHLECHTER. Nach Modell:
-%     xlstm +0.040 und lstm +0.019 verlieren durch Pooling deutlich,
-%     nur lgbm gewinnt (-0.014).
-%     -> Interpretation, die du belegen kannst: die neuronalen Modelle
-%        profitieren nicht vom gemeinsamen Training ueber die zehn Laender,
-%        der Gradient-Boosting-Ansatz schon. Plausible Erklaerung
-%        (als Hypothese kennzeichnen, nicht als Befund): die Laender
-%        unterscheiden sich in Spread-Niveau und Volatilitaet um
-%        Groessenordnungen (vgl. Breiten in 8.3), und die NN-Modelle
-%        koennen diese Heterogenitaet mit 277 Monaten nicht lernen.
-%  2. GF vs G (Fine-Tuning nach globalem Pretraining): d_norm -0.006,
-%     also ein kleiner, aber konsistenter Vorteil (share_a_better 0.60).
-%     xlstm profitiert (-0.021), lstm praktisch nicht (+0.001).
-%  3. GF vs GI (Fine-Tuning gegen Laender-Embedding): d_norm -0.054,
-%     share_a_better 0.90, Panel-t -3.33. DAS IST DER STAERKSTE EFFEKT
-%     IN RQ1. Explizites Fine-Tuning schlaegt das gelernte Laender-Embedding
-%     klar. xlstm -0.060, lstm -0.041.
-%     -> Ein Satz: wenn man Laenderheterogenitaet abbilden will, dann
-%        durch nachtraegliche Anpassung der Gewichte, nicht durch eine
-%        zusaetzliche Eingabedimension.
-%  4. Konsistenzcheck mit dem Ranking aus 8.3 -- und hier wird es
-%     unangenehm, also EHRLICH sein: das beste valide xlstm-Paket ist
-%     xlstm/L (0.094), nicht xlstm/GF. Die RQ1-Kontraste sagen "GF besser
-%     als GI" und "GF minimal besser als G", aber das Ranking sagt
-%     "L schlaegt sie alle". Beides ist richtig, weil die Kontraste
-%     paarweise auf identischer CP-Methode rechnen und das Ranking ueber
-%     alle Methoden das Maximum nimmt. Diesen Unterschied ausdruecklich
-%     erklaeren, sonst wirkt das Kapitel widerspruechlich.
+We wanted to find out if one global Model for all countries out performes one lokal Model for each country. In Table ~\ref{tab:rq1_results} we see that the Global (G) vs. the Lokal (L) regime has a positive $d\_norm$ indicating a superiority of the L Regime. LSTM and xLSTM loose performance while lightGBM is the only one gaining performance with pooling. One possible explanation for this is that the Neural Nets are sensitive to different scales and uneven variance between countrie data. Our spreads range from 0.201 in the Netherlands to 1.907 in Greece a multiple of about 9.5 and the variance ranges from 0.042 in the Netherlands to 0.372 in Grecce a multiple of about 8.8. While lgbm is trained on the same data and sees an imporvment in performance with pooling.  \\
+In the comparison GF vs. G, so finetuned after global training vs. just global training the fine tuned models had an overal, but not statistically significant, better performance with a $d\_norm$ of -0.006. This is a small but consistent advantage $(share\_a\_better 0.60)$. While xLSTM profits from finetuning ( $d\_norm$ -0.021)LSTM doesn't really see a change ($d\_norm$+0.0014). \\
+We see the strongest effect in the comparisson GF vs. GI with the $d\_norm$ being -0.0543 and $share\_a\_better=0.90$. It has a a Panel-t test of -3.33 which proves an average effect, but the Median q of 0.245 show that the effect is not statistically significant per country after correction. So the the finetuning regime beats the country specific bias correction regime consistently, this shows that fine tuning does more than an intercept shift. The $d\_norms$ for xLSTM is -0.06 with a consistent $share\_a\_better$ of 0.9, the largest Panel t (-4.93), the lowest Median q (0.145) and full seed stability. This shows that correctiong for a bias in the global model is inferior to fine tuning the global model. \\
+The comparisson GF vs. L was added post hoc, with a $d\_norm$ of 0.016, solidifies L as the consistent winner and is consistent with the results of G vs. L and GF vs. G. L beat GF $60\%$ of times but with a Panel t of 0.86 abd a Median q of 0.527 not statistically significant. We also see a low seed stability in the Model contrasts (LSTM 0.43, xLSTM 0.21).\\
+The Zero shot regime reach the highest gate rate with 0.833 followed by the Lokal regime with 0.668 as can be seen in Table ~\ref{tab:rq1_results}. Regime GI has the lowest gate rate with 0.602. The average skill in all admissable cells is also led by the zero shot regime with 0.11 again followed by the local regime with 0.021. In generell we see here the same order as with the gating rate. The worst performer was again the GI Regime with -0.037.\\
+
+
+
 %
-% ZAHLEN (verifiziert, dm_contrasts.csv, rq=="RQ1"):
-%   Kontrast    n    d_norm(Median)  share_a_better  Panel-t(Median)
-%   G vs L     98      +0.0168           0.40           +0.84
-%   GF vs G    84      -0.0060           0.60           -1.33
-%   GF vs GI   84      -0.0543           0.90           -3.33
-%   Aufgeschluesselt nach Modell (d_norm, Median):
-%              G vs L     GF vs G    GF vs GI
-%     lgbm     -0.0138       --          --
-%     lstm     +0.0186     +0.0014     -0.0413
-%     xlstm    +0.0403     -0.0212     -0.0598
-%   Gate-Rate je Regime (aus 8.1): ZS 0.833 | L 0.668 | G 0.643 |
-%     GF 0.631 | GI 0.602
-%   Median-Skill je Regime: ZS +0.101 | L +0.011 | GF -0.009 |
-%     G -0.012 | GI -0.066
+% --- K1: SACHFEHLER, MUSS RAUS ------------------------------------
+% Der Satz "So the finetuning regime beats the country embedding regime"
+% ist FALSCH. GI ist NICHT das Embedding-Regime.
+%   Das Laender-Embedding steckt bereits in G. \cref{sec:exp:regimes}:
+%   "The country identity is passed to the model, as a learned embedding
+%   for the neural networks and as a native categorical feature for
+%   LightGBM." -- das steht unter dem G-Punkt.
+%   GI = G PLUS additiver Intercept-Shift (rollierender Median der letzten
+%   <=36 realisierten OOS-Residuen, Parallelshift auf alle drei Quantile,
+%   Breite unveraendert; \cref{sec:conformal:derived}, eq:gplusi).
+%
+% DIE RICHTIGE FRAMUNG -- und sie ist schaerfer als deine:
+%   G hat das Embedding bereits. Also fragen die beiden Kontraste:
+%     GF vs G  : bringt Gewichts-Fine-Tuning etwas UEBER das Embedding
+%                hinaus?  -> ja, aber wenig (-0.006)
+%     GF vs GI : von den beiden Wegen, ZUSAETZLICHE Laenderspezifik
+%                aufzusetzen -- Gewichte anpassen oder Niveau
+%                verschieben -- welcher ist besser?  -> Gewichte, klar
+%                (-0.054)
+%   Dein naechster Satz ("correcting for a bias in the global model is
+%   inferior to fine tuning") ist bereits richtig -- nur der Satz davor
+%   widerspricht ihm. Streich ihn und schreib die Framung oben hin.
+%
+% --- E1: SIGNIFIKANZ FEHLT IM GANZEN ABSCHNITT --------------------
+% Du schreibst "not statistically significant" nur bei G vs L. Das gilt
+% fuer ALLE Kontraste und muss einmal zentral gesagt werden.
+%   KEIN EINZIGER RQ1-Kontrast ist auf Kontrastebene FDR-signifikant.
+%   Von 266 vorregistrierten Kontrasten haben 30 ein median-q < 0.10,
+%   das kleinste q ueberhaupt ist 0.019.
+%   Median-q je Kontrasttyp: G vs L 0.413 | GF vs G 0.403 | GF vs GI 0.245
+%   Gleichzeitig haben 131 von 266 ein |Panel-t| > 1.96.
+%   -> DIESE DISKREPANZ MUSST DU ERKLAEREN, sonst wirkt die Tabelle
+%      widerspruechlich: der Panel-t fragt "ist der Effekt im Mittel
+%      ueber die Laender vorhanden?", der q-Wert "ist er innerhalb
+%      einzelner Laender nach Korrektur nachweisbar?". Bei zehn Laendern
+%      und 127 Monaten faellt die zweite Frage negativ aus.
+%   -> Formuliere alle drei Befunde konsequent als GERICHTET, nicht als
+%      signifikant. "consistently favours X" statt "significantly better".
+%
+% --- E2: SEED-STABILITAET -- verstaerkt deinen Hauptbefund ---------
+% Fehlt komplett, ist aber die Absicherung deines staerksten Ergebnisses.
+%   GF vs GI, Anteil seed-vorzeichenstabiler Kontraste:
+%     xlstm 1.00 (14 von 14)  |  lstm 0.14 (2 von 14)
+%   -> xlstm/GF vs GI ist der EINZIGE RQ1-Kontrast, der ueber alle drei
+%      Seeds vollstaendig richtungsstabil ist -- und gleichzeitig der mit
+%      dem groessten Effekt (-0.060), dem staerksten Panel-t (-4.93) und
+%      dem kleinsten q (0.145). Das ist dein belastbarster RQ1-Befund,
+%      und du solltest ihn genau so auszeichnen.
+%   -> Die LSTM-Version desselben Kontrasts ist mit 0.14 fast durchgehend
+%      instabil. Nach diagnostics_foundation.txt Paragraph 4.4 darf fuer
+%      sie KEINE Rangaussage getroffen werden. Also: der Befund traegt
+%      ueber xLSTM, nicht ueber LSTM. Ehrlich hinschreiben.
+%   Zum Vergleich G vs L: lstm 0.29, xlstm 0.57 -- beide schwach.
+%
+% --- E3: NEUER KONTRAST GF vs L (post hoc, 2026-08-03) -------------
+% Schliesst die Luecke, die deinen Abschnitt bisher unvollstaendig laesst.
+%   Bisher: aus G vs L folgt L > G, aus GF vs G folgt GF > G. Die Ordnung
+%   zwischen L und GF war UNBESTIMMT -- der vorregistrierte Kontrastsatz
+%   enthaelt kein GF vs L. Jetzt gerechnet, gleiche Maschinerie
+%   (DM/HLN je Land, df=126, Common Sample, Panel-t NW Lag 3), EIGENE
+%   BH-FDR-Familie (84 Kontraste, 840 Zellen), damit die q-Werte der
+%   vorregistrierten Kontraste unveraendert bleiben.
+%   ZAHLEN: d_norm +0.016 | share_a 0.40 | Panel-t +0.86 | median q 0.527
+%           | FDR-sig 0.13 | 6 von 84 mit q<0.10, kleinstes q 0.083
+%           je Modell: lstm +0.016 (seed-stabil 0.43),
+%                      xlstm +0.014 (seed-stabil 0.21)
+%   -> GF bleibt also HINTER L. Die Kette ist damit in sich stimmig:
+%        Pooling kostet        +0.017
+%        Fine-Tuning holt      -0.006 zurueck
+%        Rueckstand auf L      +0.016 bleibt
+%      (Mediane addieren sich nicht exakt; 0.017-0.006=0.011 gegen
+%       gemessene 0.016 ist konsistent, nicht identisch -- so schreiben.)
+%   -> SCHWACH: median q 0.527, seed-instabil. Formuliere ihn als
+%      "the local model remains ahead, though the difference is small and
+%      not statistically distinguishable" -- als Richtungsbestaetigung,
+%      nicht als Beleg.
+%   !! MUSS DEKLARIERT WERDEN: dagger in tab:rq1_results, Amendment in
+%      diagnostics_foundation.txt Paragraph 11, und Eintrag in der
+%      Post-hoc-Liste in limitations.tex 9.8 Punkt 5 (wird der vierte).
+%
+% --- E4: DEINE HYPOTHESE HAT EIN GEGENARGUMENT ---------------------
+% Du schreibst "Neural Nets are sensitive to different scales and uneven
+% variance between countries". Das ist eine gute Hypothese und richtig
+% als solche gekennzeichnet. Zwei Dinge fehlen:
+%   (a) BELEG DER PRAEMISSE. Die Heterogenitaet ist real und quantifizierbar
+%       (Testfenster, Level-Skala, aus dem RW-Stream):
+%         Spread-Niveau (Median je Land): NL 0.201 ... GR 1.907  -> 9.5x
+%         Volatilitaet (sd der Aenderungen): NL 0.042 ... GR 0.372 -> 8.8x
+%       Diese zwei Zahlen gehoeren in den Satz, sonst ist die Hypothese
+%       unbelegt behauptet.
+%   (b) DAS GEGENARGUMENT, das du selbst bringen musst: LightGBM sieht
+%       EXAKT dieselbe Heterogenitaet und gewinnt trotzdem durch Pooling
+%       (-0.014). Skalenheterogenitaet allein kann den Befund also nicht
+%       erklaeren -- sonst muesste LightGBM ebenfalls verlieren. Die
+%       Erklaerung muss architekturspezifisch sein (z.B. dass Baeume
+%       ueber die kategoriale Laendervariable splitten koennen, waehrend
+%       das NN-Embedding bei 277 Monaten x 10 Laendern zu wenig Signal
+%       bekommt). Als HYPOTHESE kennzeichnen -- das Design testet sie nicht.
+%   -> Ein Absatz, der die eigene Erklaerung gleich selbst relativiert,
+%      ist deutlich stark. Nicht weglassen.
+%
+% --- E5: PANEL C KOMMT IM TEXT GAR NICHT VOR -----------------------
+% Zwei bis drei Saetze, sie sind billig und schliessen den Abschnitt:
+%   Gate-Rate je Regime : L 0.668 > G 0.643 > GF 0.631 > GI 0.602
+%   Median-Skill (nur zulaessige Kombis):
+%                         L +0.031 > G +0.014 > GF +0.010 > GI -0.037
+%   -> BEIDE ACHSEN ORDNEN DIE REGIME IDENTISCH. Je mehr kuenstliche
+%      Laenderspezifik auf das globale Modell aufgesetzt wird, desto
+%      schlechter wird sowohl die Kalibrierbarkeit als auch der Skill.
+%      GI ist auf beiden Achsen letzter -- was konsistent damit ist,
+%      dass es eine Guardrail ist und kein ernsthafter Kandidat.
+%   -> ZS steht mit Gate 0.833 und Skill +0.110 deutlich vor allem
+%      anderen, gehoert hier aber nur als Verweis auf 8.3 hin, nicht
+%      als RQ1-Befund (RQ1 vergleicht nur trainierte Regime).
+%
+% --- E6: VERBINDUNG ZU 8.3 ----------------------------------------
+% Ein Satz, der den Bogen schlaegt und zugleich ehrlich ist:
+%   Das beste valide xlstm-Paket ist xlstm/L/native (0.094) -- das
+%   Ranking bestaetigt also, was die Kontraste sagen.
+%   ABER: dieser Eintrag ist der schwaechste der ganzen Ranking-Tabelle.
+%   Er besteht das Gate in 7 von 10 Laendern, er ist nur fuer EINEN von
+%   drei Seeds zulaessig (Seed 44: 0.094; Seed 42: 0.043 und Seed 43:
+%   -0.008 fallen beide durch), und seine Seed-Spanne (0.102) uebersteigt
+%   den eigenen Skill (0.094).
+%   -> Das schwaecht deinen Befund NICHT, es staerkt ihn: selbst die
+%      beste xLSTM-Konfiguration ist fragil. Und es gehoert nach 8.3
+%      Punkt 3 verlinkt, wo du das xLSTM-Negativergebnis ehrlich
+%      berichtest.
+The best valid xlstm package is xlstm/L/native (0.094) even though it only passes the validity gate in 7/10 counties and is only admissible vor one out of the three seeds (Seed 44: 0.094; Seed 42: 0.043 und Seed 43: -0.008) . The ranking verifies the results of the contrasts. 
+% --- STRUKTURVORSCHLAG fuer den ergaenzten Abschnitt ---------------
+%   Absatz 1  G vs L        (steht, + E4a/E4b ergaenzen)
+%   Absatz 2  GF vs G       (steht, + K1-Framung: was Embedding, was FT)
+%   Absatz 3  GF vs GI      (steht, K1 korrigieren, + E2 Seed-Stabilitaet)
+%   Absatz 4  GF vs L       (NEU, E3)
+%   Absatz 5  Regime-Ebene + Verbindung zu 8.3   (NEU, E5 + E6)
+%   Absatz 6  Signifikanz-Caveat fuer alle vier Kontraste  (NEU, E1)
+%             -- ans ENDE, damit es den Abschnitt rahmt statt ihn
+%                gleich am Anfang zu entwerten.
+% =====================================================================
 %
 % ZITATE: beck2024xlstm, hochreiter1997lstm, ke2017lightgbm.
 %
 % [arXiv-Kuerzung]: 1 Absatz, die drei Kontraste als Zahlentripel im Satz.
+\begin{table}[htbp]
+  \centering\small
+  \caption{Results for RQ1 (pooling and fine-tuning). \textbf{Panels A and B}
+  report normalised Diebold--Mariano loss differentials
+  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $d_t=W_t^{A}-W_t^{B}$,
+  aggregated as the median over the ten countries; a \emph{negative} value
+  means A has the lower loss, i.e.\ A is better. \textbf{Panel C} reports
+  the median Winkler skill $1-\bar W/\bar W^{\text{ref}}$, where a
+  \emph{positive} value means the regime beats the benchmark. The two
+  quantities carry opposite sign conventions and must not be read against
+  each other. The benchmark $\bar W^{\text{ref}}$ is RW/L/\texttt{native}
+  of the same country and month throughout. Panel $t$ is the
+  time-clustered panel statistic (cross-sectional mean, then Newey--West
+  HAC with three lags); it is asymptotically standard normal and has no
+  degrees of freedom. Median $q$ is the median BH-FDR-adjusted $p$-value
+  of the per-country DM--HLN tests ($df=126$); FDR-sig.\ is the share of
+  cells surviving $q<0.10$; seed-stable is the share of contrasts whose
+  sign agrees across seeds 42/43/44, the pre-registered condition for
+  making a rank statement. $\dagger$ marks the post hoc contrast
+  \texttt{GF} vs.\ \texttt{L}, which is not part of the pre-registered
+  set and forms its own FDR family.}
+  \label{tab:rq1_results}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    \multicolumn{7}{l}{\emph{Panel A --- Aggregate contrasts}} \\
+    \midrule
+    Contrast & $n$ & $d_{\text{norm}}$ & Share $A\!>\!B$ & Panel $t$ & Median $q$ & FDR-sig. \\
+    \midrule
+    \texttt{G} vs.\ \texttt{L}                & 98 & $+0.017$ & 0.40 & $+0.84$ & 0.413 & 0.23 \\
+    \texttt{GF} vs.\ \texttt{G}               & 84 & $-0.006$ & 0.60 & $-1.33$ & 0.403 & 0.20 \\
+    \texttt{GF} vs.\ \texttt{L}$^\dagger$     & 84 & $+0.016$ & 0.40 & $+0.86$ & 0.527 & 0.13 \\
+    \texttt{GF} vs.\ \texttt{GI}              & 84 & $-0.054$ & 0.90 & $-3.33$ & 0.245 & 0.35 \\
+    \midrule
+    \multicolumn{7}{l}{\emph{Panel B --- Breakdown by model class}} \\
+    \midrule
+    Model / contrast & $n$ & $d_{\text{norm}}$ & Share $A\!>\!B$ & Panel $t$ & Median $q$ & Seed-stable \\
+    \midrule
+    \texttt{lgbm}: \texttt{G} vs.\ \texttt{L}                & 14 & $-0.014$ & 0.65 & $-0.48$ & 0.546 & n/a \\
+    \texttt{lstm}: \texttt{G} vs.\ \texttt{L}                & 42 & $+0.019$ & 0.40 & $+0.95$ & 0.510 & 0.29 \\
+    \texttt{lstm}: \texttt{GF} vs.\ \texttt{G}               & 42 & $+0.001$ & 0.40 & $+0.02$ & 0.414 & 0.36 \\
+    \texttt{lstm}: \texttt{GF} vs.\ \texttt{L}$^\dagger$     & 42 & $+0.016$ & 0.40 & $+0.94$ & 0.587 & 0.43 \\
+    \texttt{lstm}: \texttt{GF} vs.\ \texttt{GI}              & 42 & $-0.041$ & 0.80 & $-2.67$ & 0.403 & 0.14 \\
+    \texttt{xlstm}: \texttt{G} vs.\ \texttt{L}               & 42 & $+0.040$ & 0.40 & $+1.25$ & 0.355 & 0.57 \\
+    \texttt{xlstm}: \texttt{GF} vs.\ \texttt{G}              & 42 & $-0.021$ & 0.80 & $-2.79$ & 0.380 & 0.86 \\
+    \texttt{xlstm}: \texttt{GF} vs.\ \texttt{L}$^\dagger$    & 42 & $+0.014$ & 0.50 & $+0.59$ & 0.452 & 0.21 \\
+    \texttt{xlstm}: \texttt{GF} vs.\ \texttt{GI}             & 42 & $-0.060$ & 0.90 & $-4.93$ & 0.145 & 1.00 \\
+    \midrule
+    \multicolumn{7}{l}{\emph{Panel C --- Regime-level performance}} \\
+    \midrule
+    Regime & Comb. & Adm. & Gate rate & Skill (adm.) & Skill (all) & Best adm. \\
+    \midrule
+    \texttt{ZS} (zero-shot)              &  42 &  35 & 0.833 & $+0.110$ & $+0.101$ & 0.146 \\
+    \texttt{L}  (local)                  & 238 & 159 & 0.668 & $+0.031$ & $+0.011$ & 0.094 \\
+    \texttt{G}  (global)                 & 196 & 126 & 0.643 & $+0.014$ & $-0.012$ & 0.139 \\
+    \texttt{GF} (global fine-tuned)      & 168 & 106 & 0.631 & $+0.010$ & $-0.009$ & 0.103 \\
+    \texttt{GI} (global $+$ individual)  &  98 &  59 & 0.602 & $-0.037$ & $-0.066$ & 0.091 \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.5em}
+  \footnotesize\raggedright
+  \textbf{Notes.} LightGBM has no \texttt{GF} regime, so only the
+  \texttt{G}-vs-\texttt{L} contrast exists for it; it is deterministic
+  (single seed), so seed stability does not apply. The three contrasts
+  form a coherent chain: pooling costs $+0.017$, fine-tuning recovers
+  $-0.006$, and $+0.016$ of the deficit against the local model remains
+  (medians do not add exactly). No contrast is FDR-significant at the
+  contrast level: over the 266 pre-registered contrasts the smallest
+  median $q$ is 0.019 and only 30 fall below $0.10$, against 131 with
+  $|t_{\text{panel}}|>1.96$; in the post hoc family the smallest median
+  $q$ is 0.083 and 6 of 84 fall below $0.10$. The two criteria answer
+  different questions --- the panel statistic asks whether the effect is
+  present on average across countries, the $q$-value whether it is
+  detectable within individual countries after correction. Median $q$ and
+  FDR-sig.\ pool the three seeds of a neural contrast into one figure (30
+  cells instead of 10), because the per-country DM output does not carry
+  a seed identifier; the effect columns are per seed.
+\end{table}
 
 \begin{table}[t]
 \centering
@@ -765,31 +943,267 @@ Contrast & $n$ & Effect & Share A better & Panel $t$ & FDR-sig. \\
 \subsection{RQ2: adaptive versus constant interval width}
 \label{sec:res:rq2}
 %------------------------------------------------------------------------
-% WAS HIER STEHT:
-%  1. Die Frage: bringt eine vom Modell selbst erzeugte, zeitvariable
+we anted to find out wether adaptive quantile outputs from the Model itself would improve the performance over a constant width clone based on the same point forecast, covariates and a constant intervall width. The twin isolates the effect of the adaptive intervalls. The twin exists only for the trainable Models since the intervall width is created from the in sample residuals. The general answer is no. In the Median case the adaptive variant performs worse than the constant width clone $(d\_norm=+0.020$, $share\_a\_better=0.40$, Panel-t=+0.91). \\
+
+The real answer is three folded. For LSTM the adaptive variante is consistently worse than the constant width one with a $d\_norm$ of 0.062 in both the G and GF regime and the adaptive variante winning in only winning in $10\%$ of cases. This is further substantiated by theyr high Panel t values (3.23/3.07) and the lowest Median q values our of all the Models (0.128/0.095).\\
+
+In contrast LightGBM sees a light improvement via the adaptive variant with the L and G regime having respective $d\_norms$ of -0.018/-0.009 even though these results are not significant (Median q 0.536 / 0.571). Still all four angles $d\_norm$, $share\_a\_better$, Panel t and best package (0.139 vs. 0.111) agree.\\
+
+For the xLSTM family we didn't get a distinct answer. The $d\_norm$ is positive for all three regimes (+0.005 / +0.006 / +0.014) but the seeds only agrre in 14$\%$ for xlstm/G and $21\%$ for xlstm/GF. together with low Panel t values, high Median q and $share\_a\_better=0.5$ for all three we cant determine an advantage for each of them.\\
+
+
+
+%  1. DIE FRAGE: bringt eine vom Modell selbst erzeugte, zeitvariable
 %     Intervallbreite etwas gegenueber einem const-width-Zwilling, der
-%     dieselbe Punktprognose mit konstanter Breite kombiniert?
-%  2. Antwort: NEIN -- im Median ist die adaptive Variante schlechter
-%     (d_norm +0.020, share_a_better 0.40). Das ist ein zweites
-%     substanzielles Negativergebnis und gehoert prominent berichtet.
-%  3. Nach Modell differenzieren, denn das Bild ist nicht einheitlich:
-%     lstm verliert stark durch Adaptivitaet (+0.062 in G, +0.062 in GF,
-%     +0.009 in L), xlstm leicht (+0.014 / +0.006 / +0.005),
-%     lgbm gewinnt leicht (-0.009 in G, -0.018 in L).
-%  4. Der harte Beleg aus dem Ranking (8.3): lstm_const/G/agaci_cqr
-%     (0.111) ist das beste NN-Paket ueberhaupt -- besser als jedes
-%     Paket des adaptiven lstm (bestes: lstm/L/pid_cqr 0.062) und besser
-%     als jedes xlstm-Paket (bestes: 0.094). Ebenso xlstm_const/L/spci
-%     (0.072) gegen die schwachen adaptiven xlstm-Pakete in G/GF/GI.
-%     -> Formuliere die Konsequenz scharf: die zeitvariable Breite, die
-%        die neuronalen Modelle lernen, ist im Mittel Rauschen. Die
-%        nuetzliche Adaptivitaet kommt aus der CP-Schicht (RQ3), nicht
-%        aus dem Modell.
-%  5. Ein Satz Einschraenkung: die staerkste Einzelinstanz im Story-Report
-%     (lstm/G/saocp_cqr, A um 21.7% schlechter, Panel-t 8.41) beruht auf
-%     einer Methode, die das Gate praktisch nie passiert (saocp 1.9%).
+%     dieselbe Punktprognose und dieselben Kovariaten mit KONSTANTER
+%     Breite kombiniert? Der Zwilling isoliert die Breitenadaptivitaet
+%     sauber -- identischer Median, identische Inputs, einziger
+%     Unterschied ist, ob die Breite ueber die Zeit variiert.
+%     Ein Satz Design-Hinweis: die Zwillinge existieren nur fuer die
+%     trainierbaren Modelle (lgbm, lstm, xlstm), weil sie aus den
+%     In-Sample-Residuenquantilen gebildet werden. Fuer RW, ARMA und die
+%     Zero-Shot-Modelle gibt es sie nicht.
+%
+%  2. DIE AGGREGATANTWORT: NEIN -- im Median ist die adaptive Variante
+%     schlechter (d_norm +0.020, share_a_better 0.40, Panel-t +0.91).
+%     Das ist ein substanzielles Negativergebnis und gehoert prominent
+%     berichtet.
+%     ABER SOFORT EINSCHRAENKEN: der Aggregatwert verdeckt drei voellig
+%     verschiedene Faelle (Punkt 3). Schreib den Median NICHT als
+%     Hauptbefund hin, sondern als Ausgangspunkt fuer die Aufschluesselung.
+%
+%  3. DIE DREITEILUNG -- das ist der eigentliche Inhalt des Abschnitts.
+%     Formuliere sie als drei klar getrennte Faelle, nicht als
+%     "das Bild ist nicht einheitlich" (zu vage):
+%     (a) LSTM: adaptiv ist KLAR SCHLECHTER. +0.062 in G und GF, in nur
+%         10% der Laender ist adaptiv besser, Panel-t +3.23 / +3.07,
+%         Median-q 0.128 / 0.095 -- die kleinsten q-Werte der ganzen
+%         RQ2-Familie. UND seed-stabil in 86% bzw. 79% der Kontraste.
+%         Das ist der Befund, der RQ2 traegt.
+%     (b) LightGBM: adaptiv ist LEICHT BESSER. -0.009 in G, -0.018 in L.
+%         Nicht signifikant (q 0.57 / 0.54), aber alle drei Sichtweisen
+%         stimmen ueberein: Kontrast, Median ueber alle Kombinationen
+%         (+0.063 adaptiv vs +0.032 const) und bestes Paket
+%         (0.139 vs 0.099). Konsistent, wenn auch schwach.
+%     (c) xLSTM: NICHT ENTSCHEIDBAR. Das ist die wichtigste Korrektur
+%         gegenueber der alten Fassung. Die Effekte (+0.005 / +0.006 /
+%         +0.014) sehen nach "leicht schlechter" aus, aber die drei Seeds
+%         stimmen nur in 14% bis 21% der Kontraste im VORZEICHEN ueberein.
+%         Nach diagnostics_foundation.txt Paragraph 4.4 darf fuer xLSTM
+%         also GAR KEINE Richtungsaussage getroffen werden.
+%         -> Schreib "not determinable", nicht "slightly worse". Der
+%            Unterschied ist wichtig: das eine ist ein kleiner Effekt,
+%            das andere ist kein Effekt.
+The best Neural Net package overall is $lstm\_const/G/agaci\_cqr$ (0.111) better than every adaptive lstm package and better than all xlstm packages. Still for the xLSTM familie the adaptive method xlstm/L/native (0.094) wins against the best constant twin xLSTM method $xlstm\_const/L/spci\_cqr$ (0.072), while the median over all combinations says otherwise (-0.047 adaptiv vs. -0.020 const). xLSTM is the only familie with divergence. As discussed before, the winning mehtod is very unstable with it being admissible only in for one out of three seeds. The package $lgbm/G/decay\_ocp\_cqr$ in comparison is also only admissible in 7/10 countries, but is deterministic so the outcome is restistant.\\
+%  4. DER BELEG AUS DEM RANKING (8.3) -- mit einer Falle, die du
+%     entschaerfen musst:
+%     lstm_const/G/agaci_cqr (0.111) ist das beste NN-Paket ueberhaupt --
+%     besser als jedes adaptive lstm-Paket (bestes: lstm/L/pid_cqr 0.062)
+%     und besser als jedes xlstm-Paket (bestes: 0.094).
+%     ABER: bei xLSTM gewinnt im Ranking das ADAPTIVE Paket
+%     (xlstm/L/native 0.094 gegen xlstm_const/L/spci_cqr 0.072), waehrend
+%     der Median ueber alle Kombinationen das Gegenteil sagt
+%     (-0.047 adaptiv gegen -0.020 const). xLSTM ist die einzige Familie
+%     mit dieser Divergenz.
+%     DIE AUFLOESUNG, die du hinschreiben musst -- das Paket ist fragil:
+%       xlstm/L/native  Seed 44 : Skill  0.094  Gate 7/10  -> zulaessig
+%                       Seed 42 : Skill  0.043  Gate 6/10  -> faellt durch
+%                       Seed 43 : Skill -0.008  Gate 6/10  -> faellt durch
+%                       Seed-Spanne 0.102 > eigener Skill 0.094
+%     Es ist also EIN Seed von dreien, und die anderen beiden sind nicht
+%     einmal zulaessig. Der argmax des Rankings waehlt still den
+%     Gewinner-Seed. Nach Paragraph 4.4 traegt dieses Paket keine
+%     Rangaussage.
+%     -> Konsequenz fuer den Text: die Divergenz ist KEIN Widerspruch
+%        zwischen Kontrast und Ranking, sondern ein Artefakt eines
+%        einzelnen fragilen Pakets. Der Kontrast bleibt die belastbarere
+%        Aussage. Das explizit sagen, sonst wirkt der Abschnitt
+%        inkonsistent.
+%     -> Gegenbeispiel zur Fairness nennen: lgbm/G/decay_ocp_cqr hat mit
+%        7/10 dieselbe schwache Gate-Rate, ist aber deterministisch --
+%        dort gibt es keine Seed-Frage, der Befund ist trotz gleicher
+%        Gate-Rate belastbarer. Zeigt, dass du die Faelle unterscheidest.
+Out of all 280 contrasts 46 are FDR significant ($median\_q$ < 0.10) with the smallest q being 0.003. Only the lstm/GF aggregated contrast reaches $q<0.10$ with the closest one being lstm/G
+with 0.128. After that there is a big gap. All 280 contrasts pooled have a Median q of 0.389.
+Taking a closer look at lstm/G in Table ~\ref{tab:res_rq2_lstmG} reveals that we see the same effect over all seeds and all countries except one: In Italy in seed 44 the adaptive quantiles produce a small positive impact (−0.038). For Ireland we see a statisticaly significant win for the constant quantiles with $q<0.001$ and $share\_a\_better=0.83$.
+%  5. SIGNIFIKANZ -- fehlt in der alten Fassung komplett. ACHTUNG: es gibt
+%     hier DREI Aggregationsebenen, die man nicht verwechseln darf.
+%     (a) Einzelkontraste (Modell x Regime x Seed x CP-Methode, n=280):
+%         46 haben ein median-q < 0.10, das kleinste ist 0.003.
+%     (b) Gruppen (die acht Zeilen in tab:rq2_results, Panel A):
+%         GENAU EINE Gruppe erreicht einen Gruppen-Median unter der
+%         FDR-Schwelle -- lstm/GF mit 0.095. Die naechste ist lstm/G
+%         mit 0.128, danach klafft eine Luecke bis 0.339 (xlstm/GF).
+%     (c) Alle 280 Kontraste gepoolt: Median 0.389.
+%     -> DIE FORMULIERUNG, die stimmt: "Only one of the eight
+%        model--regime groups reaches a group median below the FDR
+%        threshold (lstm/GF, 0.095); at the level of individual
+%        contrasts, 46 of 280 fall below 0.10, the smallest being 0.003."
+%     -> NICHT schreiben "kein Kontrast ist signifikant" -- das ist auf
+%        jeder Ebene ausser (c) falsch.
+%     -> Und der Grund fuer die Diskrepanz zum Panel-t einmal nennen:
+%        der Panel-t fragt, ob der Effekt im Mittel ueber die Laender da
+%        ist, der q-Wert, ob er innerhalb einzelner Laender nach
+%        Korrektur nachweisbar ist.
+\begin{table}[htbp]
+  \centering\small
+  \caption{Results for RQ2 (adaptive versus constant interval width).
+  \textbf{Panel A} reports normalised Diebold--Mariano loss differentials
+  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $A$ the adaptive model
+  and $B$ its constant-width twin, which shares the same median forecast
+  and the same covariates and differs only in whether the interval width
+  varies over time; a \emph{positive} value means the adaptive variant has
+  the higher loss, i.e.\ performs worse. Median $q$ is the median
+  BH-FDR-adjusted $p$-value of the per-country DM--HLN tests ($df=126$);
+  seed-stable is the share of contrasts whose sign agrees across seeds
+  42/43/44, the pre-registered condition for making a rank statement.
+  \textbf{Panel B} contrasts the two summaries that can diverge: the
+  median skill over all combinations of a family, and the single best
+  admissible package. \textbf{Panel C} gives the provenance of those best
+  packages. $\dagger$ marks a package whose seed range exceeds its own
+  skill.}
+  \label{tab:rq2_results}
+  \begin{tabular}{llrrrrr}
+    \toprule
+    \multicolumn{7}{l}{\emph{Panel A --- Within-model twin contrasts}} \\
+    \midrule
+    Model & Regime & $n$ & $d_{\text{norm}}$ & Share $A\!>\!B$ & Panel $t$ & Median $q$ \\
+    \midrule
+    \texttt{lgbm}  & L  & 14 & $-0.018$ & 0.65 & $-1.60$ & 0.536 \\
+    \texttt{lgbm}  & G  & 14 & $-0.009$ & 0.60 & $-0.61$ & 0.571 \\
+    \texttt{xlstm} & L  & 42 & $+0.005$ & 0.50 & $-0.34$ & 0.498 \\
+    \texttt{xlstm} & GF & 42 & $+0.006$ & 0.50 & $+0.45$ & 0.339 \\
+    \texttt{lstm}  & L  & 42 & $+0.009$ & 0.40 & $-0.21$ & 0.479 \\
+    \texttt{xlstm} & G  & 42 & $+0.014$ & 0.50 & $+0.23$ & 0.341 \\
+    \texttt{lstm}  & G  & 42 & $+0.062$ & 0.10 & $+3.23$ & 0.128 \\
+    \texttt{lstm}  & GF & 42 & $+0.062$ & 0.10 & $+3.07$ & 0.095 \\
+    \midrule
+    All contrasts &   & 280 & $+0.020$ & 0.40 & $+0.91$ & 0.389 \\
+    \midrule
+    \multicolumn{7}{l}{\emph{Panel A2 --- Seed stability of the contrasts (neural models only)}} \\
+    \midrule
+    \multicolumn{2}{l}{Model / regime}
+      & \texttt{lstm}/G & \texttt{lstm}/GF & \texttt{lstm}/L & \texttt{xlstm}/G & \texttt{xlstm}/GF \\
+    \multicolumn{2}{l}{Seed-stable share} & 0.86 & 0.79 & 0.29 & 0.14 & 0.21 \\
+    \midrule
+    \multicolumn{7}{l}{\emph{Panel B --- Median versus maximum}} \\
+    \midrule
+    \multicolumn{2}{l}{Model} & Median adapt. & Median const. & Best adapt. & Best const. & Verdict \\
+    \midrule
+    \multicolumn{2}{l}{\texttt{lstm}}  & $-0.005$ & $+0.037$ & 0.062 & 0.111 & const \\
+    \multicolumn{2}{l}{\texttt{lgbm}}  & $+0.063$ & $+0.032$ & 0.139 & 0.099 & adaptive \\
+    \multicolumn{2}{l}{\texttt{xlstm}} & $-0.047$ & $-0.020$ & 0.094 & 0.072 & \emph{diverges} \\
+    \midrule
+    \multicolumn{7}{l}{\emph{Panel C --- Provenance of the best admissible packages}} \\
+    \midrule
+    \multicolumn{2}{l}{Package} & Variant & Skill & Coverage & Adm.\ countries & Adm.\ seeds \\
+    \midrule
+    \multicolumn{2}{l}{\texttt{lgbm}/G/\texttt{decay\_ocp\_cqr}}      & adaptive & 0.139 & 0.824 & 7/10  & 1/1 \\
+    \multicolumn{2}{l}{\texttt{lstm\_const}/G/\texttt{agaci\_cqr}}    & const    & 0.111 & 0.798 & 10/10 & 3/3 \\
+    \multicolumn{2}{l}{\texttt{lgbm\_const}/G/\texttt{cqr\_rolling}}  & const    & 0.099 & 0.829 & 10/10 & 1/1 \\
+    \multicolumn{2}{l}{\texttt{xlstm}/L/\texttt{native}$^\dagger$}    & adaptive & 0.094 & 0.817 & 7/10  & 1/3 \\
+    \multicolumn{2}{l}{\texttt{xlstm\_const}/L/\texttt{spci\_cqr}$^\dagger$} & const & 0.072 & 0.756 & 10/10 & 3/3 \\
+    \multicolumn{2}{l}{\texttt{lstm}/L/\texttt{pid\_cqr}}             & adaptive & 0.062 & 0.810 & 10/10 & 3/3 \\
+    \bottomrule
+  \end{tabular}
+    \vspace{0.5em}
+  \footnotesize\raggedright
+  \textbf{Notes.} LightGBM is deterministic (single seed), so seed
+  stability does not apply and it has no \texttt{GF} regime; the
+  constant-width twins exist only for the trainable models
+  \texttt{lgbm}, \texttt{lstm} and \texttt{xlstm}. Only 46 of the 280
+  contrasts are FDR-significant, the smallest median $q$ being 0.003; no
+  aggregate contrast reaches $q<0.10$. In Panel B, \texttt{xlstm} is the
+  only family whose two summaries disagree, and Panel C shows why: the
+  package driving the ranking result, \texttt{xlstm}/L/\texttt{native},
+  is admissible for one of its three seeds only (0.094 for seed 44,
+  against 0.043 and $-0.008$ for seeds 42 and 43, both of which fail the
+  gate) and its seed range of 0.102 exceeds its own skill. Under the
+  pre-registered seed rule no rank statement may be made for it.
+\end{table}
+%  6. EIN SATZ EINSCHRAENKUNG (unveraendert gueltig): die staerkste
+%     Einzelinstanz im Story-Report (lstm/G/saocp_cqr, A um 21.7%
+%     schlechter, Panel-t 8.41, Median-q 0.018) beruht auf einer Methode,
+%     die das Gate praktisch nie passiert (saocp: 1.9% Gate-Rate).
 %     Solche Extremwerte nicht als Beleg verwenden -- den Median ueber
 %     die Kontraste zitieren, nicht das Maximum.
+Using the Models own quantile output is has a small consistent positive impact on LightGBM and a, for the GF regime even significantly, negative for LSTM. For xLSTM the impact cant be distuinglished from statistic noise. The adaptive method that actually has a positive impact are the online methods in the Conformal Prediction Layer. We see this in methods like $dtaci\_cpr$ (-0.054) and $pid\_cqr$ (-0.054) having almost 10 times the impact in comparison to adaptive vs. constant.
+%  7. DIE KONSEQUENZ -- scharf, aber praeziser als in der alten Fassung:
+%     Die alte Formulierung lautete "die zeitvariable Breite, die die
+%     neuronalen Modelle lernen, ist im Mittel Rauschen". Das ist fuer
+%     xLSTM woertlich richtig (nicht entscheidbar = Rauschen), fuer LSTM
+%     aber ZU SCHWACH (dort schadet sie aktiv und messbar) und fuer
+%     LightGBM schlicht falsch (dort hilft sie leicht).
+%     -> Richtige Fassung: "Die modelleigene Breitenadaptivitaet der
+%        neuronalen Architekturen traegt nichts bei -- beim LSTM schadet
+%        sie konsistent, beim xLSTM ist sie nicht von Rauschen zu
+%        unterscheiden. Nur das Gradient-Boosting-Modell zieht einen
+%        kleinen Nutzen daraus."
+%     -> Und der Anschluss an RQ3, der die Aussage vervollstaendigt: die
+%        NUETZLICHE Adaptivitaet kommt aus der CP-Schicht, nicht aus dem
+%        Modell. Beleg: die Online-Tracker schlagen native um -0.054
+%        (dtaci) bzw. -0.054 (pid), also um das Zehnfache dessen, was
+%        die modelleigene Adaptivitaet bewegt. Verweis auf 8.4 setzen.
+%
+%  8. TABELLE tab:rq2_results (Zahlen eingetragen). Vier Panels:
+%     A  Kontraste je Modell/Regime mit n, d_norm, share, Panel-t, q
+%     A2 Seed-Stabilitaet der NN-Kontraste
+%     B  Median ueber alle Kombinationen vs. bestes Paket, mit Verdict
+%     C  Provenienz der sechs besten Pakete (Coverage, Gate, zulaessige
+%        Seeds) -- macht die xLSTM-Falle aus Punkt 4 sichtbar
+%     -> Beim Schreiben Panel C explizit referenzieren, wenn du die
+%        Fragilitaet von xlstm/L/native erwaehnst. Ohne diesen Verweis
+%        muss der Leser dir glauben.
+%
+% ZAHLEN (verifiziert, dm_contrasts.csv rq=="RQ2" (280 Kontraste) und
+%   ranking_all.csv; A = adaptiv, B = const-width; d_norm > 0 heisst
+%   adaptiv SCHLECHTER):
+%   Aggregat : d_norm +0.0204 | share_a 0.40 | Panel-t +0.91
+%              median q 0.389 | share_sig_fdr 0.267
+%   Je Modell/Regime (d_norm | share_a | Panel-t | median q | seed-stabil):
+%     lgbm/L    -0.0182 | 0.65 | -1.60 | 0.536 | n/a (deterministisch)
+%     lgbm/G    -0.0090 | 0.60 | -0.61 | 0.571 | n/a
+%     xlstm/L   +0.0046 | 0.50 | -0.34 | 0.498 | 0.21
+%     xlstm/GF  +0.0061 | 0.50 | +0.45 | 0.339 | 0.21
+%     lstm/L    +0.0086 | 0.40 | -0.21 | 0.479 | 0.29
+%     xlstm/G   +0.0142 | 0.50 | +0.23 | 0.341 | 0.14
+%     lstm/G    +0.0616 | 0.10 | +3.23 | 0.128 | 0.86
+%     lstm/GF   +0.0620 | 0.10 | +3.07 | 0.095 | 0.79
+%   Median-Skill ueber ALLE Kombinationen (adaptiv vs const):
+%     lstm  -0.005 vs +0.037 | xlstm -0.047 vs -0.020 | lgbm +0.063 vs +0.032
+%   Bestes valides Paket je Familie (Skill | Coverage | Gate | zul. Seeds):
+%     lgbm/G/decay_ocp_cqr        0.139 | 0.824 |  7/10 | 1/1
+%     lstm_const/G/agaci_cqr      0.111 | 0.798 | 10/10 | 3/3
+%     lgbm_const/G/cqr_rolling    0.099 | 0.829 | 10/10 | 1/1
+%     xlstm/L/native              0.094 | 0.817 |  7/10 | 1/3  <- fragil
+%     xlstm_const/L/spci_cqr      0.072 | 0.756 | 10/10 | 3/3
+%     lstm/L/pid_cqr              0.062 | 0.810 | 10/10 | 3/3
+%   Seed-Fragilitaet der Familien (Anteil Kombis mit seed_span > |skill|):
+%     lstm_const 0.238 | xlstm 0.506 | xlstm_const 0.587 | lstm 0.685
+%     -> NUR beim LSTM ist der const-Zwilling deutlich stabiler als das
+%        adaptive Gegenstueck (0.238 gegen 0.685). Beim xLSTM sind beide
+%        etwa gleich fragil (0.587 gegen 0.506), der Zwilling sogar
+%        minimal fragiler. Also NICHT pauschal "const-Zwillinge sind
+%        reproduzierbarer" schreiben -- das gilt nur fuer LSTM.
+%
+% ZITATE: romano2019cqr, meinshausen2006qrf (Quantilschaetzung als Quelle
+%   der adaptiven Breite), chernozhukov2010 (Rearrangement),
+%   benjamini1995fdr, harvey1997.
+Our Hypothesis why the adaptive part saw no general improvement over the constant intervals is that the interval is a combination of two separate estimations and by that the variance of the intervall is the added variance of the lower and upper estimate. By that we see way more statistic noise. 
+% >>> THESIS-ONLY >>>
+% - Absatz zur Frage, WARUM die gelernte Breite nichts beitraegt: die
+%   Modelle schaetzen drei Quantile per Pinball-Loss; die Breite ist die
+%   Differenz zweier separat geschaetzter Quantile und damit doppelt
+%   verrauscht, waehrend der Median von beiden Fehlern nur einmal
+%   betroffen ist. Als Hypothese kennzeichnen, das Design testet sie nicht.
+% - Per-Land-Aufschluesselung des lstm/G-Kontrasts (der einzige mit
+%   q < 0.15 und hoher Seed-Stabilitaet).
+% <<< THESIS-ONLY <<<
+%
+% [arXiv-Kuerzung]: 1 Absatz + tab:rq2_results auf Panel A und C
+%   reduziert. Die Dreiteilung aus Punkt 3 MUSS drin bleiben, ebenso der
+%   Satz zur Fragilitaet von xlstm/L/native. Panel A2 und B fliegen raus,
+%   die Seed-Stabilitaet wandert in einen Halbsatz.
 %
 % ZAHLEN (verifiziert, dm_contrasts.csv, rq=="RQ2", 280 Kontraste;
 %   A = adaptiv, B = const-width; d_norm > 0 heisst adaptiv SCHLECHTER):
@@ -812,6 +1226,54 @@ Contrast & $n$ & Effect & Share A better & Panel $t$ & FDR-sig. \\
 %   der adaptiven Breite), chernozhukov2010 (Rearrangement).
 %
 % [arXiv-Kuerzung]: 1 Absatz, Fokus auf lstm_const als bestes NN-Paket.
+\begin{table}[t]
+\centering
+\caption{Country-level breakdown of the \texttt{lstm}/G contrast between the
+         adaptive-width model and its constant-width twin. Positive entries
+         favour the constant-width twin.}
+\label{tab:res_rq2_lstmG}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+ & & \multicolumn{3}{c}{By seed} & & & & \\
+\cmidrule(lr){3-5}
+Country & $\tilde d_{\mathrm{norm}}$ & 42 & 43 & 44 & Share $A$ & $t_{\mathrm{HLN}}$ & $q$ & Share $q<0.10$ \\
+\midrule
+\texttt{IE} & $+0.202$ & $+0.192$ & $+0.322$ & $+0.116$ & 0.05 & $+5.04$ & $<0.001$ & 0.83 \\
+\texttt{GR} & $+0.125$ & $+0.154$ & $+0.143$ & $+0.036$ & 0.14 & $+3.10$ & 0.008 & 0.71 \\
+\texttt{BE} & $+0.091$ & $+0.063$ & $+0.093$ & $+0.101$ & 0.02 & $+1.93$ & 0.135 & 0.38 \\
+\texttt{AT} & $+0.076$ & $+0.087$ & $+0.044$ & $+0.076$ & 0.02 & $+1.76$ & 0.183 & 0.38 \\
+\texttt{PT} & $+0.074$ & $+0.112$ & $+0.065$ & $+0.070$ & 0.12 & $+2.13$ & 0.041 & 0.55 \\
+\texttt{ES} & $+0.060$ & $+0.085$ & $+0.064$ & $+0.040$ & 0.21 & $+1.57$ & 0.136 & 0.43 \\
+\texttt{NL} & $+0.045$ & $+0.045$ & $+0.022$ & $+0.060$ & 0.17 & $+1.50$ & 0.245 & 0.29 \\
+\texttt{FR} & $+0.024$ & $+0.022$ & $+0.013$ & $+0.044$ & 0.14 & $+0.67$ & 0.627 & 0.10 \\
+\texttt{FI} & $+0.018$ & $+0.012$ & $-0.015$ & $+0.051$ & 0.36 & $+0.74$ & 0.555 & 0.29 \\
+\texttt{IT} & $+0.006$ & $+0.014$ & $+0.016$ & $-0.038$ & 0.48 & $+0.13$ & 0.574 & 0.07 \\
+\midrule
+All cells & $+0.056$ & $+0.061$ & $+0.047$ & $+0.060$ & 0.17 & $+1.55$ & 0.175 & 0.40 \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} $A$ is \texttt{lstm}/G, $B$ is \texttt{lstm\_const}/G. Each of the
+42 contrasts pairs one recalibration method with one seed, and within a country it
+is a Diebold--Mariano test with the Harvey--Leybourne--Newbold correction on 127
+monthly Winkler-loss differences. We report
+$d_{\mathrm{norm}}=(\bar L_A-\bar L_B)/\bar W_{\mathrm{ref}}$, where
+$\bar W_{\mathrm{ref}}$ is the mean Winkler loss of \texttt{rw}/L/\texttt{native}
+in the same country, so a positive entry means the adaptive model loses. The seed
+columns are medians over the fourteen recalibration methods; $\tilde d_{\mathrm{norm}}$,
+$t_{\mathrm{HLN}}$ and $q$ are medians over all 42 contrasts. Share $A$ is the
+fraction of the 42 contrasts in which the adaptive model attains the lower loss.
+The $q$-values are Benjamini--Hochberg adjusted within the joint family of all
+12{,}490 country-level cells of the run. The last row pools the
+$10\times 42=420$ cells, which is why it differs from the $+0.062$ reported for
+this group in \cref{tab:rq2_results}: that number is the median of the 42
+per-contrast medians taken across countries.
+\end{minipage}}
+\end{table}
 
 
 %------------------------------------------------------------------------
