@@ -1280,6 +1280,9 @@ per-contrast medians taken across countries.
 \subsection{Do covariates matter? The TiRex-2 contrast}
 \label{sec:res:covariates}
 %------------------------------------------------------------------------
+We wanted to find out wether including our 17 co variates lead to an advantage over only imputing the spreads own time series as context. For that we isolated the effect by comparing TiRex2 univariate and TiRex2 multivariate, the same model, on the same 127 Test months. Our findings indicate that the effect is almost zero as can be seen in Table ~\ref{tab:res_cov}. The Median difference in Median skill between all CP methods is +0.0036 with a Median $d\_norm$ of -0.0023, a Panel t of -0.75 and a Median statistically better share of 10$\%$ where cov won over uni. We see the highest Panel t (2.13) for the native Model output with 70$\%$ where cov performed better. Besides that all the CP Methods agree with the Median trend: There is no statistical difference. We conclude that our covariates provided no additional relevant information that was not already contained in the spreads own time series the Model could work with. Again our findings agree with the consensus that spread forecasting is almost inforamtion free and where Models excel is the uncertainty quantification. \\
+
+The per country data of the raw model output strengthens this outcome. In the Median over all countries yield for the difference in Winkler skill 0.0016, for the difference in width -0.0041, for the difference in MAE 0.0002 with W ratio and Width ratio being a little under one. So we see a very small advantage for the cov model here.
 % WAS HIER STEHT:
 %  Das ist das sauberste Einzelexperiment der ganzen Arbeit, weil es
 %  ceteris paribus ist: identisches Modell, identisches Testfenster,
@@ -1343,15 +1346,138 @@ per-contrast medians taken across countries.
 % - Absatz: warum ein Niveau-Erklaerungsergebnis (Afonso et al.) und ein
 %   Delta-Prognoseergebnis (deins) sich nicht widersprechen.
 % <<< THESIS-ONLY <<<
-%
+We chose the covariances we used based on literature that provided evidence that these covariates, known at t can explain the spread level at t. Our outcome is in no way a contradiction to these already know finding since our setup was drastically different. We worked with data that was for sure know at time t to predict t+1 not necessarily with the data from exactly t. Also, since we used a conservative lag dictionary to assure no data leakage, our Models might have worked with outdated data. The fact that all the other Models also count beat the Random Walk undermines this result.
 % [arXiv-Kuerzung]: 4-5 Saetze. Diese Passage ist fuer das Paper wichtig,
 %   sie ist der originellste Einzelbefund -- nicht zu stark kuerzen.
+\begin{table}[t]
+\centering
+\caption{Covariates against no covariates in TiRex-2. Panel A holds the
+         recalibration method fixed and compares the two variants after
+         calibration; Panel B is the raw contrast inside the TiRex-2 run itself,
+         before the conformal layer.}
+\label{tab:res_cov}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+\multicolumn{8}{l}{\textit{Panel A: by recalibration method, after calibration}}\\
+\cmidrule(lr){1-8}
+ & \multicolumn{3}{c}{Median skill (uni ahead if $\Delta>0$)} & \multicolumn{4}{c}{Paired DM (uni ahead if $\tilde d<0$)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-8}
+Method & uni & cov & $\Delta$ & $\tilde d_{\mathrm{norm}}$ & Share uni & Share $p<0.10$ & Panel $t$ \\
+\midrule
+\texttt{cqr\_static}    & 0.1461 & 0.1402 & $+0.0059$ & $-0.0024$ & 0.6 & 0.3 & $+0.63$ \\
+\texttt{decay\_ocp\_cqr}& 0.1442 & 0.1385 & $+0.0058$ & $-0.0003$ & 0.5 & 0.0 & $-0.05$ \\
+\texttt{native}         & 0.1420 & 0.1409 & $+0.0011$ & $+0.0047$ & 0.3 & 0.3 & $+2.13$ \\
+\texttt{cqr\_rolling}   & 0.1316 & 0.1218 & $+0.0098$ & $-0.0026$ & 0.8 & 0.3 & $-1.17$ \\
+\texttt{agaci\_cqr}     & 0.1261 & 0.1193 & $+0.0068$ & $-0.0022$ & 0.7 & 0.2 & $-0.81$ \\
+\texttt{aci\_cqr}       & 0.1208 & 0.1132 & $+0.0077$ & $-0.0033$ & 0.8 & 0.1 & $-1.08$ \\
+\texttt{dtaci\_cqr}     & 0.1195 & 0.1166 & $+0.0029$ & $-0.0003$ & 0.6 & 0.1 & $-0.69$ \\
+\texttt{pid\_cqr}       & 0.1160 & 0.1035 & $+0.0125$ & $-0.0060$ & 0.6 & 0.1 & $-0.21$ \\
+\texttt{spci\_cqr}      & 0.0796 & 0.0865 & $-0.0069$ & $-0.0001$ & 0.5 & 0.1 & $-0.86$ \\
+\texttt{pid\_local\_cqr}& 0.0460 & 0.0516 & $-0.0056$ & $-0.0029$ & 0.6 & 0.0 & $-0.69$ \\
+\texttt{mondrian\_cqr}  & 0.0354 & 0.0363 & $-0.0009$ & $-0.0019$ & 0.7 & 0.1 & $-0.88$ \\
+\texttt{sfogd\_cqr}     & 0.0172 & 0.0128 & $+0.0044$ & $-0.0055$ & 0.8 & 0.0 & $-1.04$ \\
+\texttt{saocp\_cqr}     & 0.0120 & 0.0155 & $-0.0035$ & $+0.0035$ & 0.4 & 0.1 & $+0.39$ \\
+\texttt{pid\_tan\_cqr}  & $-0.0442$ & $-0.0469$ & $+0.0027$ & $-0.0113$ & 0.8 & 0.1 & $-1.27$ \\
+\addlinespace
+Median & 0.1178 & 0.1084 & $+0.0036$ & $-0.0023$ & 0.6 & 0.1 & $-0.75$ \\
+\midrule
+\multicolumn{8}{l}{\textit{Panel B: by country, raw model output before calibration}}\\
+\cmidrule(lr){1-8}
+Country & Winkler uni & $\Delta$ skill & $\Delta$ width & $\Delta$ MAE & $\Delta$ cov. & $W$ ratio & Width ratio \\
+\midrule
+\texttt{AT} & 0.1563 & $+0.0016$ & $-0.0041$ & $+0.0002$ & $-0.0079$ & 1.002 & 0.962 \\
+\texttt{BE} & 0.1769 & $+0.0006$ & $-0.0057$ & $-0.0000$ & $-0.0157$ & 1.001 & 0.960 \\
+\texttt{ES} & 0.3129 & $+0.0069$ & $-0.0096$ & $+0.0013$ & $-0.0394$ & 1.009 & 0.960 \\
+\texttt{FI} & 0.1766 & $-0.0068$ & $-0.0053$ & $-0.0004$ & $-0.0079$ & 0.993 & 0.954 \\
+\texttt{FR} & 0.1934 & $-0.0028$ & $-0.0029$ & $-0.0000$ & $-0.0079$ & 0.997 & 0.978 \\
+\texttt{GR} & 1.2413 & $-0.0183$ & $-0.0555$ & $-0.0007$ & $-0.0157$ & 0.974 & 0.947 \\
+\texttt{IE} & 0.2354 & $-0.0147$ & $-0.0133$ & $+0.0008$ & $-0.0315$ & 0.974 & 0.931 \\
+\texttt{IT} & 0.6598 & $-0.0067$ & $-0.0243$ & $+0.0005$ & $-0.0157$ & 0.993 & 0.942 \\
+\texttt{NL} & 0.1415 & $-0.0008$ & $-0.0040$ & $-0.0001$ & $\phantom{+}0.0000$ & 0.999 & 0.954 \\
+\texttt{PT} & 0.5350 & $-0.0182$ & $-0.0258$ & $+0.0028$ & $-0.0236$ & 0.975 & 0.939 \\
+\addlinespace
+Median & 0.2144 & $-0.0047$ & $-0.0076$ & $+0.0001$ & $-0.0157$ & 0.995 & 0.954 \\
+\end{tabular}
 
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} uni is \texttt{tirex2}, cov is \texttt{tirex2\_cov}. Both are the
+same pre-trained model in the ZS regime under seed 42 on the same 127 test months,
+so the 17 covariates are the only difference and the comparison carries no seed
+variance. The Median rows are column-wise medians, which is why the $\Delta$ entry
+there is not the difference of the two skill medians above it.
+
+\textit{Panel A} reports the same comparison twice. $\Delta$ is the difference of
+the two median skills, where skill is the median across countries of
+$1-\bar W/\bar W_{\mathrm{ref}}$ against \texttt{rw}/L/\texttt{native}. The right
+block pairs the variants country by country instead: a Diebold--Mariano test with
+the Harvey--Leybourne--Newbold correction on 127 monthly Winkler-loss differences,
+with the recalibration method held fixed, giving $\tilde d_{\mathrm{norm}}$ as the
+median across countries of
+$(\bar L_{\mathrm{uni}}-\bar L_{\mathrm{cov}})/\bar W_{\mathrm{ref}}$, Share uni as
+the fraction of the ten countries in which the univariate variant wins, and Panel
+$t$ from averaging across countries first and then applying a Newey--West standard
+error with three lags. The two blocks carry opposite sign conventions and can
+disagree, because a difference of medians is not the median of differences: under
+\texttt{native} the univariate variant holds the higher median skill and still
+loses the paired comparison in seven of ten countries. Both effects are small
+against the scale of the study, where the best admissible package leads the best
+random-walk package by 0.0609 in median skill. Across the 140 country tests, 18
+reach $p<0.10$ before correction, close to the 14 expected under the null, and they
+split 10 to 8 by direction. Benjamini--Hochberg within this family of 140 leaves
+none of them: the smallest $q$ is 0.42 and the median is 0.98 under every method.
+Folding the 140 into the family of 12{,}490 country cells of the main run would
+instead leave 8, smallest $q$ 0.013, split 5 in favour of the covariates against 3
+against them; we keep the families separate because these tests address a different
+question from the pre-registered contrasts. The paired columns are computed post hoc
+with the same code as those contrasts and are not part of the shipped run
+artefacts.
+
+\textit{Panel B} is the raw test-phase output, evaluated before the conformal layer
+touches it, so a negative entry means the covariates help. They narrow the interval
+in all ten countries, by 2.2 to 6.9 per cent, and lower the Winkler score in seven
+of them. Coverage falls in nine countries, from a median of 0.843 to 0.831, which
+moves it towards the nominal 0.80 rather than away from it.
+\end{minipage}}
+\end{table}
 
 %------------------------------------------------------------------------
 \subsection{Cross-model comparison and the Model Confidence Set}
 \label{sec:res:xm}
 %------------------------------------------------------------------------
+We did pairwise cross-model comparison on the twelve best admissible packages, one
+for each model family. Each of them was picked as the best of its family on the same
+test data we then compare them on, so the comparison is optimistic, and how
+optimistic differs a lot by family: \texttt{lstm} was picked out of 105 admissible
+packages and \texttt{xlstm} out of 103, while \texttt{rw} had 9 and \texttt{tirex2}
+12. In \cref{tab:res_xm} we see that no contrast reaches significance on the median
+$q$, with the lowest value (0.185) in the contrast between \texttt{tirex2} and
+\texttt{xlstm\_const}. That number hides what happens one level down. 92 of the 660
+single country tests do fall below 0.10, but no pair gets more than 4 of its 10
+countries there, and a median needs more than half. \texttt{tirex2\_cov} has the most
+panel $t$ values over 1.96 with 9/11, \texttt{tirex2} follows with 8/11. The two
+statistics ask different questions: the median $q$ treats the ten countries as ten
+separate tests, while the panel $t$ averages over them first and then tests, which
+handles their correlation and has more power. That is why 29 of the 66 pairs come out
+over 1.96.
+
+Using the MCS we wanted to find out whether we can isolate a winning group of models.
+This did not work, as we can see in \cref{tab:res_mcs}. Here again we use the MCS on
+the 26 best admissible packages, one for each model family and regime, plus the
+random walk reference, which we force into the set so the test can say something
+about it. 15 out of the 26 packages are in the winning set for all 10 countries with
+the best baseline model \texttt{rw/L/aci\_cqr} also being in 10/10. The packages that
+are in the least are \texttt{xlstm/GI/native} (5/10) and \texttt{rw/L/native} (5/10).
+Looking at the countries and their MCS exclusion rates we discover that Finland and
+France exclude none of the 26 packages while Ireland excludes 8. With 127 months and
+ten correlated countries the Hansen test has too little power to separate these
+packages, and the curation makes that worse instead of better: every candidate is
+already the best of 9 to 30 options, so they end up sitting close together. We
+conclude that we cannot find a clear statistical winner over our set of 127 months.
+Even though not statistically significant we see a clear order in performance
+(zero-shot $\geq$ LightGBM $>$ classical $>$ xLSTM).
 % WAS HIER STEHT:
 %  Dieses Unterkapitel ist der Ehrlichkeits-Anker der ganzen Arbeit.
 %  Es sagt: die Rangfolge aus 8.3 ist deskriptiv, aber statistisch NICHT
@@ -1408,144 +1534,455 @@ per-contrast medians taken across countries.
 %
 % [arXiv-Kuerzung]: 1 Absatz. Der Satz "kein XM-Kontrast ist FDR-signifikant"
 %   und der Satz "die MCS ist nicht trennscharf" MUESSEN beide drin bleiben.
+\begin{table}[t]
+\centering
+\caption{Pairwise cross-model comparison of the twelve best admissible packages,
+         one per model family. Above the diagonal: the normalised loss differential
+         of the row package against the column package, negative when the row wins.
+         Below the diagonal: the median FDR-adjusted $q$-value of the same pair.}
+\label{tab:res_xm}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{llcccccccccccc}
+\toprule
+Package & Skill & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+\midrule
+1 \texttt{tirex2} & 0.1461 & --- & $-0.000$ & $-0.018$ & $-0.015$ & $-0.027$ & $-0.054$ & $-0.057$ & $-0.040$ & $-0.116$ & $-0.074$ & $-0.067$ & $-0.074$ \\
+2 \texttt{tirex2\_cov} & 0.1409 & 0.693 & --- & $-0.027$ & $-0.015$ & $-0.031$ & $-0.056$ & $-0.060$ & $-0.043$ & $-0.111$ & $-0.073$ & $-0.062$ & $-0.074$ \\
+3 \texttt{lgbm} & 0.1394 & 0.807$^{\dagger}$ & 0.687$^{\dagger}$ & --- & $+0.013$ & $-0.005$ & $-0.028$ & $-0.037$ & $-0.014$ & $-0.090$ & $-0.040$ & $-0.025$ & $-0.031$ \\
+4 \texttt{tirex} & 0.1327 & 0.639 & 0.636 & 0.655 & --- & $-0.030$ & $-0.062$ & $-0.058$ & $-0.022$ & $-0.101$ & $-0.066$ & $-0.047$ & $-0.062$ \\
+5 \texttt{lstm\_const} & 0.1107 & 0.646 & 0.705$^{\dagger}$ & 0.712 & 0.635 & --- & $-0.021$ & $-0.038$ & $-0.005$ & $-0.080$ & $-0.041$ & $-0.018$ & $-0.026$ \\
+6 \texttt{lgbm\_const} & 0.0989 & 0.495$^{\dagger}$ & 0.458$^{\dagger}$ & 0.635 & 0.527$^{\dagger}$ & 0.744 & --- & $-0.002$ & $+0.019$ & $-0.058$ & $-0.024$ & $+0.001$ & $-0.002$ \\
+7 \texttt{xlstm} & 0.0939 & 0.444$^{\dagger}$ & 0.435$^{\dagger}$ & 0.635 & 0.494$^{\dagger}$ & 0.632 & 0.829 & --- & $+0.016$ & $-0.045$ & $+0.005$ & $-0.005$ & $-0.009$ \\
+8 \texttt{rw} & 0.0852 & 0.568$^{\dagger}$ & 0.560$^{\dagger}$ & 0.680 & 0.789 & 0.684 & 0.530 & 0.656 & --- & $-0.066$ & $-0.033$ & $-0.018$ & $-0.026$ \\
+9 \texttt{xlstm\_const} & 0.0717 & 0.185$^{\dagger}$ & 0.196$^{\dagger}$ & 0.270$^{\dagger}$ & 0.263$^{\dagger}$ & 0.352$^{\dagger}$ & 0.380 & 0.387 & 0.373$^{\dagger}$ & --- & $+0.031$ & $+0.052$ & $+0.039$ \\
+10 \texttt{lstm} & 0.0621 & 0.253$^{\dagger}$ & 0.249$^{\dagger}$ & 0.505 & 0.483$^{\dagger}$ & 0.504$^{\dagger}$ & 0.603 & 0.776 & 0.629 & 0.652 & --- & $+0.009$ & $-0.004$ \\
+11 \texttt{arma\_monthly} & 0.0612 & 0.298$^{\dagger}$ & 0.308$^{\dagger}$ & 0.402 & 0.529$^{\dagger}$ & 0.643 & 0.420 & 0.722 & 0.749$^{\dagger}$ & 0.392 & 0.687 & --- & $-0.003$ \\
+12 \texttt{arma} & 0.0584 & 0.255$^{\dagger}$ & 0.217$^{\dagger}$ & 0.370 & 0.520$^{\dagger}$ & 0.649 & 0.489 & 0.664 & 0.708$^{\dagger}$ & 0.412 & 0.631 & 0.615 & --- \\
+\bottomrule
+\end{tabular}
 
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Each package is the best admissible one of its family, and the full
+specification of regime, seed and recalibration method is in
+\cref{tab:res_ranking}. Skill repeats the median Winkler skill from that table, and
+the rows are ordered by it. Each of the 66 pairs is a Diebold--Mariano test with the
+Harvey--Leybourne--Newbold correction, run per country on 127 monthly Winkler-loss
+differences; the entry above the diagonal is the median across the ten countries of
+$(\bar L_{\mathrm{row}}-\bar L_{\mathrm{col}})/\bar W_{\mathrm{ref}}$ and the entry
+below is the median of the country $q$-values, adjusted by Benjamini--Hochberg
+within the family of all country-level cells of the run. The entry $-0.000$ in row 1
+is $-0.00006$. No pair reaches a median $q$ below 0.10; the smallest is 0.185 and
+the median across all 66 pairs is 0.564. Underneath that aggregate, 92 of the 660
+individual country tests do fall below 0.10, and 52 of the 66 pairs contain at least
+one of them. A dagger marks the 29 pairs whose panel $t$-statistic exceeds 1.96 in
+absolute value, 15 of them exceeding 2.58; the panel statistic averages the
+normalised difference across countries before applying a Newey--West standard error
+with three lags, and it carries no correction for the 66 comparisons. These packages
+were selected as the best of their family on the same test data on which they are now
+compared, so the comparison is optimistic in the sense of \cref{sec:exp:selection}.
+\end{minipage}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Model Confidence Set over the curated candidate set, computed separately
+         for each country at the 10 per cent level. Panel A lists the candidates by
+         skill, Panel B the resulting set size per country.}
+\label{tab:res_mcs}
+\small
+\begin{tabular}{llcl}
+\toprule
+\multicolumn{4}{l}{\textit{Panel A: candidates, ordered by median skill}}\\
+\cmidrule(lr){1-4}
+No. & Package & Skill & In MCS \\
+\midrule
+1 & \texttt{tirex2}/ZS/\texttt{cqr\_static} & 0.1461 & 10/10 \\
+2 & \texttt{tirex2\_cov}/ZS/\texttt{native} & 0.1409 & 10/10 \\
+3 & \texttt{lgbm}/G/\texttt{decay\_ocp\_cqr} & 0.1394 & 10/10 \\
+4 & \texttt{tirex}/ZS/\texttt{native} & 0.1327 & 10/10 \\
+5 & \texttt{lstm\_const}/G/\texttt{agaci\_cqr} & 0.1107 & 10/10 \\
+6 & \texttt{lstm\_const}/GF/\texttt{agaci\_cqr} & 0.1027 & 10/10 \\
+7 & \texttt{lgbm\_const}/G/\texttt{cqr\_rolling} & 0.0989 & 10/10 \\
+8 & \texttt{xlstm}/L/\texttt{native} & 0.0939 & 10/10 \\
+9 & \texttt{lgbm}/GI/\texttt{cqr\_rolling} & 0.0906 & 9/10 \\
+10 & \texttt{lgbm}/L/\texttt{native} & 0.0904 & 10/10 \\
+11 & \texttt{lstm\_const}/L/\texttt{aci\_cqr} & 0.0898 & 10/10 \\
+12 & \texttt{rw}/L/\texttt{aci\_cqr} & 0.0852 & 10/10 \\
+13 & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & 0.0717 & 10/10 \\
+14 & \texttt{lstm}/L/\texttt{pid\_cqr} & 0.0621 & 10/10 \\
+15 & \texttt{arma\_monthly}/L/\texttt{dtaci\_cqr} & 0.0612 & 9/10 \\
+16 & \texttt{arma}/L/\texttt{dtaci\_cqr} & 0.0584 & 9/10 \\
+17 & \texttt{lstm}/GF/\texttt{pid\_cqr} & 0.0572 & 9/10 \\
+18 & \texttt{lstm}/G/\texttt{pid\_cqr} & 0.0538 & 8/10 \\
+19 & \texttt{lstm}/GI/\texttt{pid\_local\_cqr} & 0.0491 & 9/10 \\
+20 & \texttt{xlstm\_const}/GF/\texttt{dtaci\_cqr} & 0.0437 & 10/10 \\
+21 & \texttt{lgbm\_const}/L/\texttt{aci\_cqr} & 0.0434 & 9/10 \\
+22 & \texttt{xlstm\_const}/G/\texttt{pid\_cqr} & 0.0235 & 10/10 \\
+23 & \texttt{xlstm}/GF/\texttt{cqr\_rolling} & 0.0098 & 8/10 \\
+24 & \texttt{rw}/L/\texttt{native} & 0.0000 & 5/10 \\
+25 & \texttt{xlstm}/G/\texttt{pid\_cqr} & $-0.0070$ & 8/10 \\
+26 & \texttt{xlstm}/GI/\texttt{native} & $-0.0423$ & 5/10 \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel B: by country}}\\
+\cmidrule(lr){1-4}
+Country & MCS size & Terminal $p$ & Excluded packages \\
+\midrule
+\texttt{FI} & 26 & 0.103 & --- \\
+\texttt{FR} & 26 & 0.195 & --- \\
+\texttt{AT} & 25 & 0.366 & 26 \\
+\texttt{IT} & 25 & 0.297 & 21 \\
+\texttt{ES} & 24 & 0.121 & 24, 26 \\
+\texttt{GR} & 24 & 0.189 & 18, 24 \\
+\texttt{NL} & 24 & 0.406 & 15, 16 \\
+\texttt{PT} & 24 & 0.121 & 24, 26 \\
+\texttt{BE} & 22 & 0.326 & 23, 24, 25, 26 \\
+\texttt{IE} & 18 & 0.118 & 9, 17, 18, 19, 23, 24, 25, 26 \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Hansen's Model Confidence Set at $\alpha=0.10$, with the $T_{\max}$
+statistic and a moving-block bootstrap of 1000 replications at block length six, run
+separately for each of the ten countries over the 26 curated candidates. Skill is the
+median Winkler skill against \texttt{rw}/L/\texttt{native}, which is why candidate 24
+sits at exactly zero: it is the reference. Seeds are 42 except for candidates 5, 6, 17,
+18, 20 and 23 (seed 43) and 8, 11 and 19 (seed 44). Within a country every surviving
+package shares the same terminal $p$-value, so Panel B reports it once per country
+rather than per package. Panel A and Panel B together reconstruct all 260
+country--candidate decisions. Of those, 238 are inclusions, a rate of 0.915. Fifteen
+candidates survive in all ten countries and nine more in at least eight; only
+candidates 24 and 26 fall out in half of them. Set size and terminal $p$ do not move
+together: Finland retains all 26 at the lowest $p$ of 0.103, while the Netherlands
+excludes two at the highest $p$ of 0.406.
+\end{minipage}}
+\end{table}
 
 %------------------------------------------------------------------------
-\subsection{Regime-conditional behaviour}
+\subsection{Regime-conditional behavior}
 \label{sec:res:regime}
 %------------------------------------------------------------------------
 % WAS HIER STEHT:
-%  1. Kalenderregime QE vs Hiking/QT: mittlere Coverage 0.822 (QE) gegen
-%     0.800 (Hiking), mittlerer Winkler 0.559 gegen 0.302.
-%     -> Zwei Beobachtungen: (i) die Intervalle sind in der QT-Phase
-%        NAEHER am Ziel, nicht weiter davon entfernt; (ii) der Winkler
-%        ist in der QT-Phase deutlich niedriger, weil die Spread-Niveaus
-%        und damit die absoluten Breiten kleiner sind. Punkt (ii) ist ein
-%        Skaleneffekt, KEIN Guetegewinn -- unbedingt so kennzeichnen,
-%        sonst liest man es als "Modelle werden im Hiking besser".
-%  2. Volatilitaets-Terzile: Coverage 0.780 (calm) / 0.817 (mid) /
-%     0.841 (stressed). Also die Coverage STEIGT im Stress.
-%     -> Das ist kontraintuitiv und braucht einen Erklaersatz: die
-%        Rekalibrierer weiten die Intervalle nach Volatilitaetsanstiegen
-%        aus, und da Stressphasen persistent sind, ueberschiessen sie.
-%        Die Kehrseite: in ruhigen Phasen sind die Intervalle zu schmal
-%        (0.780 < 0.80). Das ist ein echter, benennbarer Adaptivitaets-
-%        Lag der Online-Verfahren.
-%  3. VIX-Schnitt: Coverage 0.759 (VIX>20) gegen 0.834 (VIX<=20).
-%     -> ACHTUNG, das widerspricht scheinbar Punkt 2. Erklaerung: die
-%        Volatilitaets-Terzile beruhen auf realisierter Spread-Volatilitaet
-%        (rueckwaertsgerichtet, shift(1)), der VIX auf implizierter
-%        Aktienvolatilitaet. VIX-Spitzen kommen SCHNELLER als
-%        Spread-Volatilitaetsanstiege, die Rekalibrierer hinken hinterher.
-%        Das ist eine gute, substanzielle Beobachtung -- ausschreiben.
-%  4. Stress-Drop (stress_drop.csv, valide Kombis): Mittelwert +0.028,
-%     Median +0.029, also im Schnitt hoehere Coverage im Stress.
-%     Die schlechtesten Einzelfaelle sind trotzdem negativ:
-%     lstm/L/decay_ocp -0.039, xlstm/GF/cqr_rolling -0.037,
-%     xlstm/GF/aci -0.036, xlstm/GI/native -0.031.
-%     -> Auffaellig: die Stressanfaelligen sind fast alle xlstm/lstm.
-%  5. F13 (Komplexitaetshypothese) -- das ist der interessanteste
-%     Regime-Befund. Frage: glaenzen komplexe Modelle gerade dann, wenn
-%     es schwierig wird? Antwort: NEIN, das Gegenteil.
-%     Der Vorsprung komplexer Modelle schrumpft von +0.103 (low VIX) auf
-%     +0.025 (high VIX), Delta -0.077. VIX>20 deckt 28% der Testmonate.
-%     Am staerksten faellt tirex2: Skill 0.125 (low VIX) -> -0.003
-%     (high VIX), Delta -0.128. Auch tirex2_cov -0.122 und tirex -0.101.
-%     Bestes komplexes Modell im high-VIX-Regime ist tirex mit 0.019.
-%     -> Das relativiert die Headline aus 8.3 erheblich und MUSS dort
-%        oder spaetestens in der Discussion aufgegriffen werden:
-%        der Zero-Shot-Vorsprung existiert vor allem in ruhigen Maerkten.
-%        Genau in den Phasen, in denen ein Risikomanager das Intervall
-%        braucht, verschwindet er.
-%  6. Ein Satz Methodik-Ehrlichkeit: alle drei Regime-Achsen sind ex ante
-%     (shift(1) bzw. exogener VIX), es gibt kein Look-ahead. Aber: die
-%     Regime-Zellen sind kleiner (VIX>20 = 28% von 127 Monaten, also
-%     ca. 36 Monate), die Coverage-Schaetzer dort entsprechend verrauscht.
+%  0. VORAB, zwei Statusnotizen:
+%     - Die Skill-Spalten stammen aus dem Fix von Zelle 21, der eingebaut,
+%       aber NICHT ausgefuehrt ist. Standalone gerechnet
+%       (scratchpad/regime_skill_standalone.py); Coverage und Winkler
+%       reproduzieren das Artefakt exakt (Abweichung 0.00e+00). Vor Abgabe
+%       muss der Diagnostik-Rerun laufen.
+%     - Der Kalenderschnitt (qe bis 2021-12 gegen hiking ab 2022-01) wird
+%       NICHT berichtet. Er ist in pipeline.yaml vorregistriert, also
+%       braucht das eine Begruendung im Text -- stillschweigend weglassen
+%       waere genau der Fehler, gegen den 8.8 anschreibt. Begruendung, ein
+%       Satz: der Schnitt ist ein einzelnes hart kodiertes Datum, er bildet
+%       keine EZB-Entscheidungen ab (erste Erhoehung erst 07/2022, Halten
+%       ab 10/2023, Senkungen ab 06/2024), und er ist zu 90 Prozent
+%       kollinear mit der Volatilitaetsachse: 89.5% aller gestressten
+%       Land-Monate liegen vor 2022-01, und nach 2022-01 sind 51.2% der
+%       Land-Monate im ruhigen und nur 7.7% im gestressten Terzil. Er
+%       misst also dieselbe Trennung wie Punkt 1, unter falschem Namen.
+%       Gehoert als Fussnote in 8.9 oder in die Limitations.
+Now we take a look how all Packages, CP Methods and best Packages per Model perform in two types of stress regimes. First are the realised volatility terziles and second wether the VIX was smaller or equal to 20 or above. Over all Models we see in the terziles calm/mid/stressed respectively a coverage of 0.7795/0.8166/0.8412 and Median winkler skill of 0.1114/0.01/-0.0037 as can be seen in Table ~\ref{tab:res_regime}. The increased coverage in higher volatility phases can be explained by the recalibration of the online methods that increases the intervall width in stress periods and since stress periods are persistent it overcorrects. The same effect leads to little coverage in calm phases (0.7795). Skill and Coverage have opsing directions wenn it comes to realised volatility. \\
+Looking at the VIX the story inverts for the coverage and stays the same for the skill. In calm phases ($VIX\leq20$) the coverage/skill is 0.8342/0.0513 and in stressed phases ($VIX>20$) it is 0.7588/-0.0222. \\
+%  1. Volatilitaets-Terzile: Coverage 0.7795 (calm) / 0.8166 (mid) /
+%     0.8412 (stressed) -- die Coverage STEIGT im Stress. Der Skill faellt
+%     im selben Schnitt: +0.1114 / +0.0100 / -0.0037.
+%     -> Erklaersatz: die Rekalibrierer weiten die Intervalle nach
+%        Volatilitaetsanstiegen aus, und da Stressphasen persistent sind,
+%        ueberschiessen sie. Coverage steigt, der Winkler bezahlt es.
+%     -> Kehrseite: in ruhigen Phasen sind die Intervalle zu schmal
+%        (0.7795 < 0.80). Echter, benennbarer Adaptivitaets-Lag der
+%        Online-Verfahren.
+%     -> Coverage und Skill laufen gegenlaeufig. Das ist der sauberste
+%        Beleg im ganzen Kapitel dafuer, dass Coverage allein kein
+%        Guetemass ist -- explizit auf 7.x zurueckbeziehen.
 %
-% ZAHLEN (verifiziert, regime_results.csv gejoint auf validity_flag=True,
-%   485 valide Kombis):
-%   calendar   : hiking cov 0.8001 wink 0.3020 | qe cov 0.8217 wink 0.5590
-%   volatility : calm 0.7795 / 0.2990 | mid 0.8166 / 0.4870
-%                | stressed 0.8412 / 0.5644
-%   vix        : high_vix 0.7588 / 0.5055 | low_vix 0.8342 / 0.4333
-%   Coverage-Differenz hiking minus qe je Methode (Auswahl):
-%     aci -0.038 | cqr_static -0.036 | cqr_rolling -0.034 | dtaci -0.031
-%     | spci -0.023 | ... | native +0.002 | saocp +0.034
-%   stress_drop.csv (valide): mean +0.0283, median +0.0290
-%     schlechteste: lstm/L/44/decay_ocp -0.0386 | xlstm/GF/44/cqr_rolling
-%     -0.0365 | xlstm/GF/44/aci -0.0360 | xlstm/GI/42/native -0.0307
-%   Stress-Drop je CP-Methode (Median, valide; klein = stabil):
-%     native +0.005 | pid_tan +0.015 | decay_ocp +0.015 | cqr_rolling
-%     +0.018 | aci +0.025 | saocp +0.026 | agaci +0.027 | mondrian +0.029
-%     | pid +0.030 | dtaci +0.031 | pid_local +0.037 | sfogd +0.038
-%     | spci +0.040 | cqr_static +0.048
-%   vix_complexity.csv (Skill je Modell, high vs low VIX):
-%     Modell        high_vix   low_vix   Delta     komplex?
-%     tirex2         -0.003     0.125    -0.128    ja
-%     tirex2_cov     -0.002     0.120    -0.122    ja
-%     tirex          +0.019     0.119    -0.101    ja
-%     lgbm           +0.018     0.064    -0.046    ja
-%     lstm           -0.048     0.003    -0.052    ja
-%     xlstm          -0.092    -0.027    -0.065    ja
-%     lgbm_const     -0.015     0.032    -0.046    nein
-%     lstm_const     -0.025     0.045    -0.070    nein
-%     rw             -0.011     0.038    -0.049    nein
-%     xlstm_const    -0.032    -0.024    -0.008    nein
-%     arma           -0.030    -0.011    -0.019    nein
-%     arma_monthly   -0.027    -0.011    -0.016    nein
-%   Aggregat aus results/story_report.md (F13): Komplex-vs-Klassisch-
-%     Vorsprung low_vix +0.103 -> high_vix +0.025, Delta -0.077;
-%     VIX>20 = 28% der Testmonate.
-%     !! Diese Aggregatzahl stammt aus dem Story-Report, nicht aus meiner
-%        eigenen Nachrechnung der Modelltabelle -- zitiere sie als
-%        Story-Report-Wert und die Modelltabelle separat, dann bist du
-%        auf der sicheren Seite.
+%  2. VIX-Schnitt: Coverage 0.7588 (VIX>20) gegen 0.8342 (VIX<=20),
+%     Skill -0.0222 gegen +0.0513.
+%     -> Hier faellt BEIDES. Die Coverage widerspricht Punkt 1 scheinbar,
+%        der Skill nicht.
+This is no contradiction. The terziles are based on realised spread volatility, which is backwards looking, while the VIX is based on implied share volatility. Only in 12 Months both methods agree that there is stress even though there are 36 high VIX months and 38 Months in the highest realised volatility terzile. We conclude that both axis mark two destinct phases: The VIX>20 indicates the entry into a stressed phase and the highest volatility terzile the length of the stressed period. The recalibration of the CP methods takes some time and for that lags behind at the entry of the phase (VIX>20 cov. 0.7588) and overcorrects after a while (Stressed terzile cov. 0.8412). \\
+%  3. Warum die beiden Achsen sich bei der Coverage widersprechen -- und
+%     warum das kein Widerspruch ist, sondern der interessanteste
+%     methodische Punkt des Kapitels:
+%     Die Volatilitaets-Terzile beruhen auf realisierter Spread-
+%     Volatilitaet (rueckwaertsgerichtet, shift(1)), der VIX auf
+%     implizierter Aktienvolatilitaet. Belegbar: nur 12 Monate sind nach
+%     beiden Definitionen Stress (36 high-VIX-Monate, 38 Monate mit
+%     mindestens der Haelfte der Laender im oberen Terzil). Die
+%     gleichzeitige Korrelation zwischen VIX-Niveau und Anteil gestresster
+%     Laender ist 0.009, die staerkste verzoegerte 0.170 bei zwei Monaten
+%     Versatz.
+%     -> Die beiden Achsen markieren verschiedene PHASEN: VIX>20 den
+%        EINTRITT der Belastung, das obere Terzil ihr ANDAUERN. Die
+%        Rekalibrierer hinken beim Eintritt hinterher und ueberschiessen
+%        im Andauern. Ausschreiben, das traegt einen ganzen Absatz.
+The change in coverage in the stressed regime over all combinations on average 0.0283 and in Median 0.029 so the coverage increases. The packages with the strongest negative change in stress periods where $lstm/L/decay\_ocp$ (-0.0386), $xlstm/GF/cqr\_rolling$ (-0.0365) and $xlstm/GF/aci$ (-0.0360). xLSTM and LSTM tend to widen the least in stress periods (xlstm +0.0045 in the best package) and are xLSTM is also the worst in skill (+0.0164) out of all machine learning Models.\\
+%  4. Coverage-Reaktion im Stress (stress_drop.parquet, valide Kombis).
+%     ACHTUNG, ZWEI Fallen: (i) die Spalte heisst "stress_drop", ist aber
+%     cov_stressed - cov_all, also POSITIV bei STEIGENDER Coverage -- im
+%     Text nicht "drop" schreiben; (ii) es ist eine COVERAGE-Groesse, kein
+%     Skill. Nicht mit den Skill-Spalten von Panel C vermengen.
+%     Mittelwert +0.0283, Median +0.0290. Median je Familie von xlstm
+%     +0.0158 und xlstm_const +0.0212 bis tirex2_cov +0.0571 und tirex2
+%     +0.0637.
+%     Kombinationen, deren Coverage im Stress FAELLT: lstm/L/decay_ocp
+%     -0.0386, xlstm/GF/cqr_rolling -0.0365, xlstm/GF/aci -0.0360,
+%     xlstm/GI/native -0.0307.
+%     -> Die Aufweitung der Zero-Shot-Modelle ist KEIN Defekt. Ueber die
+%        485 zulaessigen Kombinationen korreliert die Coverage-Reaktion
+%        positiv mit dem Skill im gestressten Terzil (Spearman +0.459,
+%        p < 0.0001). Die Korrelation ist allerdings in allen Regimen
+%        positiv (+0.317 bis +0.402), also kein stressspezifischer
+%        Mechanismus -- staerker aufweitende Kombinationen sind generell
+%        die besseren. So einschraenken.
+%     -> Die echte Fragilitaet sitzt bei xLSTM und LSTM: sie weiten am
+%        wenigsten aus (xlstm +0.0045 beim besten Paket) und stehen im
+%        gestressten Terzil auch beim Skill hinten (xlstm +0.0164).
+%        Coverage und Skill zeigen dort in dieselbe Richtung.
+%     -> Kein Widerspruch zu Punkt 1: dort werden REGIME verglichen
+%        (Coverage rauf, Skill runter von calm nach stressed), hier
+%        KOMBINATIONEN innerhalb eines Regimes.
+Comparing the Machine learning packages ( all const variants excluded) with the classical packages on the VIX axis shows that the advantage of the complex Models shrinks in higher VIX Regimes. The Median skill drops from +0.091564 in low VIX to −0.002242 in high VIX for the complex models and for the classic Models from −0.011023 to −0.027355. But inside the complex group the picture is more differentiated with Median skills ranging from -0.0271 (xlstm) to +0.1255 (tirex2) in the low VIX regime. \\
+On the realised Volatility axis the story inverts. TiRex2 is the only Modell which sees its median skill increase in the stress terzil (calm 0.1357, stressed 0.1502) all the others see a decrease. We conclude that the pretraining advantage fanishes in the moment stress sets in and not persists.
+%  5. F13 (Komplexitaetshypothese). Zwei Einschraenkungen, beide wichtig.
+%     DEFINITION (Zelle 4, vorregistriert in diagnostics_foundation.txt §6,
+%     TiRex-2-Arm ex ante nach Proposal §3.3):
+%       komplex   = xlstm, lstm, lgbm, tirex, tirex2, tirex2_cov
+%       klassisch = rw, arma, arma_monthly
+%     lgbm_const, lstm_const und xlstm_const stehen in KEINER Gruppe und
+%     gehen nicht in die Kennzahl ein -- im Text erwaehnen, sonst liest
+%     man den is_complex=False-Flag der Artefakttabelle als "klassisch".
 %
-% ABBILDUNGEN: figures/vix_complexity.png und figures/stress_drop.png
-%   liegen im Repo.
+%     (a) VIX-Achse, vorregistriertes Ergebnis: der Vorsprung schrumpft
+%         von +0.1026 (low VIX) auf +0.0251 (high VIX), Delta -0.0775.
+%         Hypothese widerlegt. Diese Zahl bleibt die Berichtszahl.
+%     (b) ABER die komplexe Gruppe ist bimodal. Ihre sechs Werte streuen
+%         im low-VIX-Regime von -0.0271 (xlstm) bis +0.1255 (tirex2), mit
+%         einer Luecke von 0.055 zwischen lgbm (+0.0640) und tirex
+%         (+0.1191). Der Gruppenmedian +0.0916 faellt genau in diese
+%         Luecke -- er beschreibt kein Modell, sondern die Lage der
+%         Gruppengrenze.
+%         Zerlegung (post hoc, reine Umgruppierung derselben zwoelf
+%         Artefaktwerte, kein neuer Test):
+%           nur Zero-Shot vs klassisch : +0.1315 -> +0.0254, Delta -0.1061
+%           nur trainiert vs klassisch : +0.0143 -> -0.0211, Delta -0.0354
+%         -> Das gesamte F13-Ergebnis traegt der Zero-Shot-Arm. Die
+%            trainierten komplexen Modelle hatten nie einen nennenswerten
+%            Vorsprung (+0.0143 in ruhigen Maerkten) und liegen bei hohem
+%            VIX unter den klassischen.
+%         -> Formulierung: "Komplexitaet" im Sinne von auf diesem Panel
+%            trainierten tiefen Modellen hat in KEINEM Regime geholfen.
+%            Was existierte und dann verschwand, war ein Pretraining-
+%            Vorteil. Die F13-Gruppe wirft beide Behauptungen zusammen.
+%     (c) Volatilitaets-Achse: das Bild kehrt sich um. Auf Familienebene
+%         ist tirex2 das einzige Modell, dessen Median-Skill im oberen
+%         Terzil steigt (calm 0.1357 -> stressed 0.1502), waehrend die
+%         klassischen einbrechen (lgbm_const -0.1719, xlstm_const -0.1621,
+%         rw -0.1563, arma_monthly -0.1470).
+%     -> Belastbare Gesamtaussage: der Pretraining-Vorsprung verschwindet,
+%        wenn Belastung EINTRITT, nicht waehrend sie ANDAUERT. Punkt 3
+%        liefert die Begruendung mit.
+Looking at the best Packages per Model family in the stressed realized volatility regime the ranking stays the same as in ~\ref{sec:res:ranking}. The overall winner $tirex2/ZS/cqr\_static$ even increases his winkler skill in the stressed regime (+0.1554 calm to +0.1820 stressed ). This changes when looking at the same Model on the VIX axis. Here its skill disintegrates from 0.1754 in $VIX\leq20$ to 0.0191 in VIX>20 and it falls from rank 1 to rank 8. The best Package in the high VIX regime is $lgbm/G/decay\_ocp_cqr$ with 0.0797. $arma/L/dtaci$ rises in rank from 12 to 6th. We conclude again that the Model with the best overall performance is not the best in the months where a stress regime is enterd. Another caveat to the overall winner $tirex2/ZS/cqr\_static$ is that it covers only at 0.654 in the calm months. So it gains its skill advantage by dropping coverage.\\
+%  6. Die zwoelf besten zulaessigen Pakete (je Modellfamilie eines,
+%     Spezifikation in tab:res_ranking) -- das ist der praxisrelevanteste
+%     Befund und gehoert nach 8.3 zurueckverwiesen:
+%     -> Im oberen Volatilitaetsterzil BLEIBT die Rangfolge. Spearman
+%        gegen die Gesamtrangfolge +0.846 (p 0.0005), groesste
+%        Rangaenderung 4 Plaetze. tirex2/ZS/cqr_static bleibt Erster und
+%        verbessert sich sogar, von +0.1554 (calm) auf +0.1820
+%        (stressed).
+%     -> Bei VIX>20 ZERFAELLT sie. Spearman +0.399 (p 0.199), groesste
+%        Rangaenderung 7 Plaetze. tirex2 faellt von Platz 1 auf Platz 8
+%        (Skill +0.0191). Bestes Paket im high-VIX-Regime ist
+%        lgbm/G/decay_ocp_cqr mit +0.0797, dann xlstm/L/native +0.0680
+%        und lgbm_const/G/cqr_rolling +0.0626. arma/L/dtaci steigt von
+%        Platz 12 auf Platz 6.
+%     -> Das ist die praezise Version von Punkt 5, auf der Ebene, auf der
+%        du tatsaechlich eine Empfehlung aussprichst. Genau der Satz, den
+%        ein Risikomanager hoeren muss: das Paket mit dem besten
+%        Gesamtergebnis ist nicht das, das in den Eintrittsmonaten haelt.
+%     -> Coverage-Caveat dazu, unbedingt mitnennen: tirex2/ZS/cqr_static
+%        deckt in ruhigen Monaten nur 0.654 (Ziel 0.80). Sein Skill-
+%        Vorsprung dort ist mit deutlich unterdeckenden Intervallen
+%        erkauft. Das haengt direkt an der offenen Coverage-vs-Winkler-
+%        Entscheidung aus 8.3.
+Both methods for the regime classification were ex ante fixed. The realized spread volatility terziles are calculated the spreads own lag and per country. The first twelve test months are classified as the average terzile. Only $28.3\%$ have a VIX>20, so 36/127 this leads statistical noise in the estimators in this regime. The Median IQR over all countries is 0.35 in calm regimes and 0.122 in stressed regimes. We conclude that in calm times country specific indicators are the main drivers of the IQR. We use two different skills in the Regime Table vs the pre registerd complexity hypothesis. in the reime table we use all 14 methods inkl. native, the 485 admissible combinations, the median over all combinations of the county medians. for the pre registerd we exclude native, we dont validity gate and use the median over all zells. Thats why tirex has in the high VIX regime 0.0237 in the one Tbale and -0.003 in the other.
+%  7. Methodik-Ehrlichkeit, ein Absatz:
+%     - Beide Regime-Achsen sind ex ante (shift(1) bzw. exogener VIX),
+%       kein Look-ahead. Die Terzile werden je Land geschnitten, die
+%       ersten 12 Testmonate ohne Fenster gehen ins neutrale mittlere
+%       Terzil.
+%     - Die Zellen sind klein: VIX>20 deckt 36 der 127 Testmonate
+%       (28.3%), die Schaetzer dort sind entsprechend verrauscht.
+%     - Die Laenderstreuung ist genau in den guten Regimen am groessten:
+%       Median-IQR ueber Laender 0.350 (calm) gegen 0.122 (stressed).
+%     - !! ZWEI SKILL-DEFINITIONEN nicht mischen. Regime-Tabelle: alle 14
+%       Methoden inkl. native, nur die 485 zulaessigen Kombis, Median
+%       ueber Kombis des Laender-Medians. Vorregistriertes F13: native
+%       ausgeschlossen, KEIN Validitaets-Gate, Median ueber alle Zellen.
+%       Deshalb steht fuer tirex2 bei hohem VIX einmal +0.0237 (Familien-
+%       median der Regime-Tabelle) und einmal -0.003 (F13). Beide
+%       Definitionen dort benennen, wo sie vorkommen.
 %
-% ZITATE: krishnamurthy2018 (QE-Datierung), degrauwe2013self bzw.
-%   degrauweji2013 (Selbsterfuellende Dynamik im Stress), fred (VIX-Quelle).
+% ZAHLEN (verifiziert; regime_results standalone repariert, Coverage und
+%   Winkler identisch zum Artefakt; 485 valide Kombis):
+%   Regime          Land-Monate  Anteil  Coverage  Winkler   Skill
+%   calm                    381   0.300    0.7795   0.2990  +0.1114
+%   mid                     509   0.401    0.8166   0.4870  +0.0100
+%   stressed                380   0.299    0.8412   0.5644  -0.0037
+%   low_vix (<=20)          910   0.717    0.8342   0.4333  +0.0513
+%   high_vix (>20)          360   0.283    0.7588   0.5055  -0.0222
+%   Die Terzile sind je Land geschnitten, der VIX global (127 Monate x 10).
+%
+%   Stress-Coverage-Aenderung je Modell (Median, valide):
+%     xlstm +0.0158 | xlstm_const +0.0212 | lstm +0.0290
+%     | lstm_const +0.0322 | rw +0.0367 | arma_monthly +0.0386
+%     | lgbm_const +0.0389 | lgbm +0.0427 | arma +0.0432 | tirex +0.0508
+%     | tirex2_cov +0.0571 | tirex2 +0.0637
+%
+%   F13 (vorregistriert, eigene Definition -- native raus, kein Gate):
+%     komplex = xlstm, lstm, lgbm, tirex, tirex2, tirex2_cov;
+%     klassisch = rw, arma, arma_monthly. Die drei const-Zwillinge sind in
+%     KEINER Gruppe. Median komplex low +0.0916 / high -0.0022; klassisch
+%     low -0.0110 / high -0.0274; Vorsprung +0.1026 -> +0.0251,
+%     Delta -0.0775. Reproduziert den Story-Report exakt -- die alte
+%     "!!"-Warnung dazu ist erledigt.
+%
+%   Rangstabilitaet der zwoelf besten Pakete gegen die Gesamtrangfolge:
+%     stressed  Spearman +0.8462 (p 0.0005), Kendall +0.6970
+%     low_vix   Spearman +0.8671 (p 0.0003), Kendall +0.7273
+%     calm      Spearman +0.4895 (p 0.1063), Kendall +0.3030
+%     high_vix  Spearman +0.3986 (p 0.1993), Kendall +0.2727
+%
+%   Achsen-Orthogonalitaet: 36 high-VIX-Monate, 38 Monate mit mindestens
+%     der Haelfte der Laender im oberen Terzil, Ueberlappung 12.
+%     corr(VIX, Anteil gestresster Laender) gleichzeitig 0.009;
+%     verzoegert 0.112 (1M), 0.170 (2M), 0.145 (3M).
+%
+% TABELLEN: \cref{tab:res_regime} -- Panel A die beiden Achsen, Panel B je
+%   Rekalibrierungsmethode, Panel C die zwoelf besten Pakete.
+%
+% ABBILDUNGEN: figures/vix_complexity.png und figures/stress_drop.png.
+%
+% ZITATE: degrauwe2013self bzw. degrauweji2013 (selbsterfuellende Dynamik
+%   im Stress), fred (VIX). krishnamurthy2018 entfaellt mit dem
+%   Kalenderschnitt.
 %
 % >>> THESIS-ONLY >>>
 % - Regime-Timeline-Abbildung + Tabelle der Regime-Definitionen.
-% - Rolling-Coverage-Plot der Top-3-Pakete (figures/rolling_coverage_top3.png)
-%   mit Diskussion der Ausschlaege 2020-03 und 2022.
+% - Rolling-Coverage-Plot der Top-3-Pakete
+%   (figures/rolling_coverage_top3.png) mit Diskussion der Ausschlaege
+%   2020-03 und 2022.
 % - Bootstrap-CIs fuer die Stress-Deltas.
+% - Absatz zur Achsen-Orthogonalitaet mit den Lag-Korrelationen.
+% - Der weggelassene Kalenderschnitt mit der Kreuztabelle als Beleg.
 % <<< THESIS-ONLY <<<
-%
-% [arXiv-Kuerzung]: 1 Absatz, und darin MUSS der F13-Befund stehen
-%   (Zero-Shot-Vorsprung verschwindet im high-VIX-Regime). Ohne den
-%   ist die Headline unehrlich.
 
-% \begin{figure}[t]
-%   \centering
-%   \includegraphics[width=0.8\textwidth]{figures/vix_complexity.png}
-%   \caption{% TODO}
-%   \label{fig:res_vix}
-% \end{figure}
 \begin{table}[t]
 \centering
-\caption{% TODO Caption. The eight largest cross-model contrasts by
-         absolute effect size, out of 66. Effect as in
-         \cref{tab:res_contrasts}; negative means A is better. None of
-         the 66 contrasts is significant after FDR correction.}
-\label{tab:res_xm}
-\begin{tabular}{llrrrr}
+\caption{Regime-conditional behaviour on the two volatility axes. Panel A
+         aggregates over the 485 admissible combinations, Panel B breaks the result
+         down by recalibration method, and Panel C follows the twelve best
+         admissible packages, one per model family.}
+\label{tab:res_regime}
+\small
+\begin{tabular}{lccccc}
 \toprule
-A & B & Effect & Share A better & Panel $t$ & median $q$ \\
+\multicolumn{6}{l}{\textit{Panel A: by regime}}\\
+\cmidrule(lr){1-6}
+Regime & Country-months & Share & Coverage & Mean Winkler & Median skill \\
 \midrule
-\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.116$ & 0.8 & $-3.55$ & 0.185 \\
-\texttt{tirex2\_cov}/ZS/\texttt{native}    & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.111$ & 0.9 & $-4.16$ & 0.196 \\
-\texttt{tirex}/ZS/\texttt{native}          & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.101$ & 1.0 & $-3.26$ & 0.263 \\
-\texttt{lgbm}/G/\texttt{decay\_ocp\_cqr}   & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.090$ & 0.7 & $-2.92$ & 0.270 \\
-\texttt{lstm\_const}/G/\texttt{agaci\_cqr} & \texttt{xlstm\_const}/L/\texttt{spci\_cqr} & $-0.080$ & 0.8 & $-2.43$ & 0.352 \\
-\texttt{tirex2\_cov}/ZS/\texttt{native}    & \texttt{arma}/L/\texttt{dtaci\_cqr}        & $-0.075$ & 0.9 & $-3.09$ & 0.217 \\
-\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{lstm}/L/\texttt{pid\_cqr}          & $-0.074$ & 0.9 & $-3.09$ & 0.253 \\
-\texttt{tirex2}/ZS/\texttt{cqr\_static}    & \texttt{arma}/L/\texttt{dtaci\_cqr}        & $-0.074$ & 0.9 & $-2.50$ & 0.255 \\
+\textit{Realised volatility} \\
+\quad Calm     & 381 & 0.300 & 0.7795 & 0.2990 & $+0.1114$ \\
+\quad Mid      & 509 & 0.401 & 0.8166 & 0.4870 & $+0.0100$ \\
+\quad Stressed & 380 & 0.299 & 0.8412 & 0.5644 & $-0.0037$ \\
+\addlinespace
+\textit{Implied volatility} \\
+\quad VIX $\leq 20$ & 910 & 0.717 & 0.8342 & 0.4333 & $+0.0513$ \\
+\quad VIX $> 20$    & 360 & 0.283 & 0.7588 & 0.5055 & $-0.0222$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Panel B: by recalibration method}}\\
+\cmidrule(lr){1-6}
+Method & Cov.\ calm & Cov.\ stressed & Skill VIX $\leq 20$ & Skill VIX $> 20$ & Cov.\ in stress \\
+\midrule
+\texttt{native}         & 0.828 & 0.841 & $+0.1199$ & $+0.0587$ & $+0.0045$ \\
+\texttt{decay\_ocp\_cqr}& 0.803 & 0.830 & $+0.0768$ & $+0.0193$ & $+0.0146$ \\
+\texttt{cqr\_static}    & 0.729 & 0.814 & $+0.1675$ & $+0.0191$ & $+0.0476$ \\
+\texttt{cqr\_rolling}   & 0.799 & 0.840 & $+0.0549$ & $-0.0017$ & $+0.0182$ \\
+\texttt{aci\_cqr}       & 0.786 & 0.839 & $+0.0595$ & $-0.0058$ & $+0.0245$ \\
+\texttt{agaci\_cqr}     & 0.787 & 0.836 & $+0.0586$ & $-0.0097$ & $+0.0269$ \\
+\texttt{dtaci\_cqr}     & 0.788 & 0.851 & $+0.0621$ & $-0.0142$ & $+0.0309$ \\
+\texttt{pid\_cqr}       & 0.773 & 0.842 & $+0.0716$ & $-0.0176$ & $+0.0303$ \\
+\texttt{pid\_local\_cqr}& 0.768 & 0.850 & $+0.0542$ & $-0.0287$ & $+0.0366$ \\
+\texttt{sfogd\_cqr}     & 0.759 & 0.845 & $+0.0225$ & $-0.0325$ & $+0.0382$ \\
+\texttt{mondrian\_cqr}  & 0.825 & 0.884 & $-0.0163$ & $-0.0546$ & $+0.0286$ \\
+\texttt{spci\_cqr}      & 0.735 & 0.806 & $+0.0541$ & $-0.0605$ & $+0.0402$ \\
+\texttt{saocp\_cqr}     & 0.837 & 0.874 & $+0.0412$ & $-0.0620$ & $+0.0264$ \\
+\texttt{pid\_tan\_cqr}  & 0.803 & 0.831 & $-0.0806$ & $-0.1199$ & $+0.0145$ \\
+\addlinespace
+All methods & 0.780 & 0.841 & $+0.0513$ & $-0.0222$ & $+0.0290$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Panel C: the twelve best admissible packages, ordered by overall skill}}\\
+\cmidrule(lr){1-6}
+Package & Skill calm & Skill stressed & Skill VIX $\leq 20$ & Skill VIX $> 20$ & Cov.\ in stress \\
+\midrule
+\texttt{tirex2}       & $+0.1554$ & $+0.1820$ & $+0.1754$ & $+0.0191$ & $+0.0767$ \\
+\texttt{tirex2\_cov}  & $+0.1675$ & $+0.1702$ & $+0.1724$ & $+0.0587$ & $+0.0219$ \\
+\texttt{lgbm}         & $+0.1876$ & $+0.1161$ & $+0.1609$ & $+0.0797$ & $+0.0159$ \\
+\texttt{tirex}        & $+0.1552$ & $+0.1201$ & $+0.1975$ & $+0.0545$ & $+0.0524$ \\
+\texttt{lstm\_const}  & $+0.1894$ & $+0.0787$ & $+0.1443$ & $+0.0135$ & $+0.0234$ \\
+\texttt{lgbm\_const}  & $+0.1628$ & $+0.0325$ & $+0.0943$ & $+0.0626$ & $+0.0261$ \\
+\texttt{xlstm}        & $+0.1602$ & $+0.0164$ & $+0.1199$ & $+0.0680$ & $+0.0045$ \\
+\texttt{rw}           & $+0.1658$ & $-0.0062$ & $+0.0995$ & $-0.0038$ & $+0.0329$ \\
+\texttt{xlstm\_const} & $+0.1751$ & $+0.0203$ & $+0.0733$ & $-0.0178$ & $+0.0388$ \\
+\texttt{lstm}         & $+0.1293$ & $+0.0663$ & $+0.1248$ & $-0.0423$ & $+0.0345$ \\
+\texttt{arma\_monthly}& $+0.1456$ & $-0.0050$ & $+0.0621$ & $+0.0484$ & $+0.0406$ \\
+\texttt{arma}         & $+0.1397$ & $-0.0040$ & $+0.0485$ & $+0.0540$ & $+0.0427$ \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Both axes use information available before the forecast month. The
+volatility terciles come from a twelve-month rolling standard deviation of realised
+spread changes, lagged one month and cut per country, so their month counts differ
+slightly across countries; the VIX split is global and its country-months are months
+times ten countries. The first twelve test months of a country carry no volatility
+window and fall into the neutral middle tercile. Coverage and Winkler in Panel A are
+means over the 485 admissible combinations, against a target coverage of 0.80. Skill
+is the median across countries of $1-\bar W/\bar W_{\mathrm{ref}}$ within the regime
+months of that country against \texttt{rw}/L/\texttt{native}, aggregated by median
+across combinations in Panels A and B and read off the single package in Panel C.
+The last column is the change in coverage in the top volatility tercile relative to
+full-sample coverage, so positive means the intervals cover more under stress.
+
+Panel C names each package by its model family; the regime, seed and recalibration
+method are in \cref{tab:res_ranking}. Under realised stress the overall ranking
+survives, with a Spearman correlation of $+0.846$ ($p=0.0005$) against the ranking
+of \cref{tab:res_ranking} and a largest rank change of four places. Under high VIX it
+does not, at $+0.399$ ($p=0.199$) and a largest rank change of seven:
+\texttt{tirex2}/ZS/\texttt{cqr\_static} falls from first to eighth, and the leading
+package becomes \texttt{lgbm}/G/\texttt{decay\_ocp\_cqr}. The skill advantage of
+\texttt{tirex2} in calm markets comes with a coverage of 0.654 against a target of
+0.80, so it is bought with intervals that undercover badly.
+
+The calendar split of \texttt{config/pipeline.yaml} is not reported separately.
+It is a single fixed date rather than a mapping of policy decisions, and it separates
+almost the same months as the volatility axis: 89.5 per cent of stressed
+country-months fall before 2022-01, and after that date 51.2 per cent of
+country-months are calm against 7.7 per cent stressed. The pre-registered complexity
+test uses a skill definition that differs from the one above, excluding
+\texttt{native} and applying no validity gate, and its group medians are not
+comparable with the levels in Panel C.
+\end{minipage}}
 \end{table}
+
+
 
 %------------------------------------------------------------------------
 \subsection{Economic evaluation}
