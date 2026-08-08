@@ -1984,168 +1984,408 @@ comparable with the levels in Panel C.
 
 
 
-%------------------------------------------------------------------------
-\subsection{Economic evaluation}
-\label{sec:res:econ}
-%------------------------------------------------------------------------
-% ERINNERUNG (7.7 + CLAUDE.md): dieser Block ist SEKUNDAER und darf nie
-% zum Rangkriterium werden. Der erste Satz muss das sagen.
-%
-% WAS HIER STEHT:
-%  1. Kapital-Proxy: der Median-Kapitalquotient ueber valide Kombis liegt
-%     bei 0.669 (Spanne 0.551 bis 0.878). Also: valide, rekalibrierte
-%     Intervalle sind im Median rund ein Drittel schmaler als der
-%     breiteste valide Benchmark.
-%  2. Der eigentlich interessante Befund: die Korrelation zwischen
-%     Winkler-Skill und Kapitalquotient betraegt -0.711 (valide Kombis).
-%     Hoher Skill geht also systematisch mit niedrigerem Kapitalbedarf
-%     einher. -> Das ist die Bruecke von der statistischen zur
-%     oekonomischen Metrik und rechtfertigt den Winkler-Score als
-%     Rangkriterium nachtraeglich. Guter, zitierfaehiger Satz.
-%  3. Der Kontrastbefund, der genauso wichtig ist: die Korrelation
-%     zwischen Skill und dem Sharpe der Handelsregel betraegt nur -0.147,
-%     also praktisch null und sogar leicht negativ.
-%     -> Aussage: bessere Intervalle uebersetzen sich in Kapitaleffizienz,
-%        aber NICHT in Handelsgewinne. Genau so schreiben. Das ist ein
-%        ehrlicher Befund und schuetzt dich davor, dass jemand die
-%        Arbeit als Trading-Paper missversteht.
-%  4. Sharpe-Verteilung: Median 0.159, Spanne -0.607 bis 0.621, 68% der
-%     validen Kombis haben positiven Sharpe. Der Active Share ist winzig
-%     (die Regel handelt nur, wenn der Vormonatsspread ausserhalb des
-%     Intervalls lag -- bei ~80% Coverage sind das per Konstruktion
-%     wenige Monate). Beispielwerte: 0.003 bis 0.053.
-%     -> Ein Satz: bei so wenigen aktiven Monaten ist der Sharpe
-%        extrem verrauscht; die Zahl taugt nur zum Methodenvergleich,
-%        nicht als Renditeaussage. Transaktionskosten sind ignoriert.
-%  5. Die Top-Sharpe-Pakete sind NICHT die Top-Skill-Pakete
-%     (lstm/L/pid_cqr 0.621 Sharpe bei nur 0.062 Skill; xlstm/GI/agaci
-%     0.446 Sharpe bei NEGATIVEM Skill -0.111). Das ist die konkrete
-%     Illustration von Punkt 3 -- unbedingt als Beispiel bringen.
-%
-% ZAHLEN (verifiziert, econ_results.csv gejoint mit validity_flag=True,
-%   485 valide Kombis):
-%   median_sharpe    : Median 0.159 | Min -0.607 | Max 0.621 | >0: 68%
-%   median_cap_ratio : Median 0.669 | Min 0.551 | Max 0.878
-%   corr(median_skill, median_sharpe)    = -0.147
-%   corr(median_skill, median_cap_ratio) = -0.711
-%   Top-Sharpe (valide): lstm/L/42/pid_cqr 0.621 (Skill 0.062)
-%     | lstm_const/G/42/spci 0.609 (Skill 0.060)
-%     | lstm_const/GF/43/sfogd 0.484 (Skill 0.016)
-%     | lstm/L/42/dtaci 0.482 (Skill 0.057)
-%     | xlstm/GI/44/agaci 0.446 (Skill -0.111)
-%
-% ZITATE: bcbs2019mar (Basel-Kontext, Proxy-Charakter betonen).
-%
-% [arXiv-Kuerzung]: 3 Saetze -- Kapitalquotient-Median, die beiden
-%   Korrelationen, der "kein Trading-Signal"-Satz. Bei hartem Limit:
-%   ganzes Unterkapitel in eine Fussnote.
 
 
 %------------------------------------------------------------------------
 \subsection{Robustness}
 \label{sec:res:robustness}
 %------------------------------------------------------------------------
-% WAS HIER STEHT (vier Checks aus 7.8, je 2-3 Saetze):
-%  1. KALIBRIERUNGSPOOL. Primaerfall rolling(36) gegen expanding,
-%     rolling(24), rolling(48). Auf den 3180 gemeinsamen Zellen betraegt
-%     die mittlere absolute Coverage-Differenz zu expanding 0.040
-%     (Maximum 0.189), zu rolling24 0.021 (max 0.102), zu rolling48
-%     0.016 (max 0.087).
-%     -> Ehrlicher Satz: die Pool-Wahl ist NICHT vernachlaessigbar; im
-%        Extremfall verschiebt sie die Coverage um fast 19 Prozentpunkte.
-%        Die mittlere Coverage steigt mit laengerem Pool
-%        (rolling24 0.813 < rolling48 0.820 < rolling 0.834
-%        < expanding 0.843), was zur Ueberdeckungsdiagnose aus 8.1 passt:
-%        laengere Pools erben alte, breitere Quantile.
+For the Conformal we used four types of calibration pools: rolling(36) vs. expanding, rolling(24), rolling(48). These calibration pools are only relevant for the CP that is layerd on top of the already finished Model outputs. Inside th CP layer only 6 out of the 14 make use of this pool, they are: $cqr\_rolling, aci\_cqr, agaci\_cqr, dtaci\_cqr, spci\_cqr, mondrian\_cqr$. The others are by definition invariant to a change in the calibration pool. For the variants that are based on the calibration pool we observe an average absolute coverage differenze to rolling36 of 0.040 for expanding (Maximum 0.189), of 0.021 for rolling24 (max 0.102) and of 0.016 for rolling48 (max 0.087). This Show that the choice of the calibration pool is not trivial for these CP methods. The average coverage of the pooling variants increases with the length of the pool (rolling24 0.813 < rolling36 0.817 < rolling48 0.820 < expanding 0.838). We assume it is due to the fact that longer pools inherit older, wider quantiles. The winkler score doesent follow this trend (rolling24 +0.000 < expanding +0.005 < rolling36 +0.007 < rolling48 +0.014). A longer pool only increases coverage not skill.
+
+
+% WAS HIER STEHT (fuenf Checks aus 7.8, je 2-3 Saetze):
+%  1. KALIBRIERUNGSPOOL. Zuerst die Abgrenzung, die im Code steht und die
+%     jede Zahl in diesem Punkt einordnet: pool_mode ist ausschliesslich
+%     ein Parameter der CP-Schicht (notebooks/conformal_layer.ipynb) --
+%     die Modell-Notebooks enthalten laut deren eigener Kopfzelle "no CP
+%     code", Punktprognosen und rohe Modell-Quantile (q_lo/q_med/q_hi)
+%     sind fix und werden von der CP-Schicht nie neu berechnet.
+%     -> [NEU, WICHTIG] Und selbst innerhalb der CP-Schicht betrifft es
+%        nur 6 der 14 Methoden -- die, die tatsaechlich einen
+%        historischen Score-Pool konsultieren (POOL_BASED_METHODS im
+%        Code): cqr_rolling, aci_cqr, agaci_cqr, dtaci_cqr, spci_cqr,
+%        mondrian_cqr. Die anderen 8 -- native, cqr_static, die vier
+%        Online-Tracker pid_cqr, pid_tan_cqr, pid_local_cqr, sfogd_cqr,
+%        dazu saocp_cqr, decay_ocp_cqr -- sind per Konstruktion invariant
+%        (native reicht die Modellquantile durch, cqr_static kalibriert
+%        einmalig aus der Burn-in-Phase, die Online-Tracker aktualisieren
+%        sequentiell ohne Fensterung). Empirisch verifiziert (Metrik:
+%        Coverage je Zelle, rolling(36) vs. expanding, 530 Zellen je
+%        Methode): fuer alle 8 invarianten Methoden ist die Differenz
+%        exakt 0.0000000000 -- bit-identisch, nicht nur "klein". Erklaert
+%        auch, warum rolling24/rolling48 nur 3180 statt 7420 Zellen haben:
+%        die Pipeline berechnet diese Fenster-Varianten nur fuer die 6
+%        Pool-Methoden (Code-Kommentar: "their window rows would be
+%        byte-identical duplicates").
+%     -> Konsequenz fuer die Zahlen unten: "mittlere Coverage"/"Median-
+%        Winkler-Skill je Pool" duerfen NICHT ueber alle 14 Methoden
+%        gemittelt werden (verwaessert mit acht exakt konstanten
+%        Methoden) -- richtig ist die Beschraenkung auf die 6
+%        Pool-Methoden (n=3180 fuer alle vier Pool-Varianten). Unter
+%        dieser korrekten Abgrenzung dreht sich sogar ein Vorzeichen: der
+%        Median-Winkler-Skill der 6 Pool-Methoden ist unter rolling(36)
+%        UND expanding leicht POSITIV (+0.007 bzw. +0.005), nicht negativ
+%        wie eine ueber alle 14 Methoden gemittelte Zahl nahelegen wuerde
+%        (die acht invarianten Methoden liegen im Mittel bei Skill -0.024
+%        und ziehen den Schnitt nach unten).
+%     -> Auf dieser korrekten Basis (3180 Zellen je Pool): mittlere
+%        absolute Coverage-Differenz zu expanding 0.040 (Maximum 0.189),
+%        zu rolling24 0.021 (max 0.102), zu rolling48 0.016 (max 0.087).
+%     -> Ehrlicher Satz, jetzt praezise statt pauschal: fuer die 6
+%        betroffenen Methoden ist die Pool-Wahl NICHT vernachlaessigbar;
+%        im Extremfall verschiebt sie die Coverage um fast 19
+%        Prozentpunkte. Fuer die anderen 8 ist sie komplett irrelevant --
+%        das ist keine Einschraenkung des Befunds, sondern eine
+%        staerkere Aussage als "die Pool-Wahl beeinflusst die CP-
+%        Schicht". Beide Haelften gehoeren in den Text.
+%     -> Die mittlere Coverage der 6 Pool-Methoden steigt mit laengerem
+%        Pool (rolling24 0.813 < rolling48 0.820 < rolling 0.817 <
+%        expanding 0.838), passt zur Ueberdeckungsdiagnose aus 8.1:
+%        laengere Pools erben alte, breitere Quantile. Der Winkler-Skill
+%        folgt dieser Reihenfolge NICHT (rolling24 +0.000 < rolling
+%        +0.007 < expanding +0.005 < rolling48 +0.014) -- ein laengerer
+%        Pool kauft sich nicht automatisch besseren Skill, nur mehr (bei
+%        rolling48 sogar zu viel) Coverage.
+Looking at the three cells with the highest sensitivity, in mean coverage over all 10 countrys, to the pooling variant in ~\ref{tab:res_robustness_pool} we see that all of the use Packages use $cqr\_rolling$. This is no coincidence, since $cqr\_rolling$ is the only CP method using the pool that calculates their quantiles from scratch every month. \\
+
 %     -> Story-Report F8 nennt lstm/GI/cqr_rolling mit 8.9pp Differenz
-%        rolling vs expanding als Extremfall.
-%  2. EX-IRLAND. Spearman-Rangkorrelation der Rankings mit und ohne
-%     Irland: rho = 0.939 ueber die 485 validen Kombis. Die Rangfolge
-%     ist also stabil. ABER das Niveau nicht: der mittlere Skill faellt
-%     um -0.021, und beim Spitzenreiter tirex2/ZS/cqr_static von 0.146
-%     auf 0.103 (-0.043).
+%        (Seed 42, Mittel ueber 10 Laender) als Extremfall. Zwei weitere
+%        F8-Instanzen in derselben Groessenordnung: arma_monthly/L/
+%        cqr_rolling 8.5pp, lstm/GF/cqr_rolling 8.3pp. Jetzt mit
+%        Begruendung statt nur Beobachtung: alle drei verwenden
+%        cqr_rolling -- eine von nur sechs ueberhaupt pool-sensitiven
+%        Methoden, und die einzige davon, die ihr Quantil jeden Monat
+%        komplett neu aus dem aktuellen Pool berechnet statt einen
+%        Zustand online fortzuschreiben wie die anderen fuenf.
+Ireland has a special macroeconomic position. A lot of packages score very well on it so we take a look at how the packages performance and ranking changes when Ireland is excluded. The spearman rank correlation over all 485 admissible combinations is 0.939. This shows that the rank is stable to the exclusion of Ireland, but the Winkler skill is not as we can see in Table ~\ref{tab:res_robustness_ie}. The average Winkler skill over all admissible combinations decreases by -0.021 (Median -0.018) and in the best package over all 10 countrys ($tirex2/ZS/cqr\_static$) the Median skill decreases from 0.146 to 0.103 (Delta -0.043). A third of the winners median winkler skill stems from Ireland. Ireland also is with a Median winkler skill of 0.231 over all admissible packages the easiest country with second beeing portugal (0.191). The package that suffers the most from the exclusion of Ireland is $lgbm/L/aci\_cqr$ which went from a positive winkler score including Ireland (0.067) to a negative (-0.027) with a difference of 0.094. Out of the 6 Packages that lost the most 4 are lgbm/L based.\\
+%  2. EX-IRLAND. Spearman-Rangkorrelationskoeffizient (Metrik: rho
+%     zwischen Rang nach Winkler-Skill mit und ohne Irland) ueber die
+%     485 validen Kombinationen: rho = 0.939. Die Rangfolge ist also
+%     stabil. ABER das Niveau nicht: der mittlere Winkler-Skill (Metrik:
+%     mean d_skill = median_skill_exie - median_skill, ueber die 485
+%     validen Kombinationen) faellt um -0.021 (Median -0.018), und beim
+%     Spitzenreiter tirex2/ZS/cqr_static faellt der Median-Winkler-Skill
+%     von 0.146 auf 0.103 (Delta -0.043).
 %     -> Zwei Saetze: (i) die Ordnung ist robust, (ii) rund ein Drittel
 %        des absoluten Vorsprungs des Siegers stammt aus Irland allein.
-%        Da IE mit Skill 0.231 das mit Abstand "leichteste" Land ist und
-%        wegen der MNE-/Leprechaun-Verzerrung ohnehin unter Vorbehalt
-%        steht, gehoert das prominent berichtet, nicht in eine Fussnote.
-%     -> Am staerksten leidet lgbm/L: aci von 0.067 auf -0.027,
-%        dtaci von 0.075 auf -0.009, agaci von 0.085 auf 0.009. Also
-%        LightGBM im lokalen Regime lebt fast vollstaendig von Irland.
+%        Da IE mit Median-Winkler-Skill 0.231 (Metrik: Median-Skill je
+%        Land ueber die 485 validen Kombinationen) das mit Abstand
+%        "leichteste" Land ist (naechstes: PT 0.191) und wegen der
+%        MNE-/Leprechaun-Verzerrung ohnehin unter Vorbehalt steht,
+%        gehoert das prominent berichtet, nicht in eine Fussnote.
+%     -> Am staerksten leidet lgbm/L (Metrik: Delta Winkler-Skill
+%        ex-IE minus original): aci von 0.067 auf -0.027 (Delta -0.094),
+%        dtaci von 0.075 auf -0.009 (Delta -0.084), agaci von 0.085 auf
+%        0.009 (Delta -0.077). Zwei weitere im selben Bereich:
+%        arma_monthly/L/cqr_rolling Delta -0.070, arma/L/pid_tan_cqr
+%        Delta -0.070 (von -0.056 auf -0.126), lgbm/L/cqr_rolling Delta
+%        -0.067. Also: 4 der 6 groessten Verschlechterungen sind
+%        lgbm/L -- LightGBM im lokalen Regime lebt fast vollstaendig
+%        von Irland, staerker als der alte 3-von-4-Befund nahelegte.
+In Table ~\ref{tab:res_robustness_seeds} we evaluate the impact the seed on the winkler skill. This is only done for the neural nets and admissible combiantions. Over all NN combiantions the median seed span is 0.043, on average 0.051 and at max 0.315  $(lstm/GI/saocp\_cqr)$. The seed span is larger than the median winkler skill in 51.7$\%$ of all NN combinations. There is a lot of heterogenity between families: $lstm\_const$ 23.8$\%$, xlstm 50.6$\%$, $xlstm\_const$ 58.7$\%$, lstm 68.5$\%$. While $lstm\_const$ is relative seed stable lstmw as fragile. Validity gating doesent change this dynamic, here the share of fragile combinations increases to 58,6$\%$. For example $lstm/G/dtaci\_cqr$ with Median-Winkler-Skill per Seed 0.0417 (42) / 0.0416 (43) / -0.0014 (44). Its seed span is 0.0341 is biiger than is effect. We see soemthing similar in the best admissible xLSTM package $xlstm/L/native$. It has a reported skill of 0.094 at seed 44 and at the others -0.008 (43) and 0.043 (42) so a seedspan of 0.102. The seed span is gain bigger than its winkler skill and the best xlstm package seed unstable. \\
 %  3. SEEDS. Nur NN-Modelle (588 Kombinationen ueber xlstm/lstm und ihre
-%     const-Zwillinge). Die Seed-Spannweite des Skills betraegt im Median
-%     0.043, im Mittel 0.051, maximal 0.315.
-%     -> Die entscheidende Zahl: in 52% der NN-Kombinationen ist die
-%        Seed-Spannweite GROESSER als der Betrag des Skills selbst.
-%        Das heisst, fuer die Haelfte der NN-Ergebnisse ist die
-%        Initialisierung ein groesserer Effekt als das Ergebnis.
-%        Konsequenz nach der Seed-Disziplin aus 7.8: fuer diese Faelle
-%        werden KEINE Rangaussagen getroffen. Diesen Satz explizit
-%        schreiben -- er entwertet die schwachen xlstm-Zahlen nicht,
-%        er ordnet sie richtig ein.
-%     -> Konkreter Beleg aus dem Story-Report (F9): lstm/G/dtaci_cqr
-%        mit Seed-Spanne 0.043 ueber dem Effekt.
-%     -> Auch relevant fuer 8.3: xlstm/L/native (0.094) hat seed_span
-%        0.102 -- die Spanne ist groesser als der Skill. Das beste
-%        xlstm-Paket ist also seed-fragil. UNBEDINGT dazuschreiben.
-%  4. BURN-IN (F11). Coverage in den ersten 36 Testmonaten gegen den Rest:
-%     im Mittel ueber alle Methoden -0.011, also leichte UNTERdeckung
-%     am Anfang. Der groesste Effekt liegt bei native (-0.066), gefolgt
-%     von decay_ocp (-0.041), saocp (-0.037), cqr_static (-0.034).
-%     Die adaptiven Online-Verfahren zeigen praktisch keinen Burn-in-
-%     Effekt oder sogar das umgekehrte Vorzeichen (aci +0.015,
-%     spci +0.012, dtaci +0.009).
-%     -> Interpretation: der Effekt trifft genau die Methoden, die einen
-%        gefuellten Kalibrierungspool brauchen, und nicht die, die online
-%        nachregeln. Das ist konsistent und selbstlimitierend (mit
-%        wachsendem Pool verschwindet er). Ehrlich, aber ohne Dramatik
-%        berichten.
-%     -> Ein Satz zur Doppelrolle: das HPO-Validierungsfenster dient
-%        gleichzeitig als CP-Initialisierung. Das ist die eigentliche
-%        Sorge hinter F11; die Messung zeigt, dass sie sich in einer
-%        Anfangs-UNTERdeckung aeussert, nicht in kuenstlichem Optimismus.
-%  5. Ein letzter Satz zur Laender-Konsistenz (F7): die mittlere paarweise
-%     Kendall-Rangkorrelation der Kombinations-Rankings zwischen den
-%     Laendern betraegt tau = 0.35. Die Rangfolge ist also nur schwach
-%     laenderuebergreifend stabil -- ein weiteres Argument fuer die
+%     const-Zwillinge). Die Seed-Spannweite des Winkler-Skills (Metrik:
+%     max-min ueber die 3 Seeds derselben Modell-Regime-Methode-
+%     Kombination) betraegt im Median 0.043, im Mittel 0.051, maximal
+%     0.315 (lstm/GI/saocp_cqr).
+%     -> Die entscheidende Zahl: in 52% der NN-Kombinationen (praezise:
+%        51.7%) ist die Seed-Spannweite GROESSER als der Betrag des
+%        Median-Winkler-Skills selbst. Konsequenz nach der Seed-
+%        Disziplin aus 7.8: fuer diese Faelle werden KEINE Rangaussagen
+%        getroffen.
+%     -> [WICHTIG -- aendert die Lesart] Der gepoolte Wert von 52%
+%        verdeckt grosse Heterogenitaet zwischen den vier Familien
+%        (Metrik: Anteil mit Seed-Spannweite > |Median-Winkler-Skill|,
+%        je Modellfamilie): lstm_const 23.8%, xlstm 50.6%,
+%        xlstm_const 58.7%, lstm 68.5%. lstm_const ist relativ
+%        seed-stabil, lstm das fragilste. Validity-Gating rettet das
+%        NICHT -- beschraenkt auf die validen Kombinationen steigt der
+%        gepoolte Anteil sogar auf 58.6% (n=372 statt 588).
+%     -> Konkreter Beleg (F9): lstm/G/dtaci_cqr, Median-Winkler-Skill je
+%        Seed 0.0417 (42) / 0.0416 (43) / -0.0014 (44), Seed-Spanne
+%        0.0431 ueber dem Betrag des Effekts -- Vorzeichen kippt bei
+%        Seed 44.
+%     -> Auch relevant fuer 8.3: xlstm/L/native (berichteter Skill 0.094
+%        bei Seed 44) hat je Seed 0.043 (42) / -0.008 (43) / 0.094 (44),
+%        Seed-Spanne 0.102 -- die Spanne ist groesser als der berichtete
+%        Skill selbst, UND der berichtete Wert ist der beste der drei
+%        Seeds. Das beste xlstm-Paket ist seed-fragil UND seed-selektiert.
+In Table ~\ref{tab:res_robustness_burnin} we compare the performance of the CP methods in the first 36 months vs. the rest. On average over all 14 methods we see a sight under coverage (-1.07$\%$) in the first 36 months. The biggest difference appearing in the native method (-6.64 $\%$) folowed by $decay\_ocp -4.1\% $ and $ saocp -3.7\%$. The adaptive online methods show almost no effect or the opposite $(aci +0.015, spci +0.012, dtaci +0.009)$. We assume this effect occures mainly in methods that need a full calibration pool not in those that adjust online. The HPO validation set serves also as the CP calibrations set. Still we saw under coverage not perfect coverage.\\
+%  4. BURN-IN (F11). Coverage in den ersten 36 Testmonaten gegen den Rest
+%     (Metrik: mittlere Coverage-Differenz cov_first36 minus cov_rest,
+%     je CP-Methode ueber 530 Zellen, Pool rolling(36) -- diese Pruefung
+%     vergleicht NICHT ueber Pool-Varianten, Punkt 1 ist hier irrelevant):
+%     im Mittel ueber alle 14 Methoden -0.011, leichte UNTERdeckung am
+%     Anfang. Groesster Effekt bei native (-0.066), gefolgt von decay_ocp
+%     (-0.041), saocp (-0.037), cqr_static (-0.034). Die adaptiven
+%     Online-Verfahren zeigen praktisch keinen Effekt oder das umgekehrte
+%     Vorzeichen (aci +0.015, spci +0.012, dtaci +0.009).
+%     -> Interpretation: der Effekt trifft die Methoden, die einen
+%        gefuellten Kalibrierungspool brauchen, nicht die, die online
+%        nachregeln. Konsistent und selbstlimitierend.
+%     -> Doppelrolle: das HPO-Validierungsfenster dient gleichzeitig als
+%        CP-Initialisierung. Die Messung zeigt Anfangs-UNTERdeckung,
+%        nicht kuenstlichen Optimismus.
+Finaly we admiister wether the ranking is consistent over the 10 countries. For that we use the paiwise kendall rankkorrelation $\tau$. With $\tau$ spanning from 0.0373 in FIvs.GR to 0.650 in ESvsPT and and overa $\tau$ of 0.35. We conclude that the ranking is rather instable 
+%  5. Laender-Konsistenz (F7): mittlere paarweise Kendall-Rangkorrelation
+%     tau_b (Metrik: tau_b zwischen den Winkler-Skill-Vektoren zweier
+%     Laender ueber alle 742 Kombinationen, gemittelt ueber 45
+%     Laenderpaare) betraegt tau = 0.35 (praezise: Mittel 0.346, Median
+%     0.344). Spanne von tau = 0.073 (FI-GR) bis tau = 0.650 (ES-PT) --
+%     diese Spanne nennen, nicht nur den Mittelwert. Argument fuer die
 %     zurueckhaltende Formulierung aus 8.8.
+%     !! Verwechslungsgefahr: Kendall-tau (Laenderkonsistenz) ist NICHT
+%        Spearman-rho aus Punkt 2 (Ex-Irland-Rangstabilitaet) -- beide
+%        sind Rangkorrelationen auf verschiedenen Achsen (Laender vs.
+%        Kombinationen), im Fliesstext auseinanderhalten.
 %
-% ZAHLEN (verifiziert):
-%   cells.csv, mittlere Coverage je pool_mode:
-%     rolling24 0.8127 | rolling48 0.8204 | rolling 0.8341 | expanding 0.8432
-%     Median-Skill: rolling24 +0.0003 | rolling48 +0.0142
-%       | rolling -0.0126 | expanding -0.0111
-%     paarweise |Differenz| auf 3180 gemeinsamen Zellen:
+% TABELLEN: tab:res_robustness_pool (Panels A-D: Methoden-Klassifikation,
+%   Pool-Aggregate, F8-Einzelfaelle, Laenderkonsistenz), tab:res_robustness_ie
+%   (Ex-IE Top-5/Worst-6), tab:res_robustness_seeds (Panels A-B:
+%   Seed-Spanne je Familie, F9/xlstm-Beispiele), tab:res_robustness_burnin
+%   (Burn-in je Methode) -- alle vier unten im Chat geliefert, Zahlen und
+%   Captions bereits eingetragen, du schreibst nur den Fliesstext drumherum.
+%
+% ZAHLEN (verifiziert direkt gegen run_full_20260803_095330/tables/ UND
+%   gegen notebooks/conformal_layer.ipynb (Quellcode der CP-Schicht),
+%   Konsistenz-Check: cells[pool=rolling] kombinationsweise aggregiert
+%   reproduziert ranking_all.median_skill UND robustness_ex_ie.median_skill
+%   mit max. Abweichung 0.0 ueber alle 742 Kombinationen):
+%
+%   [1 Pool] Klassifikation (POOL_BASED_METHODS, conformal_layer.ipynb
+%     Zelle 4): pool-lesend (6) = cqr_rolling, aci_cqr, agaci_cqr,
+%     dtaci_cqr, spci_cqr, mondrian_cqr | pool-invariant (8) = native,
+%     cqr_static, pid_cqr, pid_tan_cqr, pid_local_cqr, sfogd_cqr,
+%     saocp_cqr, decay_ocp_cqr. Empirische Verifikation (Metrik: max.
+%     absolute Coverage-Differenz rolling(36) vs. expanding, 530 Zellen
+%     je Methode): pool-invariant = 0.0000000000 fuer alle 8 Methoden.
+%     cells.parquet, Metrik "mittlere Coverage" je pool_mode, NUR die 6
+%     Pool-Methoden (n=3180 je Pool):
+%       rolling24 0.8127 | rolling48 0.8204 | rolling(36) 0.8165 | expanding 0.8378
+%     Metrik "Median-Winkler-Skill" je pool_mode, gleiche 6-Methoden-Basis:
+%       rolling24 +0.0003 | rolling48 +0.0142 | rolling(36) +0.0067 | expanding +0.0048
+%     zum Vergleich, die 8 pool-invarianten Methoden (konstant ueber alle
+%     vier Pools, n=4240): mittlere Coverage 0.8473 | Median-Winkler-Skill -0.0241
+%     Metrik "mittlere/maximale absolute Coverage-Differenz zu rolling(36)",
+%     auf den 3180 Zellen der 6 Pool-Methoden:
 %       vs expanding  mean 0.0397  max 0.1890
 %       vs rolling24  mean 0.0208  max 0.1024
 %       vs rolling48  mean 0.0156  max 0.0866
-%   robustness_ex_ie.csv (485 valide): mean d_skill -0.0210,
-%     median -0.0176, Spearman rho(mit vs ohne IE) = 0.9392
-%     Top-5 mit/ohne IE: tirex2/cqr_static 0.146->0.103 (-0.043)
-%       | tirex2/decay_ocp 0.144->0.100 | tirex2/native 0.142->0.098
-%       | tirex2_cov/native 0.141->0.097 | tirex2_cov/cqr_static
-%       0.140->0.098
-%     groesste Verschlechterung: lgbm/L/aci -0.094 | lgbm/L/dtaci -0.084
-%       | lgbm/L/agaci -0.077 | arma_monthly/L/cqr_rolling -0.070
-%   ranking_all.csv, seed_span ueber 588 NN-Kombis:
-%     Median 0.0431 | Mittel 0.0514 | Max 0.3146
-%     Anteil mit seed_span > |median_skill|: 0.52
-%   cells.csv, cov_first36 minus cov_rest je Methode:
+%     Metrik "Coverage-Differenz rolling minus expanding, Seed 42, Mittel
+%     ueber 10 Laender" (F8, Einzelkombinationen, alle cqr_rolling):
+%     lstm/GI 0.0890 | arma_monthly/L 0.0850 | lstm/GF 0.0835
+%
+%   [2 Ex-Irland] robustness_ex_ie.parquet, 485 valide von 742 Kombinationen:
+%     Metrik "mean/median d_skill" (= median_skill_exie - median_skill):
+%       mean -0.0210 | median -0.0176
+%     Metrik "Spearman rho(median_skill, median_skill_exie)": 0.9392
+%     Metrik "Median-Winkler-Skill mit -> ohne IE (Delta)", Top-5 nach
+%     Original-Skill (alle ZS, Seed 42): tirex2/cqr_static 0.1461->0.1027
+%       (-0.0434) | tirex2/decay_ocp_cqr 0.1442->0.0996 (-0.0446)
+%       | tirex2/native 0.1420->0.0983 (-0.0436) | tirex2_cov/native
+%       0.1409->0.0967 (-0.0441) | tirex2_cov/cqr_static 0.1402->0.0982
+%       (-0.0421)
+%     dieselbe Metrik, groesste Verschlechterung (alle L, Seed 42):
+%       lgbm/aci_cqr -0.0942 | lgbm/dtaci_cqr -0.0844 | lgbm/agaci_cqr
+%       -0.0765 | arma_monthly/cqr_rolling -0.0704 | arma/pid_tan_cqr
+%       -0.0697 | lgbm/cqr_rolling -0.0669
+%     Metrik "Median-Winkler-Skill je Land" (cells.parquet, Laenderschnitt,
+%     485 valide Kombinationen): IE 0.231 | PT 0.191 | GR 0.120 | ES 0.095
+%       | BE 0.051 | NL -0.002 | AT -0.015 | FR -0.047 | FI -0.052 | IT -0.070
+%
+%   [3 Seeds] ranking_all.parquet, Metrik "seed_span" (max-min Median-
+%     Winkler-Skill ueber 3 Seeds) ueber 588 NN-Kombinationen:
+%     Median 0.0431 | Mittel 0.0514 | Max 0.3146 (lstm/GI/saocp_cqr)
+%     Metrik "Anteil mit seed_span > |median_skill|":
+%       gepoolt (n=588) 0.517 | gepoolt, nur valide (n=372) 0.586
+%       je Familie (n / Anteil, alle / Anteil, nur valide):
+%         xlstm       168 / 0.506 / 0.641 (n=103)
+%         xlstm_const 126 / 0.587 / 0.778 (n=81)
+%         lstm        168 / 0.685 / 0.733 (n=105)
+%         lstm_const  126 / 0.238 / 0.145 (n=83)
+%     Metrik "Median-Winkler-Skill je Seed" (Einzelbeispiele):
+%       lstm/G/dtaci_cqr: 42 0.0417 | 43 0.0416 | 44 -0.0014 (span 0.0431)
+%       xlstm/L/native:   42 0.0433 | 43 -0.0084 | 44 0.0939* (span 0.1022)
+%       *44 = im Rest des Kapitels berichteter/ausgewaehlter Wert
+%
+%   [4 Burn-in] cells.parquet, Metrik "mittlere Coverage-Differenz
+%     cov_first36 minus cov_rest", je CP-Methode ueber 530 Zellen
+%     (Pool rolling(36), alle 14 Methoden -- Punkt 1 nicht anwendbar):
 %     native -0.0664 | decay_ocp -0.0405 | saocp -0.0371 | cqr_static
 %     -0.0336 | pid_tan -0.0100 | mondrian -0.0038 | agaci -0.0034
 %     | pid_local -0.0025 | sfogd +0.0011 | pid +0.0039 | cqr_rolling
 %     +0.0065 | dtaci +0.0090 | spci +0.0121 | aci +0.0146
-%     Gesamtmittel: -0.0107
-%   story_report.md F7: mittlere paarweise Kendall-tau zwischen
-%     Laendern = 0.35
+%     Gesamtmittel ueber alle 14 Methoden: -0.0107
 %
-% ZITATE: keine neuen Pflichtzitate. Fuer die IE-/Leprechaun-Verzerrung
-%   brauchst du EINE Quelle (CSO Irland "Modified GNI (GNI*)") -- steht
-%   noch aus, siehe offener Punkt am Ende von evaluation.tex.
+%   [5 Laenderkonsistenz] cells.parquet, Metrik "Kendall tau_b" zwischen
+%     den Winkler-Skill-Rankings zweier Laender (742 Kombinationen, Pool
+%     rolling(36), alle 14 Methoden), gemittelt/median ueber 45
+%     Laenderpaare: Mittel 0.3457 | Median 0.3436 | Minimum FI-GR 0.0734
+%     | Maximum ES-PT 0.6496 (Cross-Check: identisch mit der unabhaengigen
+%     Notiz in evaluation.tex:542)
 %
-% [arXiv-Kuerzung]: 1 Absatz mit vier Stichpunkten inline. Die
-%   Seed-Fragilitaet und der ex-IE-Niveaueffekt MUESSEN drin bleiben.
+% ZITATE: keine neuen Pflichtzitate fuer diesen Abschnitt selbst.
+%   kendall1938 (tau_b) fehlt noch in references.bib -- geteilter offener
+%   Punkt mit dem Methodenblock in evaluation.tex. Fuer die IE-/
+%   Leprechaun-Verzerrung brauchst du EINE Quelle (CSO Irland "Modified
+%   GNI (GNI*)") -- offener Punkt am Ende von evaluation.tex.
+%
+% [arXiv-Kuerzung]: 1 Absatz mit fuenf Stichpunkten inline (Pool, Ex-IE,
+%   Seeds, Burn-in, Laenderkonsistenz). Die Seed-Fragilitaet (inkl. der
+%   Heterogenitaet zwischen Familien) und der ex-IE-Niveaueffekt MUESSEN
+%   drin bleiben, das sind die beiden Befunde mit Praesentationsrelevanz
+%   (Risiko 2 aus dem Handoff). Die 6-von-14-Klassifikation aus Punkt 1
+%   ist ein guter, knapper Praezisions-Satz und passt notfalls sogar in
+%   die Kurzfassung ("pool choice matters only for the six CP methods
+%   that read a historical score window; the other eight are unaffected
+%   by construction").
+\begin{table}[t]
+\centering
+\caption{Calibration-pool robustness. Panel A: classification of the 14 CP methods by whether they read the historical calibration-score pool at all. Panel B: coverage and Winkler skill under four calibration-pool definitions, restricted to the six pool-reading methods, and their deviation from the primary choice \texttt{rolling(36)}. Panel C: the three individual (model, regime, seed, method) combinations with the largest pool sensitivity (Story-Report finding F8). Panel D: cross-country stability of the combination ranking (Kendall's $\tau$, Story-Report finding F7).}
+\label{tab:res_robustness_pool}
 
+\textbf{Panel A: which CP methods can be pool-sensitive at all}\\[1mm]
+\begin{tabular}{l p{0.44\linewidth} p{0.28\linewidth}}
+\toprule
+Group & CP methods & Verification (\texttt{rolling(36)} vs.\ \texttt{expanding}) \\
+\midrule
+Pool-reading ($n=6$) & \texttt{cqr\_rolling}, \texttt{aci\_cqr}, \texttt{agaci\_cqr}, \texttt{dtaci\_cqr}, \texttt{spci\_cqr}, \texttt{mondrian\_cqr} & differs -- see Panels B--C \\
+\addlinespace
+Pool-invariant ($n=8$) & \texttt{native}, \texttt{cqr\_static}, \texttt{pid\_cqr}, \texttt{pid\_tan\_cqr}, \texttt{pid\_local\_cqr}, \texttt{sfogd\_cqr}, \texttt{saocp\_cqr}, \texttt{decay\_ocp\_cqr} & identical: max $|\Delta\text{coverage}| = 0$ (bit-exact, 530 cells/method) \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\textbf{Panel B: aggregate coverage and skill by calibration pool (pool-reading methods only)}\\[1mm]
+\begin{tabular}{lcccccc}
+\toprule
+Pool & $n$ (cells) & Mean coverage & Median Winkler skill & Mean $|\Delta$cov$|$ (pp) & Max $|\Delta$cov$|$ (pp) \\
+\midrule
+\texttt{rolling(36)} [primary] & 3180 & 0.817 & $+0.007$ & -- & -- \\
+\texttt{expanding}             & 3180 & 0.838 & $+0.005$ & 4.0  & 18.9 \\
+\texttt{rolling(24)}           & 3180 & 0.813 & $+0.000$ & 2.1  & 10.2 \\
+\texttt{rolling(48)}           & 3180 & 0.820 & $+0.014$ & 1.6  & 8.7  \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\textbf{Panel C: largest single-combination sensitivities (Seed 42, mean coverage over 10 countries)}\\[1mm]
+\begin{tabular}{lccc}
+\toprule
+Combination & Coverage \texttt{rolling(36)} & Coverage \texttt{expanding} & $\Delta$ coverage (pp) \\
+\midrule
+\texttt{lstm/GI/cqr\_rolling}          & 0.837 & 0.926 & 8.9 \\
+\texttt{arma\_monthly/L/cqr\_rolling}  & 0.823 & 0.895 & 8.5 \\
+\texttt{lstm/GF/cqr\_rolling}          & 0.847 & 0.931 & 8.3 \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\textbf{Panel D: country consistency of the combination ranking}\\[1mm]
+\begin{tabular}{lcccc}
+\toprule
+Mean pairwise $\tau$ & Median pairwise $\tau$ & Minimum pair & Maximum pair \\
+\midrule
+0.346 & 0.344 & FI--GR: 0.073 & ES--PT: 0.650 \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+{\footnotesize\textit{Notes:} \texttt{pool\_mode} is a calibration-pool parameter of the conformal-prediction layer only (\cref{sec:conformal}); base-model point forecasts and raw quantiles never depend on it. Winkler skill $= 1 - \overline{\text{Winkler}}/\overline{\text{Winkler}}_{\texttt{rw/L/native}}$, higher is better, computed per (model, regime, seed, method, country) cell and reported here as the median over the 10 countries. Panel B: all four rows use the same population (the 3{,}180 cells of the six pool-reading methods, 53 (model, regime, seed) combinations $\times$ 10 countries); $\Delta$cov columns are the mean/max absolute coverage difference against \texttt{rolling(36)}. For reference, the eight pool-invariant methods (Panel A) have mean coverage 0.847 and median Winkler skill $-0.024$, identical under all four pool definitions by construction. Panel C: all three extreme cases use CP method \texttt{cqr\_rolling}, the only one of the six pool-reading methods that fully recomputes its quantile from the current pool every month rather than updating a state online. Panel D: $\tau$ (Kendall's $\tau_b$) computed pairwise across the 10 countries' Winkler-skill rankings over all 742 (model, regime, seed, method) combinations, pool \texttt{rolling(36)} (all 14 methods; this check does not compare across pools).}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Sensitivity of the combination ranking to excluding Ireland. Top block: the five combinations most exposed to Ireland (highest Winkler skill including Ireland, all \texttt{ZS}, Seed 42). Bottom block: the six combinations with the largest drop in Winkler skill when Ireland is excluded (all \texttt{L}, Seed 42).}
+\label{tab:res_robustness_ie}
+\begin{tabular}{lccc}
+\toprule
+Combination (Regime, Seed 42) & Winkler skill (10 countries) & Winkler skill (ex-IE, 9 countries) & $\Delta$ \\
+\midrule
+\multicolumn{4}{l}{\textit{Most exposed to Ireland (top 5 by original skill)}} \\
+\texttt{tirex2/ZS/cqr\_static}      &  0.146 &  0.103 & $-0.043$ \\
+\texttt{tirex2/ZS/decay\_ocp\_cqr}  &  0.144 &  0.100 & $-0.045$ \\
+\texttt{tirex2/ZS/native}           &  0.142 &  0.098 & $-0.044$ \\
+\texttt{tirex2\_cov/ZS/native}      &  0.141 &  0.097 & $-0.044$ \\
+\texttt{tirex2\_cov/ZS/cqr\_static} &  0.140 &  0.098 & $-0.042$ \\
+\addlinespace
+\multicolumn{4}{l}{\textit{Largest drops (worst 6 by $\Delta$)}} \\
+\texttt{lgbm/L/aci\_cqr}             &  0.067 & $-0.027$ & $-0.094$ \\
+\texttt{lgbm/L/dtaci\_cqr}           &  0.075 & $-0.009$ & $-0.084$ \\
+\texttt{lgbm/L/agaci\_cqr}           &  0.085 &  0.009   & $-0.077$ \\
+\texttt{arma\_monthly/L/cqr\_rolling}&  0.055 & $-0.015$ & $-0.070$ \\
+\texttt{arma/L/pid\_tan\_cqr}        & $-0.056$ & $-0.126$ & $-0.070$ \\
+\texttt{lgbm/L/cqr\_rolling}         &  0.077 &  0.010   & $-0.067$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+{\footnotesize\textit{Notes:} Winkler skill as defined in \cref{tab:res_robustness_pool}. $\Delta$ = skill excluding Ireland minus skill including Ireland; negative means the combination looks worse without Ireland. Over all $n=485$ validity-gated combinations: mean $\Delta = -0.021$, median $\Delta = -0.018$, Spearman rank correlation between the with-Ireland and ex-Ireland rankings (median skill) $\rho = 0.939$ ($p<0.001$). Ireland's own median Winkler skill (country breakdown, validity-gated combinations) is 0.231, the highest of the 10 countries (next: Portugal 0.191) -- the mechanical reason the top ranks are Ireland-exposed.}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Seed fragility of the neural-network combinations (\texttt{xlstm}, \texttt{xlstm\_const}, \texttt{lstm}, \texttt{lstm\_const}; 3 seeds each). Panel A: seed-span of the Winkler skill by model family, for all combinations and restricted to validity-gated combinations. Panel B: two worked examples showing the per-seed Winkler skill.}
+\label{tab:res_robustness_seeds}
+
+\textbf{Panel A: seed-span of the Winkler skill, by model family}\\[1mm]
+\begin{tabular}{lccccc}
+\toprule
+Family & $n$ & Median seed-span & Mean seed-span & Share fragile (all $n$) & Share fragile (validity-gated) \\
+\midrule
+All NN combined      & 588 & 0.043 & 0.051 & 0.517 & 0.586 ($n=372$) \\
+\texttt{xlstm}        & 168 & 0.051 & 0.061 & 0.506 & 0.641 ($n=103$) \\
+\texttt{xlstm\_const}  & 126 & 0.045 & 0.046 & 0.587 & 0.778 ($n=81$)  \\
+\texttt{lstm}          & 168 & 0.046 & 0.070 & 0.685 & 0.733 ($n=105$) \\
+\texttt{lstm\_const}   & 126 & 0.015 & 0.020 & 0.238 & 0.145 ($n=83$)  \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\textbf{Panel B: worked examples (Winkler skill by seed)}\\[1mm]
+\begin{tabular}{lcccc}
+\toprule
+Combination & Seed 42 & Seed 43 & Seed 44 & Seed-span \\
+\midrule
+\texttt{lstm/G/dtaci\_cqr}  & 0.0417 & 0.0416 & $-0.0014$ & 0.0431 \\
+\texttt{xlstm/L/native}     & 0.0433 & $-0.0084$ & 0.0939\rlap{$^\ast$} & 0.1022 \\
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+{\footnotesize\textit{Notes:} ``Fragile'' = seed-span of the Winkler skill exceeds $|$median skill$|$ across the 3 seeds; for these combinations no ranking claim is made (seed discipline, \cref{sec:res:robustness}). ``Validity-gated'' restricts to combinations passing the coverage-validity gate (\cref{sec:res:gate}); gating does not rescue fragility. $^\ast$Seed 44 is the seed reported for \texttt{xlstm/L/native} elsewhere in this chapter (the model's best validity-gated package); its own seed-span (0.102) exceeds its reported skill (0.094).}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Burn-in sensitivity: mean coverage in the first 36 test months minus the remaining test months, by CP method (pool \texttt{rolling(36)}, 530 cells per method = 53 (model, regime, seed) combinations $\times$ 10 countries).}
+\label{tab:res_robustness_burnin}
+\begin{tabular}{lc}
+\toprule
+CP method & $\Delta$ coverage, first 36 months $-$ rest (pp) \\
+\midrule
+\texttt{native}          & $-6.64$ \\
+\texttt{decay\_ocp\_cqr} & $-4.05$ \\
+\texttt{saocp\_cqr}      & $-3.71$ \\
+\texttt{cqr\_static}     & $-3.36$ \\
+\texttt{pid\_tan\_cqr}   & $-1.00$ \\
+\texttt{mondrian\_cqr}   & $-0.38$ \\
+\texttt{agaci\_cqr}      & $-0.34$ \\
+\texttt{pid\_local\_cqr} & $-0.25$ \\
+\texttt{sfogd\_cqr}      & $+0.11$ \\
+\texttt{pid\_cqr}        & $+0.39$ \\
+\texttt{cqr\_rolling}    & $+0.65$ \\
+\texttt{dtaci\_cqr}      & $+0.90$ \\
+\texttt{spci\_cqr}       & $+1.21$ \\
+\texttt{aci\_cqr}        & $+1.46$ \\
+\midrule
+All methods (mean)       & $-1.07$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %------------------------------------------------------------------------
 \subsection{Summary of findings}
