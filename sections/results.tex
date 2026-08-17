@@ -2420,31 +2420,39 @@ All methods (mean)       & $-1.07$ \\
 %  (1) Punktprognose: kein Modell schlaegt den Random Walk; das beste
 %      MAE-Verhaeltnis ist 0.997 (tirex2), alle trainierten Modelle
 %      liegen darueber.
+1. No Model beats the random walk. The best Model (tirex2) has a MAE ratio of 0.997. All trained Models performe worse.
 %  (2) Kalibrierung: native Modellquantile sind systematisch ueberdeckend
 %      (0.872 statt 0.80) und passieren das Gate nur in 13% der Faelle;
 %      adaptive CP-Verfahren erreichen 96-100%.
+2. Native Model quantiles systematically overcoverage ( 0872 isntead of 0.8) and due to this fact pass the admissibilty gate in 13$\%$ of cases. Adaptice Conformal methods reach an admissibility rate of $96-100\%$.
 %  (3) Intervallguete: das beste valide Paket ist ein Zero-Shot-
 %      Foundation-Model -- tirex2/ZS/decay_ocp_cqr, Skill 0.144 bei
 %      Coverage 0.787 und 10/10 Laendern (Entscheidung aus 8.3 Punkt 4,
 %      gefallen 2026-08-10) -- vor dem besten klassischen Ansatz
 %      (rw/L/aci_cqr, 0.085). cqr_static hat mit 0.146 den hoechsten
 %      Rohskill, deckt aber nur 0.750 und passiert nur 8/10 Laender.
+3. The best valid Packages are all based on a Zero Shot Foundation Model (tirex2/ZS). At best it performes $14-15\%$ better than the baseline baseline and beats the best classic classic package $(rw/L/aci\_cqr, 0.085)$.
 %  (4) Aber: kein einziger der 66 Cross-Model-Kontraste ist FDR-
 %      signifikant (min. median-q 0.185), und die MCS schliesst fast
 %      nichts aus. Die Rangfolge ist deskriptiv.
+4. None of the 66 cross Model contrasts in FDR significant (min. median-q 0.185) and the MCS excludes almost nothing. The ranking is descriptive.
 %  (5) Kovariaten: der ceteris-paribus-Kontrast ist null
 %      (d_norm -0.00006, p 0.45); 17 makrooekonomische Kovariaten
 %      liefern dem vortrainierten Modell keine Zusatzinformation.
+5. The ceteris paribus contrast comparing tirex2 with and without covariates is zero $(d\_norm -0.00006,\ p \ 0.45)$. The choosen 17 macro covariates ad no relevant information for the pretrained Model.
 %  (6) Pooling und Adaptivitaet: globales Pooling hilft den neuronalen
 %      Modellen nicht (+0.017), Fine-Tuning schlaegt Laender-Embedding
 %      klar (-0.054), und modelleigene adaptive Breiten sind im Median
 %      schlechter als konstante (+0.020).
+6. Global pooling doesn't increase the performance of Neural Networks. Finetuning beats the none fine tuned Model and using adaptive quantiles produced by the models performs worse in the median than using constant width intervals.
 %  (7) xLSTM: die namensgebende Architektur ist die schwaechste Familie
 %      (Median-Skill -0.047); das beste valide Paket ist seed-fragil
 %      (Skill 0.094 bei Seed-Spanne 0.102).
+7. The xLSTM architecture that was trained on the data is the weakest Model family (Median-Skill -0.047). The best package is seed fragile (Skill 0.094 at Seed-Span 0.102)
 %  (8) Regime: der Vorsprung der komplexen Modelle verschwindet im
 %      Stress (Delta -0.077 von low- zu high-VIX; tirex2 von 0.125
 %      auf -0.003).
+8. The advantage of the complex Modells vanishes in stress (Delta -0.077 from low- to high-VIX; tirex2 from 0.125 to -0.003).
 %
 % !! Wenn du (3) schreibst, muss die Entscheidung aus 8.3 Punkt 4
 %    (cqr_static vs decay_ocp) hier konsistent durchgezogen sein.
