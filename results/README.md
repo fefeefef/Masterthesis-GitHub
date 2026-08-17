@@ -1,14 +1,27 @@
-# Ergebnisartefakte — Diagnostics-Run `run_full_20260803_095330`
+# Ergebnisartefakte — Diagnostics-Run `run_full_20260810_110834`
 
 Quelle aller Zahlen, die in `sections/results.tex` als Kommentar hinterlegt sind.
-Kopiert aus `Masterthesis/notebooks/results_diagnostics/run_full_20260803_095330/`.
+Kopiert aus `Masterthesis/notebooks/results_diagnostics/run_full_20260810_110834/`.
 
 ## Herkunft
 
 | Feld | Wert |
 |---|---|
-| Diagnostics-Run | `run_full_20260803_095330` (03.08.2026, `mode=full`) |
+| Diagnostics-Run | `run_full_20260810_110834` (10.08.2026, `mode=full`) |
 | Conformal-Run | `run_full_20260721_145309` |
+
+Dieser Lauf ist eine Wiederholung von `run_full_20260803_095330` auf demselben
+Conformal-Run. Grund: die `skill`-Spalte in `regime_results` war in allen früheren Läufen
+leer (der Fix in Zelle 21 von `diagnostics_master_v2.ipynb` war eingebaut, aber nie
+ausgeführt), sodass die Skill-Spalten in `tab:res_regime` aus einer Standalone-Rechnung
+stammten und aus keinem ausgelieferten Artefakt reproduzierbar waren. Jetzt sind sie im
+Artefakt: 5194/5194 gefüllt, dazu neu die Spalten `skill_iqr` und `n_countries`.
+
+**Verifiziert:** 14 der 15 Tabellen sind bit-identisch zum Lauf vom 03.08. (maximale
+absolute Differenz 0 über alle numerischen Spalten, keine NaN-Verschiebungen); nur
+`regime_results` ist von 9 auf 11 Spalten gewachsen. Sämtliche im Text berichteten Zahlen
+bleiben damit unverändert gültig. Ausgetauscht wurde in diesem Ordner deshalb nur
+`tables/regime_results.csv`.
 | Panel-Hash (`data_sha256`) | `5f27a4124f93…68ec2e` — identisch über **alle sieben** Modellfamilien |
 | git commit (Code) | `b1811e67b6a92460cdf94e405d29093a5945680f` |
 | Python / numpy / pandas / scipy | 3.13.1 / 2.1.3 / 2.3.3 / 1.17.1 |

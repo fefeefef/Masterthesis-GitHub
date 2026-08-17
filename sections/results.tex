@@ -17,8 +17,17 @@
 %
 %  DATENHERKUNFT ALLER ZAHLEN IN DIESER DATEI
 %  ------------------------------------------
-%  Diagnostics-Run : run_full_20260803_095330   (03.08.2026, mode=full)
-%  Conformal-Run   : run_full_20260721_145309
+%  Diagnostics-Run : run_full_20260810_110834   (10.08.2026, mode=full)
+%    -> Wiederholung von run_full_20260803_095330 auf DEMSELBEN Conformal-Run.
+%       Grund: die skill-Spalte in regime_results war in allen frueheren
+%       Laeufen leer (Zelle-21-Fix eingebaut, nie ausgefuehrt); die Skills in
+%       tab:res_regime stammten aus einer Standalone-Rechnung. Jetzt im
+%       Artefakt: 5194/5194 gefuellt, plus skill_iqr und n_countries.
+%       Verifiziert: 14 der 15 Tabellen sind bit-identisch zum 03.08.-Lauf
+%       (max |Differenz| = 0 ueber alle numerischen Spalten), nur
+%       regime_results ist gewachsen. Alle im Text berichteten Zahlen
+%       bleiben also gueltig.
+%  Conformal-Run   : run_full_20260721_145309  (unveraendert)
 %  Modell-Runs     : rw/arma/tirex/lgbm 21.07. 12:54--12:57,
 %                    xlstm 13:23, lstm 13:55, tirex2 14:14
 %  Panel-Hash      : data_sha256 5f27a412...68ec2e  (IDENTISCH ueber alle
@@ -279,10 +288,10 @@ Model & MAE ratio & RMSE ratio & Directional accuracy & PT rejections \\
 \subsection{Main ranking: interval skill}
 \label{sec:res:ranking}
 %------------------------------------------------------------------------
-The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calibrations per model famly. As we can see the best Performing Modell is $tirex2/ZS/cqr\_static$ followed by $tirex2\_cov/ZS/native$ with respective median winkler skills of $0.146$/ $0.141$ and mean coverage of $0.75/0.839$. With both beeing admissible in only 8/10 countries. The best two valid Models are zero shot foundation models that wasnt trained on the data during this study.\\ 
+The Table ~\ref{tab:res_ranking} ranks the best perfroming (winkler skill) calibrations per model famly. As we can see the highest median winkler skill is reached by $tirex2/ZS/cqr\_static$ followed by $tirex2\_cov/ZS/native$ with respective median winkler skills of $0.146$/ $0.141$ and mean coverage of $0.75/0.839$. With both beeing admissible in only 8/10 countries. Both of them undercover and neither is admissible everywhere, so we do not report either of them as our headline result; we settle that choice below. The best two valid Models are zero shot foundation models that wasnt trained on the data during this study.\\
 The first model that has been trained by ourselfes is $lgbm/G/decay\_ocp\_cqr$, it is ranked third, with a median winkler skill of $0.139$ and mean coverage of $0.824$. The best classical approach $rw/L/aci\_cqr$ reached 8th place with a median winkler skill of $0.085$, mean coverage of $0.812$ and beeing admissable in all 10 countries. The same Model that is equal at point forecasting to the random walk beats it at producing prediction intervalls. This leads us to the conclusion that the advantage of the Model is soley in the predicting the distribution not the center. The xLSTM familie turned out to be the wort perfroming with a median skill over all combinations of $-0.047$.The best valid combination of the Familie is $xlstm/L/native$ with $0.094$ and without usage of the CP layer. In the GI regime we also see a negative skill of $-0.042$.\\
 
-In Table ~\ref{tab:res_tirex2_cp} we take a closer look at the winning Model family tirex2/ZS. We see that the second best performing (winkler skill) CP method $decay\_ocp\_cqr$ only has a difference, in winkler skill, of 0.002 to the elading Model but its coverage (0.787) is way closer to the target of 0.8 and its admissable in all 10 countries. Inside this familie the Median skill reaches from $-0.044$ $(pid\_tan)$ up to $0.146$ $(cqr\_static)$. We conclude that the choice of the calibration method is as important to the outcome as the choice of the underlying Model.
+In Table ~\ref{tab:res_tirex2_cp} we take a closer look at the winning Model family tirex2/ZS. We see that the second best performing (winkler skill) CP method $decay\_ocp\_cqr$ only has a difference, in winkler skill, of 0.002 to the elading Model but its coverage (0.787) is way closer to the target of 0.8 and its admissable in all 10 countries. We therefore report $tirex2/ZS/decay\_ocp\_cqr$ as our headline package. This follows the validity first principle of \cref{sec:eval:validity}: we rank by the winkler score inside the admissible set, but a combination that misses the target coverage by 5.0pp and fails the gate in two countries should not be crowned over one that misses it by 1.3pp and passes everywhere, and that for a skill difference of 0.002. The crossing rates of \cref{sec:res:gate} point the same way, where $cqr\_static$ crosses in $0.724\%$ of its predictions and $decay\_ocp\_cqr$ in $0.028\%$. Inside this familie the Median skill reaches from $-0.044$ $(pid\_tan)$ up to $0.146$ $(cqr\_static)$. We conclude that the choice of the calibration method is as important to the outcome as the choice of the underlying Model.
 \begin{figure}[htbp]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=1.15\textwidth]{figures/skill_heatmap.png}}
@@ -314,8 +323,18 @@ In Table ~\ref{tab:res_tirex2_cp} we take a closer look at the winning Model fam
 %        herbeigeredetes positives. In der Discussion aufgreifen:
 %        277 Monate x 10 Laender sind schlicht zu wenig Daten fuer eine
 %        Architektur dieser Kapazitaet.
-%  4. !! ENTSCHEIDUNG -- COVERAGE VS. WINKLER (CLAUDE.md verbietet mir,
-%     das fuer dich zu entscheiden):
+%  4. ENTSCHEIDUNG GEFALLEN (2026-08-10): Variante (b) -- decay_ocp_cqr ist
+%     das Headline-Paket, cqr_static wird als hoechster Rohskill genannt.
+%     Im Text oben ausgeschrieben. Konsequenzen, die durchgezogen sind:
+%       - 8.3 Winkler-Zerlegung: cqr_static ist nicht mehr "in the lead",
+%         sondern "highest raw skill".
+%       - 8.9 Regime: die Regime-Zahlen von decay_ocp_cqr sind ergaenzt;
+%         tab:res_regime Panel C bleibt die cqr_static-Variante (folgt
+%         tab:res_ranking), das ist im Text jetzt benannt.
+%       - 8.11 ex-IE: decay_ocp-Wert ergaenzt.
+%       - 8.12 Summary: Befund (3) muss decay_ocp nennen.
+%     Der Vollstaendigkeit halber die Abwaegung, die dahinter stand:
+%     !! URSPRUENGLICHE ENTSCHEIDUNGSVORLAGE -- COVERAGE VS. WINKLER:
 %     Der Spitzenreiter tirex2/ZS/cqr_static hat Skill 0.1461, aber
 %     mittlere Coverage 0.7496 -- also 5.0pp UNTER dem Ziel von 0.80 --
 %     und passiert das Gate nur in 8 von 10 Laendern.
@@ -355,7 +374,7 @@ In Table ~\ref{tab:res_tirex2_cp} we take a closer look at the winning Model fam
 %     offene Flanke -- entweder hier berichten oder in 7.2 streichen.
 %     Ich empfehle berichten: die Zahlen sagen etwas Nichttriviales.
 
-Decomposing the Winkler score leads to the following results: The average interval width is 0.3301. The average penalty for the real value being under the interval is 0.0521 and the average penalty for the real value being over the interval is 0.0714. The width makes up $72.8\%$ of the average winkelr score. We conclude that the score is dominated by the sharpness of the intervals not by the violations. This explaines why a Model that is undercovering like $tirex2/cqr\_static$ is in the lead. The tail asymetry is the ratio of lower violations to all violations. On average over all cells it was 0.5059 with the median being 0.5. We conclude that they are basically symetical distributed. But the penalties are not. High violations cause an average penalty of 0.0715 while lower violations only cause an average penalty of 0.0521, that is a discrepancy of 37$\%$. We conclude that the likelihood of leaving the interval in each direction is the same, but if the next point is outside of the interval the high violations are expected to be further from the interval than the lower ones. This is consistent with the know right skewed ness of credit spreads. A symmetric CQR score cant learn these patterns. 
+Decomposing the Winkler score leads to the following results: The average interval width is 0.3301. The average penalty for the real value being under the interval is 0.0521 and the average penalty for the real value being over the interval is 0.0715. The width makes up $72.8\%$ of the average winkelr score. We conclude that the score is dominated by the sharpness of the intervals not by the violations. This explaines why a Model that is undercovering like $tirex2/cqr\_static$ reaches the highest raw skill. The tail asymetry is the ratio of lower violations to all violations. On average over all cells it was 0.5049 with the median being 0.5. We conclude that they are basically symetical distributed. But the penalties are not. High violations cause an average penalty of 0.0715 while lower violations only cause an average penalty of 0.0521, that is a discrepancy of 37$\%$. We conclude that the likelihood of leaving the interval in each direction is the same, but if the next point is outside of the interval the high violations are expected to be further from the interval than the lower ones. This is consistent with the know right skewed ness of credit spreads. A symmetric CQR score cant learn these patterns. 
 %     WAS ZU SCHREIBEN IST (ein Absatz, 4-6 Saetze):
 %     (a) Woraus der Score besteht. Ueber die zulaessigen Kombinationen:
 %           mittlere Breite        0.3301
@@ -575,7 +594,7 @@ Admissible & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{8/10} & \multicolumn{
 \subsection{RQ3: does the conformal layer pay off?}
 \label{sec:res:rq3}
 %------------------------------------------------------------------------
-We wanted to find out wether the CP calibration methods led to an imporvement in performance when compared to the native quantile output of the Models. The answer is yes but only for the adaptive online CP methods with a moderate effect. The seven winning methods have a $d\_norm$ ranging from -0.054 to -0.031 with Pantel-t between -4 and -2. Three Methods performe worse thatn the native: $cqr\_static (+0.027), saocp (+0.052),pid\_tan (+0.102)$. The conformal layer is no miracle remedy that always works. The most important effect is not the skill but the validity. Native Model output only passes the Gate in 13.3$\%$ of cases while $dtaci/pid/pid\_local/sfogd/spci$ pass in $100\%$ of cases. We conclude that the mains trength of the conformal method is calibrating to the wanted coverage and not so much sharpness. After the FDR correction the rate of winning Models ranges only from 0.37 to 0.50. On 10 correlated countries and 127 Months this is a consistent but not overwhelming signal.
+We wanted to find out wether the CP calibration methods led to an imporvement in performance when compared to the native quantile output of the Models. The answer is yes but only for the adaptive online CP methods with a moderate effect. The seven winning methods have a $d\_norm$ ranging from -0.054 to -0.031 with Pantel-t between -4 and -2. Three Methods performe worse thatn the native: $cqr\_static (+0.027), saocp (+0.052),pid\_tan (+0.102)$. The conformal layer is no miracle remedy that always works. The most important effect is not the skill but the validity. Native Model output only passes the Gate in 13.2$\%$ of cases while $dtaci/pid/pid\_local/sfogd/spci$ pass in $100\%$ of cases. We conclude that the mains trength of the conformal method is calibrating to the wanted coverage and not so much sharpness. After the FDR correction the rate of winning Models ranges only from 0.37 to 0.50. On 10 correlated countries and 127 Months this is a consistent but not overwhelming signal.
 % WAS HIER STEHT:
 %  1. Die Frage klar stellen: bringt eine Rekalibrierungsmethode gegenueber
 %     der nativen Quantilausgabe des Modells einen messbaren Vorteil?
@@ -1668,11 +1687,13 @@ excludes two at the highest $p$ of 0.406.
 %------------------------------------------------------------------------
 % WAS HIER STEHT:
 %  0. VORAB, zwei Statusnotizen:
-%     - Die Skill-Spalten stammen aus dem Fix von Zelle 21, der eingebaut,
-%       aber NICHT ausgefuehrt ist. Standalone gerechnet
-%       (scratchpad/regime_skill_standalone.py); Coverage und Winkler
-%       reproduzieren das Artefakt exakt (Abweichung 0.00e+00). Vor Abgabe
-%       muss der Diagnostik-Rerun laufen.
+%     - ERLEDIGT 2026-08-10: der Diagnostik-Rerun ist gelaufen
+%       (run_full_20260810_110834). Die Skill-Spalten stehen jetzt im
+%       Artefakt selbst (regime_results: 5194/5194 gefuellt, neu auch
+%       skill_iqr und n_countries) und sind nicht mehr standalone
+%       gerechnet. Die Werte sind identisch zur damaligen
+%       Standalone-Rechnung, und 14 der 15 Tabellen sind bit-identisch
+%       zum 03.08.-Lauf. Nichts im Text muss deswegen geaendert werden.
 %     - Der Kalenderschnitt (qe bis 2021-12 gegen hiking ab 2022-01) wird
 %       NICHT berichtet. Er ist in pipeline.yaml vorregistriert, also
 %       braucht das eine Begruendung im Text -- stillschweigend weglassen
@@ -1786,7 +1807,7 @@ On the realised Volatility axis the story inverts. TiRex2 is the only Modell whi
 %     -> Belastbare Gesamtaussage: der Pretraining-Vorsprung verschwindet,
 %        wenn Belastung EINTRITT, nicht waehrend sie ANDAUERT. Punkt 3
 %        liefert die Begruendung mit.
-Looking at the best Packages per Model family in the stressed realized volatility regime the ranking stays the same as in ~\ref{sec:res:ranking}. The overall winner $tirex2/ZS/cqr\_static$ even increases his winkler skill in the stressed regime (+0.1554 calm to +0.1820 stressed ). This changes when looking at the same Model on the VIX axis. Here its skill disintegrates from 0.1754 in $VIX\leq20$ to 0.0191 in VIX>20 and it falls from rank 1 to rank 8. The best Package in the high VIX regime is $lgbm/G/decay\_ocp_cqr$ with 0.0797. $arma/L/dtaci$ rises in rank from 12 to 6th. We conclude again that the Model with the best overall performance is not the best in the months where a stress regime is enterd. Another caveat to the overall winner $tirex2/ZS/cqr\_static$ is that it covers only at 0.654 in the calm months. So it gains its skill advantage by dropping coverage.\\
+Looking at the best Packages per Model family in the stressed realized volatility regime the ranking stays the same as in ~\ref{sec:res:ranking}. The top row of that table, $tirex2/ZS/cqr\_static$, even increases his winkler skill in the stressed regime (+0.1554 calm to +0.1820 stressed ), and our headline package $tirex2/ZS/decay\_ocp\_cqr$ behaves the same way (+0.1569 calm to +0.1806 stressed). This changes when looking at the same Model on the VIX axis. Here its skill disintegrates from 0.1754 in $VIX\leq20$ to 0.0191 in VIX>20 and it falls from rank 1 to rank 8; the headline package falls the same way, from 0.1758 to 0.0219, and to the same rank. The best Package in the high VIX regime is $lgbm/G/decay\_ocp\_cqr$ with 0.0797. $arma/L/dtaci$ rises in rank from 12 to 6th. We conclude again that the Model with the best overall performance is not the best in the months where a stress regime is enterd. Another caveat to $cqr\_static$ is that it covers only at 0.654 in the calm months, so it gains its skill advantage by dropping coverage; the headline package covers 0.7218 there and pays for that with more overshooting in the stressed tercile (0.850 against 0.826).\\
 %  6. Die zwoelf besten zulaessigen Pakete (je Modellfamilie eines,
 %     Spezifikation in tab:res_ranking) -- das ist der praxisrelevanteste
 %     Befund und gehoert nach 8.3 zurueckverwiesen:
@@ -2057,7 +2078,7 @@ Looking at the three cells with the highest sensitivity, in mean coverage over a
 %        Methoden, und die einzige davon, die ihr Quantil jeden Monat
 %        komplett neu aus dem aktuellen Pool berechnet statt einen
 %        Zustand online fortzuschreiben wie die anderen fuenf.
-Ireland has a special macroeconomic position. A lot of packages score very well on it so we take a look at how the packages performance and ranking changes when Ireland is excluded. The spearman rank correlation over all 485 admissible combinations is 0.939. This shows that the rank is stable to the exclusion of Ireland, but the Winkler skill is not as we can see in Table ~\ref{tab:res_robustness_ie}. The average Winkler skill over all admissible combinations decreases by -0.021 (Median -0.018) and in the best package over all 10 countrys ($tirex2/ZS/cqr\_static$) the Median skill decreases from 0.146 to 0.103 (Delta -0.043). A third of the winners median winkler skill stems from Ireland. Ireland also is with a Median winkler skill of 0.231 over all admissible packages the easiest country with second beeing portugal (0.191). The package that suffers the most from the exclusion of Ireland is $lgbm/L/aci\_cqr$ which went from a positive winkler score including Ireland (0.067) to a negative (-0.027) with a difference of 0.094. Out of the 6 Packages that lost the most 4 are lgbm/L based.\\
+Ireland has a special macroeconomic position. A lot of packages score very well on it so we take a look at how the packages performance and ranking changes when Ireland is excluded. The spearman rank correlation over all 485 admissible combinations is 0.939. This shows that the rank is stable to the exclusion of Ireland, but the Winkler skill is not as we can see in Table ~\ref{tab:res_robustness_ie}. The average Winkler skill over all admissible combinations decreases by -0.021 (Median -0.018) and in the package with the highest skill over all 10 countrys ($tirex2/ZS/cqr\_static$) the Median skill decreases from 0.146 to 0.103 (Delta -0.043). Our headline package $tirex2/ZS/decay\_ocp\_cqr$ loses the same way, from 0.144 to 0.100 (Delta -0.045). A third of the winners median winkler skill stems from Ireland. Ireland also is with a Median winkler skill of 0.231 over all admissible packages the easiest country with second beeing portugal (0.191). The package that suffers the most from the exclusion of Ireland is $lgbm/L/aci\_cqr$ which went from a positive winkler score including Ireland (0.067) to a negative (-0.027) with a difference of 0.094. Out of the 6 Packages that lost the most 4 are lgbm/L based.\\
 %  2. EX-IRLAND. Spearman-Rangkorrelationskoeffizient (Metrik: rho
 %     zwischen Rang nach Winkler-Skill mit und ohne Irland) ueber die
 %     485 validen Kombinationen: rho = 0.939. Die Rangfolge ist also
@@ -2403,8 +2424,11 @@ All methods (mean)       & $-1.07$ \\
 %      (0.872 statt 0.80) und passieren das Gate nur in 13% der Faelle;
 %      adaptive CP-Verfahren erreichen 96-100%.
 %  (3) Intervallguete: das beste valide Paket ist ein Zero-Shot-
-%      Foundation-Model (tirex2/ZS, Skill 0.14-0.15) vor dem besten
-%      klassischen Ansatz (rw/L/aci_cqr, 0.085).
+%      Foundation-Model -- tirex2/ZS/decay_ocp_cqr, Skill 0.144 bei
+%      Coverage 0.787 und 10/10 Laendern (Entscheidung aus 8.3 Punkt 4,
+%      gefallen 2026-08-10) -- vor dem besten klassischen Ansatz
+%      (rw/L/aci_cqr, 0.085). cqr_static hat mit 0.146 den hoechsten
+%      Rohskill, deckt aber nur 0.750 und passiert nur 8/10 Laender.
 %  (4) Aber: kein einziger der 66 Cross-Model-Kontraste ist FDR-
 %      signifikant (min. median-q 0.185), und die MCS schliesst fast
 %      nichts aus. Die Rangfolge ist deskriptiv.
@@ -2424,6 +2448,7 @@ All methods (mean)       & $-1.07$ \\
 %
 % !! Wenn du (3) schreibst, muss die Entscheidung aus 8.3 Punkt 4
 %    (cqr_static vs decay_ocp) hier konsistent durchgezogen sein.
+%    -> ERLEDIGT: die Entscheidung ist decay_ocp_cqr, siehe 8.3 Punkt 4.
 %
 % [arXiv-Kuerzung]: bleibt vollstaendig, das ist das Rueckgrat des Papers.
 

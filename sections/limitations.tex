@@ -16,8 +16,10 @@
 %
 %  DATENHERKUNFT ALLER ZAHLEN IN DIESER DATEI
 %  ------------------------------------------
-%  Identisch zu results.tex: Diagnostics-Run run_full_20260803_095330,
-%  Conformal-Run run_full_20260721_145309, Panel-Hash 5f27a412...68ec2e,
+%  Identisch zu results.tex: Diagnostics-Run run_full_20260810_110834
+%  (Wiederholung des 03.08.-Laufs, 14 von 15 Tabellen bit-identisch --
+%  Begruendung im Kopf von results.tex), Conformal-Run
+%  run_full_20260721_145309, Panel-Hash 5f27a412...68ec2e,
 %  git commit b1811e67. Tabellenkopien unter results/tables/*.csv.
 %  AUSNAHME: die DQ-Zerlegung in 9.2 und der Punktprognose-Test in 9.3
 %  sind POST-HOC-Rechnungen vom 2026-08-03, die NICHT aus den
@@ -598,10 +600,12 @@ Method & Width coefficient & Lags only \\
 %       bis 77.95% (xlstm/L/seed42/IE); 18 von 530 cqr_static-Zellen
 %       liegen ueber 5%.
 %     -> Mechanismus in \cref{sec:conformal:notes} erklaeren, hier nur
-%        die Konsequenz: cqr_static ist die Methode des Spitzenreiters,
-%        und tirex2/ZS/cqr_static hat in PT eine Kreuzungsrate von
-%        32.3%. Das gehoert in die Methodenwahl in
-%        \cref{sec:res:ranking} hinein (decay_ocp_cqr: 0.028%).
+%        die Konsequenz: cqr_static ist die Methode mit dem hoechsten
+%        Rohskill, und tirex2/ZS/cqr_static hat in PT eine Kreuzungsrate
+%        von 32.3%. Das ist seit 2026-08-10 ein ARGUMENT FUER die in
+%        \cref{sec:res:ranking} gefallene Entscheidung (Headline-Paket ist
+%        decay_ocp_cqr mit 0.028%), nicht mehr ein Caveat GEGEN den
+%        Sieger -- so formulieren, sonst widerspricht der Absatz 8.3.
 %
 %  5. REGIME-KONVENTIONEN. Zwei Festlegungen, die Ergebnisse mitbestimmen:
 %     (a) Die ersten 12 Testmonate haben keinen Volatilitaetswert (das
