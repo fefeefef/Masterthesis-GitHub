@@ -167,6 +167,7 @@
 %========================================================================
 \section{Limitations}
 \label{sec:limitations}
+The results in \cref{sec:results} are valid within the pre register protocol (\cref{sec:evaluation}). This Section points out where the limits of this protocol are. There are two types of limitations. First limitations in the design and second in the evidence. With the second being a limitation in the data. The most serious limitation concerns the best performing Model family. All limitations pointed out here dont change the ranking at all they just put it into context.
 
 % WAS HIER STEHT (Kapitel-Kopf, 1 kurzer Absatz, 4-5 Saetze):
 %  - Ein Satz Rahmung: die Befunde aus \cref{sec:results} gelten innerhalb
@@ -204,6 +205,7 @@
 % Trainingsdaten du nicht kennst. Wenn diese Limitation greift, ist
 % Befund (3) nicht abgeschwaecht, sondern hinfaellig. Deshalb Absatz 1.
 %
+The best performing Model family, TiRex2 was released on 2026-07-01 with no know pre training cut off date. Our evaluation window ends before the release date ( 2015-10 to 2026-04) and by that is potentially part of the trainings set. This caveat is already documented in \cref{sec:models:tirex2}
 % WAS HIER STEHT:
 %  1. Der Sachverhalt nuechtern: TiRex-2 wurde am 2026-07-01 released; der
 %     Pretraining-Cutoff ist nicht dokumentiert. Das Evaluationsfenster
@@ -211,11 +213,13 @@
 %     potenziell vollstaendig im Pretraining-Zeitraum.
 %     -> Verweis \cref{sec:models:tirex2} (dort steht der Caveat schon in
 %        zwei Saetzen, Zeilen 236-238). Achtung Defekt [D2].
+This is especialy relevant for government credit spreads since the time series are publicly accessible, long term and included in alot of big time series corpulae. It doesent need an exotic datenset to be included in the time series since credit spreads are part of the standard sources.
 %  2. Warum das bei Staatsanleihen-Spreads besonders heikel ist: die
 %     zugrundeliegenden Renditereihen sind oeffentlich, langjaehrig und
 %     in nahezu jedem grossen Zeitreihen-Korpus enthalten. Es braucht
 %     also keinen exotischen Datensatz, damit Kontamination plausibel ist
 %     -- die Standardquellen genuegen.
+The arguments work against this thesis. First TiRex2 is the best Model at the point forecast (MAE-Ratio of 0.9965) but it doesn't statistically beat the random walk as can be seen in the Panel-t of -0.4979 and an smallest q-value of 0.3803. A Model that remembers the target time series would perform better. The tests proofed to have power at the arma/L family (Panel-t +2.4473, FI mit q 0.0040).
 %  3. WAS DAGEGEN SPRICHT (ehrlich beide Seiten, nicht nur die
 %     bequeme). Drei Gegenargumente, die du machen kannst:
 %     (a) Die Punktprognose ist NICHT besser als der Random Walk.
@@ -236,6 +240,8 @@
 %     (b) Der Vorsprung liegt vollstaendig in der Breite der praediktiven
 %         Verteilung, nicht in ihrem Zentrum. Memorierung wuerde primaer
 %         das Zentrum treffen.
+Secondly the real advantage of the TiRex2 family lies in the width of the predictive distribution, not in the point forecast. Memorizing would mainly benefit the point forecast. 
+Third: The advantage of the Model family vanishes in the high VIX regime (median winkler skill from 0.1255 to -0.0025, diff. -0.1280). A Model that memorizes would specifically outperform classical models in stress months. 
 %     (c) Im high-VIX-Regime verschwindet der Vorsprung (F13: tirex2 von
 %         +0.1255 auf -0.0025, Differenz -0.1280). Ein memorierendes
 %         Modell haette gerade in den auffaelligen Stressmonaten einen
@@ -247,6 +253,7 @@
 %            andere Werte (tirex2 low_vix 0.1535 / high_vix 0.0237).
 %            Beide sind richtig. Wenn du beide Zahlen im Text hast, MUSST
 %            du die Basis nennen, sonst liest es sich als Widerspruch.
+None of the three arguments is proof. Without documented cutoff we cant discard the option. 
 %  4. WAS DAFUER SPRICHT / was ungeloest bleibt: keines der drei
 %     Argumente ist ein Beweis. Ohne dokumentierten Cutoff ist die Frage
 %     empirisch nicht entscheidbar. Das genau so hinschreiben.
@@ -256,6 +263,7 @@
 %        praediktiven Breite auf euroraeumlichen Spreads gelernt hat --
 %        und genau das ist der Kanal, auf dem tirex2 gewinnt. Diese
 %        Asymmetrie ist unangenehm und gehoert hin.
+To find out we would have to e valuate the Model on a window after the release or on a spread definition that cant be found in open source data. 
 %  5. Was ein sauberer Test waere (Future Work, konkret): Evaluation auf
 %     einem Fenster NACH dem Release (ab 2026-07), oder auf einer
 %     Spread-Definition, die so in keiner oeffentlichen Quelle steht.
@@ -357,6 +365,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 \subsection{The admissibility gate does not test what the methods fail at}
 \label{sec:lim:gate}
 %------------------------------------------------------------------------
+The admissibility gate (\cref{def:gate}) is exclusively based on the $q\_UC \ and \ q\_CC $ statistics. Both tests condition not at all or on the past. Yhe DQ test conditions additionally on the current intervall width and this regressor is also the one that would drive the rejection rate. The gate systematicaly permits cells to pass whose conditional calibration along the width axis is violated.
 % WARUM DAS DIE WICHTIGSTE METHODISCHE LIMITATION IST:
 %  Das Zulaessigkeitsgate (\cref{def:gate}) liest ausschliesslich q_UC und
 %  q_CC. Beide Tests konditionieren nur auf die VERGANGENHEIT der
@@ -365,6 +374,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %  -- und genau dieser Regressor ist es, der die Ablehnungen treibt.
 %  Das Gate laesst also systematisch Kombinationen durch, deren bedingte
 %  Kalibrierung entlang der Breitenachse verletzt ist.
+The DQ test has a rejectionr ate of 49.3 $\%$. If we exlude the width regressor it drops to 20.8 $\%$, basically the same as the UC niveau ($20.6\%$). The christiffersen independance test substantiates this finding with a rejectionr ate of $6.1\%$. Testing just with the widt regressor yields a rejectionr ate of $68.9\%$.
 %
 % ZAHLEN (post hoc nachgerechnet 2026-08-03, unabhaengig reproduziert
 % 2026-08-17 auf calibrated_all.parquet des Runs run_full_20260721_145309,
@@ -386,6 +396,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %      die Lags im vollen Modell Varianz absorbieren, ohne Struktur zu
 %      erklaeren. Ein Halbsatz.
 %
+From the 3949 cells with FDR significant gamma $99.92\%$ are negative with a median of -1.631. That means that months with wide intervalls overcoverage and month with narrow intervalls undercoverage. The width adjusment reacts in the right direction but it over corrects. Overall it still averages to $80\%$, thats why the kupiec test doesn't reject. 
 % RICHTUNG DES EFFEKTS (das ist die eigentliche Aussage):
 %   Von den 3949 Zellen mit FDR-signifikantem gamma haben 99.92% ein
 %   NEGATIVES gamma; Median gamma = -1.6310.
@@ -401,6 +412,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %      Einzelzahl des Unterkapitels. Sie sagt: das ist kein Rauschen und
 %      kein Einzelfall, das ist der Mechanismus. Prominent setzen.
 %
+We observe a tradeoff between CP classes. Statistical methods $(native,\ cqr\_static,\ saocp,\ decay\_ocp)$ which have clusterd violations (Lag-column 40-54 $\%)$ and online tracker methods $(pid\_tan,\ spci,\ sfogd,\ pid\_local,\ pid, \ ac,\ agaci,\ dtaci)$ which trade the clustering against width conditional rejection (52-97 $\%)$. We also observe that the online methods have medfian gamma off -1.02 to -1.35 while the static have -0.13 to -0.37, as can be seen in ~\ref{tab:lim_dq}. The width conditional rejection is not only more likely but also a stronger effect. 
 % DER TRADE-OFF ZWISCHEN DEN METHODENKLASSEN (tab:lim_dq Panel B ist schon
 % befuellt -- du schreibst nur Caption und Fliesstext):
 %   -> Zwei saubere Fehlermodi, die du als Ergebnis verkaufen kannst:
@@ -429,6 +441,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %      bedingt gut kalibriert, unbedingt zu breit (mittlere Coverage
 %      0.860 gegen Ziel 0.80). Ein Satz wert.
 %
+In the 485 admissible combinations the DQ rejection rate increases from $53.2\%$ in all combinations to $65.6\%$. This is due to the fact that the gate favors the online methods (Gate-Rate 0.96-1.00, ~\ref{tab:res_gate}) and by that fails to detect the width conditional dependence. The lag conditional ejection rate drops from $20.8\%$ before the gate to $8.2\%$ after the gate. So the gate trades one type of conditional dependance for another. 
 % DER UNBEQUEME TEIL (unbedingt hinschreiben, sonst ist es Schoenfaerberei):
 %   Auf den 485 zugelassenen Kombinationen (4850 Zellen [B3]) lauten die
 %   Raten: DQ voll 0.425 | gamma 0.656 | reine Lags 0.082
@@ -445,6 +458,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %      Fehlkalibrierung gegen die andere. Das ist praeziser als "das Gate
 %      versagt" und deutlich schwerer zu widerlegen.
 %
+In ~\ref{tab:lim_dq} we observe that the ranking goes by model compelxity and that the random walk is affected the least since it has the least width variation. For all Model familys the constant width twins have a lower width conditional rejection rate (xlstm 71.0 vs 43.8; lstm 60.8 vs 41.6; lgbm 44.3 vs 35.4). We conclude that the adaptive width is the problem not the undrlying architecture. The data points per family vary alot so only the meta contrast adaptive width vs constant width has evidence. 
 % BETROFFENHEIT NACH MODELLFAMILIE (tab:lim_dq Panel C):
 %   xlstm 71.0 | lstm 60.8 | tirex2 60.0 | tirex 51.4 | tirex2_cov 51.4 |
 %   lgbm 44.3 | xlstm_const 43.8 | lstm_const 41.6 | arma_monthly 37.9 |
@@ -464,6 +478,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %      zwischen tirex2, tirex und tirex2_cov ist damit nicht belastbar --
 %      nur der Kontrast NN gegen klassisch ist es. So formulieren.
 %
+Investigating the DQ rejection rate was not pre registerd. It ws motiveated by the high DQ rejection rate and doesent change the ranking nor produces new findings. 
 % !! EHRLICHKEITS-PFLICHT (sonst ist es HARKing):
 %   Diese Zerlegung steht NICHT in diagnostics_foundation.txt. Sie ist
 %   eine POST-HOC-Diagnostik, motiviert durch die hohe DQ-Ablehnrate im
@@ -475,6 +490,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 %   Formulierung: "post hoc decomposition of a pre-registered statistic,
 %   reported to explain rather than to establish."
 %
+A gate that includes the DQ test would be stricter but it would leave almost no candidates at n=127. Future work could consist oft finding emthods to get rid of the withconditional dependancy. We conclude that the produced intervals cant be used as a riskmeassure since it undercoverages in calm and overcoverages in stressed regimes.
 % WAS DARAUS FOLGT (Absatz 3, konstruktiv statt nur selbstkritisch):
 %   1. Ein Gate, das q_DQ einschliesst, waere schaerfer -- aber es haette
 %      bei n=127 kaum noch Kandidaten uebrig gelassen (42.5% der validen
@@ -578,10 +594,12 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 \subsection{Statistical power and the limits of the comparative inference}
 \label{sec:lim:inference}
 %------------------------------------------------------------------------
+
 % WAS HIER STEHT: dieses Unterkapitel hat VIER Teile (Absatz 4 ist neu vom
 % 17.08.). Schreib sie als vier Absaetze, nicht als Liste -- sie bauen
 % aufeinander auf.
 %
+None of the 66 cross model contrasts was FDR significant with the smallest median q value over all countries being 0.1851. At country level 52 of the 66 contrasts have at least one significant country at q < 0.10 and in the strongest contrast 4 out of the te countries are significant. Still no contrast rejetcs in the majority of countries.
 % ---- ABSATZ 1: DIE RANGFOLGE IST DESKRIPTIV ----
 %  Der wichtigste Satz des ganzen Kapitels, und er gehoert hierher:
 %  KEINER der 66 Cross-Model-Kontraste ist FDR-signifikant. Der kleinste
@@ -606,6 +624,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %  the majority of countries -- which is the criterion we fixed ex ante."
 %  Das ist kein Zusatz, das ist Pflicht.
 %
+The two strongest contrasts $tirex2/ZS/cqr\_static\ vs\ xlstm\_const/L/spci\_cqr$ and $tirex2\_cov/ZS/native\ vs\ xlstm\_const/L/spci\_cqr$ reveals that both have a Panel t above the conventional significance cutoff (-3.5488/-4.1586) which shows there is an effect over all countries that doesent survive the FDR correction per country.
 %  ZAHLEN (verifiziert, dm_crossmodel.csv):
 %    Staerkster Kontrast nach |d_norm| (und trotzdem n.s. nach K1):
 %      XM tirex2/ZS/cqr_static vs xlstm_const/L/spci_cqr
@@ -624,11 +643,13 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %     "ist der Effekt im Mittel ueber die Laender da?", der Laenderanteil
 %     fragt "ist er in einzelnen Laendern nachweisbar?". Erklaeren, sonst
 %     wirkt es wie ein Fehler.
+Due to this fact all rankings in \cref{sec:res:ranking} are descriptive.\\
 %  -> KONSEQUENZ, die du explizit ziehen musst: alle Rangaussagen in
 %     \cref{sec:res:ranking} sind DESKRIPTIV. Formulierungen wie "X
 %     outperforms Y" muessen im ganzen Dokument zu "X ranks above Y"
 %     werden. Das ist eine Durchsicht-Aufgabe, keine Stilfrage.
 %
+Also the MCS doesnt differenciate between the Packages at n=127. 15 out of 26 packages are included in all 10 countries and over all countries times candidates we have an inclusion rate of $91.54\%$. The median q value is 0.189 and the maximum 0.4060. At this sample size we cant differentiate between the contenders. in ~\ref{tab:res_mcs} we see how the MCS behaves on the different countries. For example france doesent exclude any country while Ireland excludes 8. 
 % ---- ABSATZ 2: DIE MCS DISKRIMINIERT NICHT ----
 %  ZAHLEN (verifiziert, mcs_results.csv, 26 x 10 = 260 Zeilen):
 %    Kandidaten je Land : 26 (kuratiert, nicht alle 742)
@@ -645,7 +666,9 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %  -> Verweis auf tab:res_mcs Panel B; dort steht die Streuung ueber
 %     Laender (Frankreich schliesst keinen der 26 aus, Irland acht).
 %     Diese Streuung ist selbst ein Argument fuer 9.5.
-%
+
+The standard approach for the pairwise Diebold-Mariano-Tests at a one step forecasting window (h=1) is to use the sample variance (HAC-Lag 0). A positive autocorrelation in the loss differncials is created by the 12 month refits (block dependancy) aswell as the statebased adaptive meethdos. This leads to a systematic underestiamtion of the sample variance and inturn to overly optimistic county p values. The test results should therefore be seen as an upper bound for the real statistical significance.
+
 % ---- ABSATZ 3: DM-VARIANZ MIT HAC-LAG 0 ----
 %  WAS DER PUNKT IST:
 %   Der paarweise DM-Test (\cref{sec:eval:comparison}) schaetzt die
@@ -667,6 +690,15 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %   |t|-Werte -> ZU KLEINE p-Werte. Die Einzel-Land-DM-p-Werte sind also
 %   systematisch zu optimistisch, und zwar in bekannter Richtung.
 %
+
+Dieser Ansatz stellt eine pragmatische, eindimensionale Variante der Driscoll-Kraay-Logik dar (Querschnittsmittelung kombiniert mit Zeitreihen-HAC). Wir weisen ausdrücklich darauf hin, dass dieses Vorgehen keine vollständige zweidimensionale Driscoll-Kraay-Kovarianzmatrix schätzt, jedoch verbleibende Autokorrelationen und Querschnittskorrelationen hinreichend kontrolliert.
+
+To correct for this systematic underestiamtion of the variance and serial autocorellation we use a time clusterd t Panel test for our main findings. In the first step we calculate the scale free normed loss differencials $\frac{d_{i,t}}{W^{ref}_{i}}$ every month meaned for all 10 countrys. This condenses joint cross-sectional effects to a single monthly observation point (N=127). In the second step we calcualte the t value of this timeseries mean by using the Newey-West-longterm variance with Bartlett-Kernel and a Lag-Window of 3:\\
+  
+$\sigma^2_{\text{LR}} = \gamma_0 + 2 \sum_{l=1}^{3} \left(1 - \frac{l}{4}\right) \gamma_l$\\
+
+this is a pragmatic one dimensional version of the Driscoll-Kraay-Logic. This procedure is no full two dimensional Driscoll-Kraay-Kovarianzmatrix estimator but still controlls autocorrelation and cross-sectional correlation sufficiently.
+
 %  WAS DAGEGEN TATSAECHLICH GETAN WURDE (nicht nur vorgeschlagen --
 %  implementiert, Code: diagnostics_master_v2.ipynb, Zelle 15, Funktionen
 %  _nw_tstat und run_contrast):
@@ -688,6 +720,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %   -> Spalte t_panel in dm_contrasts.csv; auf ihr beruhen alle
 %      RQ-Aussagen in \cref{sec:res:rq3} bis \cref{sec:res:rq2}.
 %
+The per country DM tests stay without correction and from them the q values are created and from the q values the column $share\_sig\_fdr$ we see in every contrast table. Lag 3 is a convention and in no way a data driven value. It was chosen not optimized. The Panel t implicitly implys that the cross sectional country correlation is fully absorbed. 
 %  WAS TROTZDEM OFFEN BLEIBT (das ist die eigentliche Limitation):
 %   1. Die PRO-LAND-DM-Tests selbst bleiben unkorrigiert. Aus ihnen
 %      entstehen die q-Werte, und aus den q-Werten die Spalte
@@ -702,6 +735,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %      heterogenen Laendern (mittleres Kendall-tau 0.346, siehe 9.5)
 %      ist das eine Naeherung.
 %
+A bias creating to low p values cant change the fact that a test is not significant and by that the cross model contrasts are not impacted. The significant contrasts from RQ1 and RQ2 are. 
 %  PRAKTISCHE KONSEQUENZ -- und warum sie hier klein ausfaellt:
 %   Der wichtigste Cross-Model-Befund ist ohnehin ein NICHT-Befund
 %   (Absatz 1). Eine Verzerrung, die p-Werte ZU KLEIN macht, kann diesen
@@ -711,6 +745,9 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %   dagegen die RQ1/RQ2-Kontraste, wo Signifikanz BEHAUPTET wird -- dort
 %   ist der Panel-t die tragende Zahl, nicht der Laenderanteil.
 %
+
+
+In the FDR correction we aggregated the contrasts based on their description. Since the descriptions dont differenciate the seeds we aggregated multiple runs of the same contrast. By that the FDR corrected $share\_sig\_fdr\ and\ median\_q)$ in the tables are for the mean over all 30 country seed combiantions while $t_{panel}$ and $d\_norm$ are seed specific. This ahs two consequences: First the aggregated FDR quote smoothes potential variance in the results between seeds. Second the threefold calculation of identical contrasts leads to an inflation of the Total number of hypotheses in the Benjamini-Hochberg-correction and by that to over conservativeity. The cross model contrasts with only one seed (66 labels) not subject to this problem. 
 % ---- ABSATZ 4 (NEU 17.08.): DIE FDR-FAMILIE KOLLABIERT DIE SEEDS ----
 %  WAS DER BEFUND IST (verifiziert am Code, Zelle 15, und an
 %  dm_contrasts.csv / dm_percountry.csv):
@@ -778,6 +815,8 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 \subsection{Seed fragility of the neural results}
 \label{sec:lim:seeds}
 %------------------------------------------------------------------------
+For xLSTM and LSTM the whole pipeline runs three times, once for each seed (42/43/44). Forecasts are never meaned over all seeds (\cref{sec:exp:seeds}). For that the seed span of the skill is a direct measure of the randomness of the outcome. In $51.7\%$ of the 588 NN combiantions the seed span of the median skill is bigger than the median skill itself. In more than half of all NN the initialization is more important than the measured effect. In the admissible combinations the the percentage increases to $58.6\%$ at n= 372. \\
+The best xLSTM package xlstm/L/native has a median skill of 0.0939 at seed 44 but the other seeds have 0.433 (42) and -0.0084 (43). The seed span is 0.1022 and with that exceeds the skill of the best combination and the worst skill even being negative. 
 % WAS HIER STEHT:
 %  1. Der Sachverhalt: fuer xLSTM und LSTM laeuft die komplette Pipeline
 %     pro Seed (42/43/44); Prognosen werden nie ueber Seeds gemischt
@@ -807,6 +846,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %        immer alle drei nennen oder den Median der drei (0.0433).
 %        Nicht relativieren -- es ist ein sauber gemessenes negatives
 %        Resultat und gehoert genau so berichtet.
+If the sign of all skill is not the same we cant rank the model. The rule applies in only 3 cases even at a seed fragility rate of $51.7\%$. To save resources we decided on three seeds even though more seeds would leads to more robust results. 
 %  4. Was das Protokoll dagegen tut: die Ex-ante-Regel aus
 %     diagnostics_foundation.txt Paragraph 4.4 verbietet eine Rangaussage,
 %     wenn das Vorzeichen des Kontrasts nicht ueber alle Seeds stabil ist;
@@ -822,6 +862,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %     zehn waeren belastbarer, kosten aber die komplette Kette
 %     (Modell -> CP -> Diagnostik) pro zusaetzlichem Seed. Als bewusste
 %     Ressourcenentscheidung deklarieren, nicht als Versehen.
+With this decision we introduced a bias towards more extreme outcomes which makes single results for models unreliable
 %  6. Ein Satz zur Richtung der Verzerrung: Seed-Rauschen ist
 %     unsystematisch, es verzerrt den Median ueber Kombinationen also
 %     nicht in eine Richtung -- aber es blaeht die Streuung auf und macht
@@ -859,6 +900,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 \subsection{Sample size, cross-section and country heterogeneity}
 \label{sec:lim:sample}
 %------------------------------------------------------------------------
+Our sample consits of 10 countries x 277 Months = 2770 observations ranging from 2003-04 to 2026-04. Our test set are 127 Months for each country. For xLSTM, a very complex Model, 277 observations might be to little and we contribute the worse performance of xLSTM to this fact. 
 % WAS HIER STEHT: das ist die "harte Obergrenze"-Sektion. Vier Punkte.
 %
 %  1. STICHPROBE. Panel 10 Laender x 277 Monate = 2770 Beobachtungen
@@ -871,11 +913,13 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %        Das ist die plausibelste Erklaerung fuer das negative
 %        Kernergebnis und gehoert hier statt in \cref{sec:res:ranking}.
 %
+The 10 euro spreads are not independent and by that the effective count of independant observations is unknown and smaler thatn 1270.
 %  2. QUERSCHNITTSKORRELATION. Zehn Euro-Spreads sind keine zehn
 %     unabhaengigen Evidenzstuecke. Adressiert per Panel-t (9.3), aber
 %     nicht eliminiert. Die effektive Zahl unabhaengiger Beobachtungen
 %     ist unbekannt und kleiner als 1270.
 %
+The mean pairwise kendal-tau between the combination rankings of country is 0.346. The minimum is observed between Finnland and Greece (0.074) and the maximum between Spain and portugal (0.65). All values can be found in \ref{tab:app_country}. In generell we observe the highest correlation between periphery countries (ES/PT/GR) and the lowest between core and periphery countries. We conclude that there is not one ranking but at least two. Median rankings stay true but the best package is country specific. 
 %  3. LAENDERHETEROGENITAET. Das mittlere paarweise Kendall-tau zwischen
 %     den Kombinations-Rankings der Laender betraegt 0.346.
 %     ZAHLEN (verifiziert, cells.csv [B2], Pivot Kombination x Land auf
@@ -895,6 +939,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %        mindestens zwei Regime im Querschnitt. Medianaussagen ueber
 %        alle zehn Laender bleiben gueltig, aber "das beste Verfahren"
 %        ist laenderabhaengig. Das relativiert jede Einzelempfehlung.
+The tail asymmetrie spreads wider per country (0.431 to 0.642) than per model (0.483 to 0.618). Since the MCS outcomes also vary decisively from country to country we conclude that there is no overall best model.
 %     -> QUERVERBINDUNG, die gratis ist: die Tail-Asymmetrie streut
 %        ueber Laender staerker (0.431 bis 0.642) als ueber Modelle
 %        (0.483 bis 0.618) -- beides [B3], siehe tab:app_country und
@@ -905,6 +950,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %        Frankreich schliesst keinen der 26 Kandidaten aus, Irland acht.
 %        Drei unabhaengige Achsen, ein Befund. Das ist ein starker Absatz.
 %
+Greece is the country that rejects the most with a gate rate of $51.9\%$ and still it has the third highest median skill (0.120). It is a country a Model is hard to fit to, the reference random walk performs very poorly and by that drives the skill up. 
 %  4. EINZELNE LAENDER. Zwei Faelle, die eigene Saetze brauchen:
 %     (a) GRIECHENLAND. Gate-Rate nur 0.519 -- das mit Abstand am
 %         schwersten kalibrierbare Land. Dazu der PSI-Strukturbruch 2012
@@ -926,6 +972,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %            den Skill nach oben. Das ist derselbe Mechanismus wie bei
 %            Irland in (b) -- nur ungeprueft. Genau deshalb ist der
 %            fehlende ex-GR-Check die groessere Luecke von beiden.
+In Ireland we observe something similar. If we exclude Ireland from the evaluation the ranking stays the same (Spearman-rho 0.9392) in the admissible combinations but but not the niveau. The winning packages median skill drops from 0.1461 to 0.1027. LightGBM Packages are hit the hardest by the exclusion of Ireland 4 of the 6 biggest losses are lgbm/L.
 %     (b) IRLAND. Der bewertungsseitige ex-IE-Check
 %         (\cref{sec:eval:robustness}, tab:res_robustness_ie) zeigt: die
 %         ORDNUNG des Rankings ist stabil, das NIVEAU nicht.
@@ -1134,87 +1181,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 %   drin bleiben.
 
 
-%------------------------------------------------------------------------
-\subsection{The economic evaluation is a proxy, not a backtest}
-\label{sec:lim:econ}
-%------------------------------------------------------------------------
-% !! ENTSCHEIDUNG ZUERST -- DEFEKT [D4], NEU 17.08.:
-%  \cref{sec:eval:economic} beschreibt die oekonomische Auswertung als
-%  Methode, aber results.tex hat KEIN entsprechendes Unterkapitel und kein
-%  Label sec:res:econ. Dieses Unterkapitel limitiert also derzeit
-%  Ergebnisse, die nirgends berichtet werden. Der alte Verweis
-%  \cref{sec:res:econ} war ein toter Link und ist entfernt.
-%  DREI OPTIONEN, meine Empfehlung ist (A):
-%   (A) Ein kurzes Unterkapitel in results.tex ergaenzen (halbe Seite:
-%       Median-Sharpe, active_share, Kapitalquotient, die beiden
-%       Korrelationen). Dann hat dieses Unterkapitel einen Bezug und die
-%       in evaluation.tex beschriebene Methode ein Ergebnis. Die Zahlen
-%       liegen alle vor, siehe unten -- es ist reine Schreibarbeit.
-%   (B) Oekonomie ganz streichen: Abschnitt in evaluation.tex raus,
-%       dieses Unterkapitel raus, econ_results.csv nur im Anhang. Sauber,
-%       aber du verlierst die einzige Aussage der Arbeit ueber den NUTZEN
-%       besserer Intervalle (die Korrelation -0.711).
-%   (C) Beides in die Limitations verschieben: Ergebnis UND Caveat hier.
-%       Formal moeglich, liest sich aber wie ein Nachtrag.
-%  Solange (A) nicht umgesetzt ist, KEINEN Verweis auf ein
-%  Ergebnis-Unterkapitel schreiben.
-%
-% WAS HIER STEHT: kurz halten (1 Absatz), aber praezise. Der Abschnitt
-% \cref{sec:eval:economic} rahmt die Oekonomie bereits als ergaenzende
-% Evidenz -- hier steht, was das konkret ausschliesst.
-%
-%  1. Die Handelsregel hat KEINE Transaktionskosten, keine Bid-Ask-
-%     Spannen, keine Finanzierungskosten und keine Kapazitaetsgrenzen.
-%     Sie ist ausschliesslich KOMPARATIV zu lesen, nie als erzielbare
-%     Rendite.
-%  2. Die tatsaechliche Aktivitaet ist minimal: der Signalfilter
-%     (Position nur wenn 0 nicht im Intervall liegt) laesst im Median
-%     nur 2.1% der Monate zu Trades werden. Ein Sharpe-Wert, der auf
-%     so wenigen aktiven Monaten beruht, ist statistisch praktisch
-%     bedeutungslos.
-%     ZAHLEN [B5], econ_results.csv gejoint auf validity_flag:
-%       Median-Sharpe 0.1586 | 67.6% positiv | Maximum 0.6207
-%       (lstm/L/pid_cqr) bei active_share 0.0197
-%       Median active_share ueber alle zulaessigen Kombinationen 0.0213
-%     -> Rechne es dem Leser vor: 2.1% von 127 Monaten sind knapp drei
-%        Trades je Land. Ein Sharpe aus drei Trades ist keine Kennzahl,
-%        sondern eine Anekdote. So deutlich hinschreiben -- es kostet
-%        nichts und nimmt jedem Gutachter den Einwand aus der Hand.
-%  3. Der Kapitalproxy setzt "Intervallbreite proportional zur
-%     Kapitalunterlegung" -- eine dokumentierte Vereinfachung der
-%     FRTB-Logik, keine Umsetzung der Regeltexte.
-%  4. DER INTERESSANTE TEIL, den du nicht weglassen solltest, weil er
-%     die beiden Kennzahlen gegeneinander stellt (beide [B5]):
-%       corr(Median-Skill, Kapitalquotient) = -0.711
-%       corr(Median-Skill, Median-Sharpe)   = -0.147
-%     -> Intervallguete zahlt auf die Kapitalkennzahl ein, aber kaum auf
-%        die Handelsperformance. Anders gesagt: der Nutzen besserer
-%        Intervalle liegt im Risikomanagement, nicht im Alpha. Das ist
-%        eine substanzielle Aussage und rechtfertigt, dass der
-%        Oekonomie-Block ueberhaupt existiert.
-%     -> Vorzeichen erklaeren: ein NIEDRIGER Kapitalquotient ist gut
-%        (engere valide Intervalle), deshalb ist die negative
-%        Korrelation mit dem Skill der erwuenschte Zusammenhang.
-%        Unbedingt dazuschreiben, sonst liest es sich falschherum.
-%     -> BASIS-Hinweis, den du kennen solltest, aber nicht berichten
-%        musst: ueber alle 742 Kombinationen [B4] bleibt die
-%        Kapital-Korrelation bei -0.711, die Sharpe-Korrelation faellt
-%        auf -0.034. Die Kapitalaussage ist also robust gegen die
-%        Bezugsmenge, die Sharpe-Aussage nicht -- was Punkt 2 zusaetzlich
-%        stuetzt.
-%
-% TABELLE: keine eigene. Falls Option (A) gewaehlt wird, gehoert die
-%   Tabelle in results.tex, nicht hierher.
-%
-% ZITATE: bcbs2019mar (FRTB).
-%   !! FEHLT in references.bib: leitchtanner1991 (Leitch & Tanner 1991,
-%      "Economic forecast evaluation: profits versus the conventional
-%      error measures", AER 81(3), 580-590). Wird in
-%      diagnostics_foundation.txt Paragraph 7 als Begruendung des ganzen
-%      Blocks zitiert -- gehoert hier her [D3].
-%
-% [arXiv-Kuerzung]: 3 Saetze. Die beiden Korrelationen bleiben, der Rest
-%   in einen Halbsatz.
+
 
 
 %------------------------------------------------------------------------
