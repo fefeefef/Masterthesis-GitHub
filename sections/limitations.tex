@@ -1024,6 +1024,9 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 % Abgrenzung zum Rest des Kapitels im ersten Satz klarmachen: hier geht
 % es nicht um fehlende Evidenz, sondern um Kosten getroffener Wahlen.
 % Sechs Punkte, je 2-3 Saetze. Reihenfolge nach Tragweite.
+Here it is not about missing evidence but about measures taken to save costs.
+we decided for a symmetric CQR score $E = \max(q_{\text{lo}} - y, \, y - q_{\text{hi}})$, that treats violations in both directions in the same way even though the data is not symmetric. At the same amount of lower and upper violations (mean 0.5359, median 0.50) is the average upper violation  (0.0715) a $37.1\%$ higher than the lower violations (0.0521). A symmetric score, by structure, cant correct for this distribution. \\
+\\
 %
 %  1. SYMMETRISCHER CQR-SCORE. Der Score E = max(q_lo - y, y - q_hi) ist
 %     einseitig definiert und behandelt beide Intervallraender gleich.
@@ -1048,6 +1051,9 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        ist kein Widerspruch, sondern genau der Punkt: gleich viele,
 %        aber ungleich schwere Verletzungen.
 %
+The Burn ins et serves two purposes: as HPO validation window as well as initialization pool for the Conformal methods that are pool based. This leads to slightly optimistic predictions in this window. We observe an average coverage over all cells that is $1.07\%$ lower than in the rest. This effect exists, is focused on the non recalibrating streams and vanishes with a growing pool. Some of the online trackers even show pessimism in the burn in set $(aci\_cqr +0.96\$,\ pid\_cqr +0.39\$)$. This is consistent with the overshooting discussed in 9.2.\\
+
+\\
 %  2. BURN-IN-DOPPELROLLE. Das Validierungsfenster dient sowohl der
 %     Hyperparameterwahl als auch der Initialisierung des
 %     Kalibrierpools. Diagnostiziert (F11), Effekt klein und
@@ -1065,6 +1071,8 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        ziehen sich zusammen. Das ist konsistent mit dem
 %        Ueberschiessen aus 9.2 und verbindet die beiden Punkte.
 %
+Our primary configuration was the 36 month rolling burn in set, but we also tested with rolling 24 and 48 month sets aswell as an expanding set. This test is only relevant for  the 6 out of the 14 conformal methods  that use a pool $(cqr\_rolling,\ aci\_cqr,\ agaci\_cqr,\ dtaci\_cqr,\ spci\_cqr,\ mondrian\_cqr)$. For the other 8 rolling and expanding are identical and therefore we calculated the test only for the 318 out of 742 combinations. Overalll we observe an increase in coverage with an increase in the length of the pool (rolling(24) 0.8127, rolling(36) 0.8165, rolling(48) 0.8204, expanding 0.8378). At the cell level the mean absolute deviation is $4\%$ and the maximum is $18.9\%$.
+
 %  3. KALIBRIERPOOL-FENSTER. Primaerfall rolling 36; die Varianten
 %     rolling24/rolling48/expanding sind Robustheitspaesse.
 %     [KORR 17.08.] HIER LAG DER GROESSTE FEHLER DER ALTEN FASSUNG:
@@ -1091,6 +1099,9 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        maximale 18.9pp. Das ist keine Randnotiz, sondern eine echte
 %        Designabhaengigkeit -- und die Zellzahlen sind die
 %        aussagekraeftigeren.
+
+$lstm/GI/cqr\_rolling$  has the largest increase in coverage ($+8.9\%$) at rolling vs expanding in a single month. SPCI is the method that is most sensible to a change in pool ( $5.4\%$) with the coverage ranging from $0.7416$ to $0.7953$.\\
+\\
 %     -> F8-Bruch mit dem groessten Ausschlag: lstm/GI/cqr_rolling mit
 %        8.9pp Coverage-Differenz rolling gegen expanding (Story-Report
 %        F8, tab:res_robustness_pool Panel C).
@@ -1107,6 +1118,8 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        Vorregistrierung, die man praezise widerlegt, ist mehr wert als
 %        eine, die man pauschal fuer falsch erklaert.
 %
+The amount of quantile crossing is on average is neglectable $0.398\%$ but not equally distributed with $pid\_tan\_cqr\ 2.554\%$ and $cqr\_static\ 0.724\%$ crossing rate. The msot extreme cell is (xlstm/L/seed42/IE) with $77.95\%$ crossing rate. Native and $saocp\_cqr$ never cross. This shows the crossing is ana rtifact of the recalibration not of the models.\\
+\\
 %  4. QUANTILKREUZUNG. Im Mittel vernachlaessigbar (0.451% aller
 %     kalibrierten Intervalle [B2]; 81.7% der Zellen kreuzen nie; auf
 %     [B3] 0.398%), aber ungleich verteilt:
@@ -1124,6 +1137,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        zeigt, dass Kreuzung ein Artefakt der Rekalibrierung ist und
 %        nicht der Modelle.
 %
+For the Volatility Regimes we decided that the first 12 Months are categorized as mid. We fixed the VIX threshold to 20. Both where ex ante decided and not data driven. The two types of stress have opposing signs when it comes to coverage. At the volatility terciles the coverage increases with increasing stress while at VIX the coverage drops at increasing stress. 
 %  5. REGIME-KONVENTIONEN. Zwei Festlegungen, die Ergebnisse mitbestimmen:
 %     (a) Die ersten 12 Testmonate haben keinen Volatilitaetswert (das
 %         rollierende Fenster sieht nur Testrealisationen) und werden
@@ -1151,6 +1165,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        Nenne die Basis, sonst stimmt der Vergleich mit tab:res_regime
 %        nicht (Panel A dort ist ebenfalls die valide Menge).
 %
+We decided for the 12 month refit interval since it is an efficient tradeoff between refit frequency and computational cost. For ARMA we tested the 12 mont5 refit versus a monthly refit. Over all 14 cp contrasts the median deviation in normed winkler score is $0.65\%$ and only 2 out of the 14 contrasts were segnificant (q<0,10). For Neural Networks we didnt do that kind of check. 
 %  6. FESTE SPLITS UND REFIT-FREQUENZ. Der 12-Monats-Refit ist empirisch
 %     abgesichert (F10), aber nur GEGEN monatliches Refit und nur fuer
 %     ARMA. Fuer die NN-Modelle gibt es keinen entsprechenden Check --
@@ -1192,11 +1207,13 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 % Abgrenzung. Fuenf Punkte, je 1-2 Saetze. Das ist die Sektion, die dem
 % Gutachter zeigt, dass du weisst, was du gemessen hast.
 %
+All findings are predicative comparative within the described protocol. No feature effect is interpreted causal not even the covariate contrast $tirex2\_cov$ vs. tirex2. 
 %  1. KEINE KAUSALITAET. Alle Befunde sind praediktiv-komparativ
 %     innerhalb dieses Protokolls. Kein Feature-Effekt wird kausal
 %     interpretiert, auch nicht der Kovariaten-Kontrast
 %     tirex2_cov - tirex2.
 %
+We dont test MAE-vs-RW as a preregister hypothesis. All the MAE in ~\ref{tab:res_point} are descriptive (\cref{sec:eval:skill}. in a post hoc added contrast Tirex2 does not achieve a significantly better MAE ration than the Random Walk (0.35$\%$ advantage, Panel-t = -0.4979, 0/10 countries significant). A controll contrast form arma vs. rw showed the power of the tests with finding that arma is significant inferior to the random walk (Panel-t = +2.4473; 9-country panel, as France reduces to ARMA(0,0) and reproduces the RW identically).
 %  2. KEINE PUNKTPROGNOSE-UEBERLEGENHEIT. Das Framework testet
 %     MAE-vs-RW nicht als vorregistrierte Hypothese; die MAE-Ratios in
 %     tab:res_point sind deskriptiv (\cref{sec:eval:skill},
@@ -1226,6 +1243,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        Das schwaecht den Kontrollbefund nicht (FI bleibt bei q 0.0040
 %        signifikant), aber es ist eine Zahl, die ein Gutachter
 %        nachrechnet, und sie steht besser bei dir als bei ihm.
+The directional hit rate of the random walk is an artifact. Its value of 0.578 is just the amout of times the spread stays the same or goes down, since a lower forecast is defined as less or equal than the last datapoint. 
 %     -> WEITERER POST-HOC-BEFUND, der eine offene Frage aus
 %        \cref{sec:res:point} schliesst: die Richtungstrefferquote des
 %        Random Walk ist ein ARTEFAKT.
@@ -1242,6 +1260,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        definierte Tests; bei reinem Zufall erwartet man 5%).
 %        Praktisch keine ausbeutbare Richtungsinformation.
 %
+
 %  3. F12 IST LEER -- und zwar per Konstruktion. Der vorregistrierte
 %     Finding-Typ "Punkt- vs. Intervalldivergenz" verlangt
 %     MAE-Ratio < 0.98 bei negativem Skill. Das beste MAE-Verhaeltnis im
@@ -1273,6 +1292,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 %        uebereinstimmen -- das ist die einzige Stelle im Kapitel, wo
 %        eine Inkonsistenz als Unehrlichkeit gelesen wird.
 %
+the reproducability of the findings is ensured. All calculations over all 7 modell familys are absed on an identical data artefact (SHA-256: 5f27a412...68ec2e) and the exact code can be found on github. The execution was done in a fully defined software environment (Python 3.13.1, NumPy 2.1.3, Pandas 2.3.3, SciPy 1.17.1).
 % >>> THESIS-ONLY >>>
 % - Ein Absatz zur Reproduzierbarkeit: identischer data_sha256
 %   (5f27a412...68ec2e) ueber alle sieben Modellfamilien, git-Commit
