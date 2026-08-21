@@ -4,9 +4,7 @@
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Selected (frozen) configurations per model and regime, chosen once on
-  the burn-in and held fixed for all refit blocks. RW and ARMA are deterministic;
-  the deep models additionally use seeds 42/43/44.}
+  \caption{Frozen configurations per model and regime, selected once on the burn-in and held fixed for every refit block. The deep models additionally run seeds 42/43/44.}
   \label{tab:app_frozen}
   \begin{tabular}{@{}lll@{}}
     \toprule
@@ -45,7 +43,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Shared hyperparameter-search protocol.}
+  \caption{Shared hyperparameter-search protocol. Every tuned model runs the same sampler, trial budget and selection window.}
   \label{tab:app_protocol}
   \begin{tabular}{@{}ll@{}}
     \toprule
@@ -69,9 +67,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Sequence-model hyperparameter search spaces. Shared rows are
-  identical by design; ``---'' marks a parameter that does not exist for that
-  architecture.}
+  \caption{Sequence-model hyperparameter search spaces. Rows shared by both architectures are identical by design; ``---'' marks a parameter that does not exist for that architecture.}
   \label{tab:app_nn_space}
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{@{}lll@{}}
@@ -103,10 +99,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{LightGBM hyperparameter search space. A booster is fitted per
-  quantile. \texttt{lag\_set} selects one of the six nested lag sets
-  $\{1\},\{1,2\},\{1,2,3\},\{1,2,3,6\},\{1,2,3,6,12\},\{1,2,3,6,12,24\}$;
-  in regime G the country enters as a native categorical feature.}
+  \caption{LightGBM hyperparameter search space, one booster per quantile. \texttt{lag\_set} selects one of six nested lag sets $\{1\},\dots,\{1,2,3,6,12,24\}$.}
   \label{tab:app_lgbm_space}
   \begin{tabular}{@{}ll@{}}
     \toprule
@@ -132,11 +125,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Frozen neural-network hyperparameters, one column per model and
-  regime. Values marked ``---'' do not apply to that architecture. ``Depth''
-  is the number of xLSTM blocks / LSTM layers; ``width'' is the xLSTM embedding
-  dimension / LSTM hidden size. Frozen epochs are the production epoch counts
-  taken from the winning trial. GF fine-tuning uses learning rate $\times\,0.1$.}
+  \caption{Frozen neural-network hyperparameters. Depth is xLSTM blocks or LSTM layers, width the embedding or hidden size; ``---'' marks a parameter that does not apply.}
   \label{tab:app_frozen_nn}
   \begin{tabular}{@{}lcccc@{}}
     \toprule
@@ -167,10 +156,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Frozen LightGBM hyperparameters. One booster is fitted per quantile.
-  The lag set is the tabular replacement for a lookback window; rolling means are
-  taken over $\{3,6,12\}$ months. \texttt{max\_depth}${}=-1$ means no depth limit
-  (leaf-wise growth is bounded by \texttt{num\_leaves}).}
+  \caption{Frozen LightGBM hyperparameters per regime, one booster per quantile. \texttt{max\_depth}${}=-1$ means no depth limit, so growth is bounded by \texttt{num\_leaves}.}
   \label{tab:app_frozen_lgbm}
   \begin{tabular}{@{}lcc@{}}
     \toprule
@@ -192,10 +178,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Frozen ARIMA orders per country, selected by AIC over
-  $(p,q)\in\{0,\dots,3\}^2$ on the differenced target (regime L only). France
-  collapses to $(0,0)$, i.e.\ a Random Walk on the differenced series. The Random
-  Walk itself has no tunable hyperparameters.}
+  \caption{Frozen ARIMA orders per country, selected by AIC on the differenced target in regime L. France collapses to $(0,0)$, which reproduces the Random Walk.}
   \label{tab:app_frozen_arma}
   \begin{tabular}{@{}lcccccccccc@{}}
     \toprule
@@ -212,10 +195,7 @@ is selected once on the burn-in and frozen thereafter (\cref{tab:app_frozen}).
 
 \begin{table}[t]
 \centering
-\caption{Per-country breakdown. Gate rate is the share of
-         admissible cells; median skill is over admissible combinations;
-         tail asymmetry is the share of lower violations; base rate is
-         $\max(p_{\uparrow},1-p_{\uparrow})$ of the realised direction.}
+\caption{Per-country breakdown. Gate rate is the share of admissible cells. Tail asymmetry is the share of lower violations. Base rate is $\max(p_{\uparrow},1-p_{\uparrow})$ of realized directions.}
 \label{tab:app_country}
 \begin{tabular}{lccccc}
 \toprule
@@ -237,9 +217,7 @@ FR & 0.864 & $-0.047$ & 0.504 & 0.520 & 0.335 \\
 
 \begin{table}[t]
 \centering
-\caption{Tail asymmetry (share of lower violations among
-         all violations; 0.5 is symmetric) over admissible combinations,
-         by model family and by recalibration method.}
+\caption{Tail asymmetry over admissible combinations, by model family and by method. It is the share of lower violations among all violations, and 0.5 marks symmetry.}
 \label{tab:app_tail}
 \begin{tabular}{lc@{\hskip 2cm}lc}
 \toprule
@@ -265,9 +243,7 @@ Model & Tail asym. & Method & Tail asym. \\
 
 \begin{table}[t]
 \centering
-\caption{Mean coverage (\%) by calibration-pool window.
-         Target is 80\%. Online trackers do not read the pool, so the
-         window variants do not apply to them.}
+\caption{Mean coverage in percent by calibration-pool window. ``---'' marks a method that does not read the pool, so the window variants do not apply.}
 \label{tab:app_pool}
 \begin{tabular}{lcccc}
 \toprule
@@ -296,9 +272,7 @@ Median skill             & $-0.013$ & $-0.011$ & $0.000$ & $0.014$ \\
 
 \begin{table}[t]
 \centering
-\caption{Left: seed dispersion of the neural families.
-         Right: median skill of the best admissible package per family,
-         recomputed with Ireland excluded from the aggregation.}
+\caption{Seed dispersion of the neural families on the left, and the median skill of each family's best admissible package with Ireland excluded on the right.}
 \label{tab:app_fragility}
 \begin{tabular}{lccc@{\hskip 1.2cm}lcc}
 \toprule
@@ -318,6 +292,12 @@ NN family & Med.\ span & Max span & span $>|$skill$|$ & Best package & Skill & e
                       &       &       &       & \texttt{arma}         & 0.058 & $-0.002$ \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} The span is the range of the median Winkler skill across seeds 42/43/44. ``span $>|$skill$|$'' is the share of that family's combinations whose span exceeds the absolute value of its median skill. On the right, Skill is the median over the ten countries against \texttt{rw}/L/\texttt{native}, so a positive value beats that reference. The ex-IE column recomputes it over the nine countries without Ireland. Rows on the right name the model family only, and \cref{tab:res_ranking} gives the full package.
+\end{minipage}}
 \end{table}
 
 % optional weitere Anhänge:

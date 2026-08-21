@@ -490,10 +490,7 @@ stability.
 
 \begin{table}[htbp]
   \centering\small
-  \caption{The 14 conformal prediction methods applied to every stream, grouped
-  by increasing adaptivity (\cref{sec:conformal:baselines}--\cref{sec:conformal:online}).
-  All parameters are fixed ex ante (\cref{sec:conformal:params}); $\bar S$ denotes
-  the burn-in score scale.}
+  \caption{The fourteen conformal prediction methods applied to every stream. All parameters are fixed ex ante (\cref{sec:conformal:params}); $\bar S$ denotes the burn-in score scale.}
   \label{tab:cp_methods}
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{@{}lllll@{}}
@@ -539,6 +536,12 @@ stability.
     \bottomrule
   \end{tabular}%
   }
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} The groups follow \cref{sec:conformal:baselines} to \cref{sec:conformal:online} in order of increasing adaptivity. We drop the \texttt{\_cqr} suffix here, which the results chapter carries. ``---'' means the entry does not apply, as for \texttt{native}, which passes the raw model quantiles through unchanged.
+\end{minipage}}
 \end{table}
 
 %------------------------------------------------------------------------

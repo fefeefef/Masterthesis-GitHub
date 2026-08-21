@@ -299,21 +299,7 @@ To find out we would have to evaluate the model on a window after the release or
 \begin{table}[t]
 \centering
 \small
-\caption{Post hoc test of point-forecast accuracy against
-         the Random Walk, added 2026-08-03 (see \cref{tab:lim_amendments}).
-         Diebold--Mariano with the Harvey--Leybourne--Newbold correction on
-         127 monthly absolute-error differentials per country, $d_t =
-         |e_t^{A}| - |e_t^{\mathrm{rw}}|$, normalised by the mean reference
-         error; negative values favour $A$. $q$ is the BH-FDR value within
-         the ten-country family. The panel $t$ statistic averages the
-         normalised differentials across countries per month and applies a
-         Newey--West long-run variance with three lags. Panel B is the
-         power control: the identical procedure detects that ARMA is worse
-         than the Random Walk. France is omitted from the ARMA test because
-         the selected order collapses to $(0,0)$ on the differenced series
-         (\cref{tab:app_frozen_arma}), which reproduces the Random Walk
-         exactly, so the loss differential is identically zero and the test
-         is undefined; it enters the FDR family with $p=1$.}
+\caption{Post hoc test of point-forecast accuracy against the Random Walk (\cref{tab:lim_amendments}). Panel A covers \texttt{tirex2}/ZS, Panel B is the ARMA power control.}
 \label{tab:lim_point}
 
 \textbf{Panel A: \texttt{tirex2}/ZS against \texttt{rw}/L}\\[1mm]
@@ -358,6 +344,12 @@ Median & 1.017 & $+0.018$ & & & \\
 Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.10$: 1/10 \quad MAE ratio $<1$: 1/10} \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} We test with Diebold--Mariano and the Harvey--Leybourne--Newbold correction on 127 monthly absolute-error differentials per country, $d_t=|e^A_t|-|e^{\mathrm{rw}}_t|$, normalized by the mean reference error, so a negative value favors $A$. $q$ is the Benjamini--Hochberg value within the ten-country family. The panel $t$ averages the normalized differentials across countries per month and applies a Newey--West long-run variance at three lags. We omit France from the ARMA test because its selected order reproduces the Random Walk exactly (\cref{tab:app_frozen_arma}), leaving the differential identically zero. It enters the family with $p=1$.
+\end{minipage}}
 \end{table}
 
 
@@ -517,17 +509,7 @@ A gate that includes the DQ test would be stricter but it would leave almost no 
 \begin{table}[t]
 \centering
 \small
-\caption{Post hoc decomposition of the dynamic-quantile
-         rejections, computed 2026-08-03 and re-verified 2026-08-17
-         (\cref{tab:lim_amendments}, row a). Each cell is one
-         (model, regime, seed, method, country) combination on the primary
-         calibration pool \texttt{rolling(36)}: 7420 cells in total, 4850
-         of which belong to an admissible combination. Entries are shares
-         of cells rejected at BH-FDR $q<0.10$ within the same family as the
-         main DQ test. The width coefficient $\gamma$ is tested on its own
-         by a one-degree-of-freedom Wald statistic from the full
-         regression, using the same asymptotic covariance
-         $\alpha(1-\alpha)(X'X)^{-1}$ that defines the DQ statistic.}
+\caption{Post hoc decomposition of the dynamic-quantile rejections. Panel A is the aggregate, Panel B splits by recalibration method, Panel C by model family (\cref{tab:lim_amendments}).}
 \label{tab:lim_dq}
 
 \textbf{Panel A: aggregate decomposition of the DQ regression}\\[1mm]
@@ -587,6 +569,12 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 \texttt{lgbm}         &  420 & 0.443 & \texttt{rw}           &  140 & 0.307 \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Each cell is one (model, regime, seed, method, country) combination on the primary pool \texttt{rolling(36)}. Entries are shares of cells rejected at BH-FDR within the same family as the main DQ test of \cref{eq:dq}. The three specifications drop instruments from that regression, with the degrees of freedom given in the row label. The width coefficient $\gamma$ is tested on its own by a one-degree-of-freedom Wald statistic from the full regression, using the covariance $\alpha(1-\alpha)(X'X)^{-1}$. A negative $\gamma$ means wide intervals overcover and narrow ones undercover.
+\end{minipage}}
 \end{table}
 
 
@@ -667,7 +655,7 @@ Also the MCS does not differentiate between the packages at n=127. 15 out of 26 
 %     Laender (Frankreich schliesst keinen der 26 aus, Irland acht).
 %     Diese Streuung ist selbst ein Argument fuer 9.5.
 
-The standard approach for the pairwise Diebold-Mariano tests at a one step forecasting window (h=1) is to use the sample variance (HAC-Lag 0). A positive autocorrelation in the loss differentials is created by the 12 month refits (block dependency) as well as the state-based adaptive methods. This leads to a systematic underestimation of the sample variance and in turn to overly optimistic country p values. The test results should therefore be seen as an upper bound for the real statistical significance.
+The standard approach for the pairwise Diebold-Mariano tests \parencite{dieboldmariano1995} at a one step forecasting window (h=1) is to use the sample variance (HAC-Lag 0). A positive autocorrelation in the loss differentials is created by the 12 month refits (block dependency) as well as the state-based adaptive methods. This leads to a systematic underestimation of the sample variance and in turn to overly optimistic country p values. The test results should therefore be seen as an upper bound for the real statistical significance.
 
 % ---- ABSATZ 3: DM-VARIANZ MIT HAC-LAG 0 ----
 %  WAS DER PUNKT IST:
@@ -691,7 +679,7 @@ The standard approach for the pairwise Diebold-Mariano tests at a one step forec
 %   systematisch zu optimistisch, und zwar in bekannter Richtung.
 %
 
-To correct for this systematic underestimation of the variance and serial autocorrelation we use a time clustered t Panel test for our main findings. In the first step we calculate the scale free normed loss differentials $\frac{d_{i,t}}{W^{ref}_{i}}$ every month meaned for all 10 countries. This condenses joint cross-sectional effects to a single monthly observation point (N=127). In the second step we calculate the t value of this timeseries mean by using the Newey-West long-term variance with Bartlett-Kernel and a Lag-Window of 3:\\
+To correct for this systematic underestimation of the variance and serial autocorrelation we use a time clustered t Panel test for our main findings. In the first step we calculate the scale free normed loss differentials $\frac{d_{i,t}}{W^{ref}_{i}}$ every month meaned for all 10 countries. This condenses joint cross-sectional effects to a single monthly observation point (N=127). In the second step we calculate the t value of this timeseries mean by using the Newey-West long-term variance \parencite{newey1987} with Bartlett-Kernel and a Lag-Window of 3:\\
   
 $\sigma^2_{\text{LR}} = \gamma_0 + 2 \sum_{l=1}^{3} \left(1 - \frac{l}{4}\right) \gamma_l$\\
 
@@ -1309,13 +1297,7 @@ The reproducibility of the findings is ensured. All calculations over all 7 mode
 \begin{table}[t]
 \centering
 \small
-\caption{Register of all deviations from and additions to
-         the pre-registered protocol
-         (\texttt{diagnostics\_foundation.txt}). ``Finding'' states whether
-         the item produced an entry in the automated finding catalogue;
-         ``Ranking'' whether it changed any reported ordering. Every row is
-         also recorded in paragraph 11 of the protocol document under the
-         same date.}
+\caption{Register of deviations from and additions to the pre-registered protocol (\texttt{diagnostics\_foundation.txt}). Find.\ records a finding-catalogue entry, Rank.\ a change in any reported ordering.}
 \label{tab:lim_amendments}
 \begin{tabular}{@{}p{0.115\linewidth} p{0.29\linewidth} p{0.29\linewidth} cc@{}}
 \toprule

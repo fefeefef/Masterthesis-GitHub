@@ -60,9 +60,7 @@ use the bid-ask spread, but here too no free data was available.
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Feature catalogue: identifier, construction, scope and primary
-    source. Country fundamentals enter as differentials vs.\ Germany (DE);
-    global features are identical across all countries.}
+    \caption{Feature catalogue with identifier, construction, scope and source. Country fundamentals enter as differentials against Germany; global features are identical across countries.}
     \label{tab:features_overview}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{@{}clllcl@{}}
@@ -166,9 +164,7 @@ it negligible and record it here rather than leave it unstated.
 % Präambel: \usepackage{booktabs}
 \begin{table}[H]
 \centering
-\caption{Publication lag by feature. The shift we impose in real time is
-$k=\lceil \text{days}/30\rceil$ whole months on a month-end series
-(see Note).}
+\caption{Publication lag by feature. Shift is the whole-month lag we impose in real time, $k=\lceil \text{days}/30\rceil$, on a month-end series.}
 \label{tab:publication-lags}
 \begin{tabular}{@{}p{4.3cm}p{1.2cm}p{1.4cm}p{5.3cm}@{}}
 \toprule
@@ -191,27 +187,10 @@ $k=\lceil \text{days}/30\rceil$ whole months on a month-end series
 \bottomrule
 \end{tabular}
 \vspace{4pt}
-\raggedright\footnotesize
-\textit{Note:} \emph{Lag (d)} reports the provider's documented publication
-delay after the reference period. \emph{Shift (m)} is the lag we actually
-impose, $k=\lceil \text{days}/30\rceil$ whole months, applied as a month-end
-shift of the feature within each country. The forecast target is never
-shifted. Because $k$ rounds up, no value enters the panel before it was
-released; the cost is up to roughly 29 days of over-lagging. \\[2pt]
-$^{\dagger}$ The monthly-average series (Moody's Aaa/Baa yields, EPU) appear
-about 5 days into the following month. At monthly frequency that delay rounds
-to a zero-month shift, so a look-ahead of a few days remains. We judge it
-negligible and record it here rather than leave it unstated. \\[2pt]
-$^{\ddagger}$ \emph{Split lag.} When an input combines two series with
-different release calendars, we lag each series on its own calendar before
-combining them. For \texttt{target2\_gdp} $=$ TARGET2$/$GDP the TARGET2
-numerator is shifted by 2 months and the GDP denominator (from quarterly EDP
-debt) by 4 months, which gives $\text{TARGET2}(t{-}2)/\text{GDP}(t{-}4)$. This
-keeps the numerator, which moves fastest in a crisis, at the shortest lag we
-can justify. The interaction terms follow the same logic: in
-$\text{global}(t)\times\text{debt}(t{-}4)$ the debt factor already carries its
-4-month (113 d) lag before it multiplies the contemporaneous global factor
-(lag 0), so we do not lag the product a second time.
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Lag (d) reports the provider's documented publication delay after the reference period. Shift (m) is applied as a month-end shift of the feature within each country. $^{\dagger}$ marks a monthly-average series whose release delay rounds to a zero-month shift. $^{\ddagger}$ marks a split lag. We lag each input series on its own calendar before combining them, so \texttt{target2\_gdp} enters as $\text{TARGET2}(t{-}2)/\text{GDP}(t{-}4)$ and the interaction terms carry the debt lag only.
+\end{minipage}}
 \end{table}
 
 \subsection{Final panel}

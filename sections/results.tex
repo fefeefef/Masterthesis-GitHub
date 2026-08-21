@@ -178,9 +178,7 @@ Crossing is on average negligible, but not equally distributed.
 
 \begin{table}[t]
 \centering
-% TODO Caption. Inhalt: Gate-Durchfallquote und mittlere Coverage
-%          je Rekalibrierungsmethode. Zielcoverage 0.80.
-\caption{}
+\caption{Validity gate by recalibration method. Admissible share is the fraction of a method's combinations passing the gate of \cref{def:gate}. DQ rejection follows \cref{eq:dq}.}
 \label{tab:res_gate}
 \begin{tabular}{lccc}
 \toprule
@@ -262,8 +260,7 @@ Only TiRex2 beats the Random Walk with an advantage of $0.35\%$, as can be seen 
 
 \begin{table}[t]
 \centering
-\caption{Point-forecast accuracy relative to the random
-         walk; ratios below one indicate an improvement.}
+\caption{Point-forecast accuracy against the Random Walk (\cref{eq:mae_ratio}, \cref{eq:pt_test}). Ratios below one favor the model. PT rejections is the share of country tests that reject.}
 \label{tab:res_point}
 \begin{tabular}{lcccc}
 \toprule
@@ -297,9 +294,21 @@ In Table~\ref{tab:res_tirex2_cp} we take a closer look at the winning model fami
 \begin{figure}[htbp]
     \centering
     \makebox[\textwidth][c]{\includegraphics[width=1.15\textwidth]{figures/skill_heatmap.png}}
-    % TODO: caption still in German, not a duplicate of surrounding text -- translate to English.
-    \caption{Heatmap zur Übersicht der Modell-Skills.}
+    \caption{Median Winkler skill of every model and regime under all fourteen
+             recalibration methods, measured against \texttt{rw}/L/\texttt{native}
+             (\cref{eq:skill}).}
     \label{fig:skill_heatmap}
+    \vspace{4pt}
+    {\footnotesize
+    \begin{minipage}{0.98\textwidth}
+    \textit{Notes.} Rows are model and regime, columns the fourteen recalibration
+    methods, giving 350 cells. Each cell is the mean across seeds of the median
+    Winkler skill of \cref{eq:skill}, so it pools three seeds for the neural
+    families and one for the others. A positive value beats
+    \texttt{rw}/L/\texttt{native} and colors the cell blue, a negative value loses
+    and colors it red. The cross marks a cell in which no seed passes the
+    admissibility gate of \cref{def:gate}.
+    \end{minipage}}
 \end{figure}
 
 % Das ist DAS Kernunterkapitel der Arbeit. Nimm dir hier am meisten Zeit.
@@ -501,15 +510,7 @@ In Table~\ref{tab:res_percountry} we show how the top 3 packages and the best cl
 
 \begin{table}[t]
 \centering
-\caption{Best admissible package per model family, ranked
-         by median Winkler skill against RW/L/native. Under a stricter, post hoc gate requiring all ten countries,
-         four of the twelve selections change: \texttt{tirex2} to
-         \texttt{decay\_ocp\_cqr} (0.144), \texttt{tirex2\_cov} to
-         \texttt{decay\_ocp\_cqr} (0.139), \texttt{lgbm} to
-         \texttt{agaci\_cqr} (0.128), and \texttt{xlstm} to
-         \texttt{cqr\_rolling} (0.068); the remaining eight are
-         unchanged. The ordering of the leading group is unaffected, but
-         \texttt{xlstm} then ranks below the Random Walk.}
+\caption{Best admissible package per model family, ranked by median Winkler skill against \texttt{rw}/L/\texttt{native} (\cref{eq:skill}). Positive skill beats that reference. Coverage averages the countries.}
 \label{tab:res_ranking}
 \begin{tabular}{llccc}
 \toprule
@@ -533,10 +534,7 @@ Model & Regime / method & Median skill & Mean coverage & Admissible countries \\
 
 \begin{table}[t]
 \centering
-\caption{All 14 recalibration methods applied to
-         \texttt{tirex2}/ZS. Skill is the median Winkler skill against
-         RW/L/\texttt{native}; $\dagger$ marks combinations that fail the
-         admissibility gate.}
+\caption{All fourteen recalibration methods applied to \texttt{tirex2}/ZS, ranked by median Winkler skill.}
 \label{tab:res_tirex2_cp}
 \begin{tabular}{lccc}
 \toprule
@@ -558,16 +556,17 @@ Method & Median skill & Mean coverage & Admissible countries \\
 \texttt{pid\_tan\_cqr}$^\dagger$ & $-0.044$ & 0.810 & 6/10 \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} We report skill as the median across the ten countries of $1-\bar W/\bar W_{\mathrm{ref}}$ against \texttt{rw}/L/\texttt{native} (\cref{eq:skill}), so a positive value beats that reference. Coverage is the mean over the ten countries on the common test window, with the target of \cref{sec:eval:coverage}. Admissible countries counts the countries in which the calibration null of \cref{def:gate} is retained after the Benjamini--Hochberg correction. $\dagger$ marks a combination that fails the gate.
+\end{minipage}}
 \end{table}
 
 \begin{table}[t]
 \centering\small
-\caption{Per-country skill and coverage of the three
-         leading packages and of the best classical benchmark. Skill is
-         relative to RW/L/\texttt{native} of the same country; coverage
-         target is 0.80. $\dagger$ marks a country in which the
-         calibration null is rejected (FDR $q<0.10$), i.e.\ a cell that
-         fails the admissibility gate.}
+\caption{Per-country skill and coverage of the three leading packages and of the best classical benchmark.}
 \label{tab:res_percountry}
 \begin{tabular}{lcccccccc}
 \toprule
@@ -591,6 +590,12 @@ Median / mean & 0.146 & 0.750 & 0.141 & 0.839 & 0.139 & 0.824 & 0.085 & 0.812 \\
 Admissible & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{8/10} & \multicolumn{2}{c}{7/10} & \multicolumn{2}{c}{10/10} \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Skill is $1-\bar W/\bar W_{\mathrm{ref}}$ against \texttt{rw}/L/\texttt{native} of the same country, so a positive entry beats that reference. Every entry covers the 127 test months of that country. The last data row gives the median of the skill columns and the mean of the coverage columns. $\dagger$ marks a country in which the calibration null is rejected, so a cell that fails the gate of \cref{def:gate}. \cref{tab:res_ranking} holds the full package specifications.
+\end{minipage}}
 \end{table}
 
 
@@ -650,7 +655,7 @@ We wanted to find out whether the CP calibration methods led to an improvement i
 %   Kontrasttabelle mit RQ1/RQ2.
 \begin{table}[htbp]
   \centering
-  \caption{Results for RQ3: Comparison of CP methods against native model output (median across 53 contrasts per method). Negative $d_{\text{norm}}$ indicates superiority of the CP method.}
+  \caption{Each recalibration method against \texttt{native} output, aggregated over the 53 contrasts per method. Negative $d_{\text{norm}}$ favors the method, positive favors \texttt{native}.}
   \label{tab:rq3_results}
   \begin{tabular}{l c c c c}
     \toprule
@@ -838,25 +843,7 @@ The best valid xlstm package is xlstm/L/native (0.094) even though it only passe
 % [arXiv-Kuerzung]: 1 Absatz, die drei Kontraste als Zahlentripel im Satz.
 \begin{table}[htbp]
   \centering\small
-  \caption{Results for RQ1 (pooling and fine-tuning). \textbf{Panels A and B}
-  report normalised Diebold--Mariano loss differentials
-  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $d_t=W_t^{A}-W_t^{B}$,
-  aggregated as the median over the ten countries; a \emph{negative} value
-  means A has the lower loss, i.e.\ A is better. \textbf{Panel C} reports
-  the median Winkler skill $1-\bar W/\bar W^{\text{ref}}$, where a
-  \emph{positive} value means the regime beats the benchmark. The two
-  quantities carry opposite sign conventions and must not be read against
-  each other. The benchmark $\bar W^{\text{ref}}$ is RW/L/\texttt{native}
-  of the same country and month throughout. Panel $t$ is the
-  time-clustered panel statistic (cross-sectional mean, then Newey--West
-  HAC with three lags); it is asymptotically standard normal and has no
-  degrees of freedom. Median $q$ is the median BH-FDR-adjusted $p$-value
-  of the per-country DM--HLN tests ($df=126$); FDR-sig.\ is the share of
-  cells surviving $q<0.10$; seed-stable is the share of contrasts whose
-  sign agrees across seeds 42/43/44, the pre-registered condition for
-  making a rank statement. $\dagger$ marks the post hoc contrast
-  \texttt{GF} vs.\ \texttt{L}, which is not part of the pre-registered
-  set and forms its own FDR family.}
+  \caption{RQ1, pooling and fine-tuning. Panels A and B report contrast-level loss differentials, Panel C the performance of each training regime.}
   \label{tab:rq1_results}
   \begin{tabular}{lrrrrrr}
     \toprule
@@ -895,33 +882,16 @@ The best valid xlstm package is xlstm/L/native (0.094) even though it only passe
     \bottomrule
   \end{tabular}
 
-  \vspace{0.5em}
-  \footnotesize\raggedright
-  \textbf{Notes.} LightGBM has no \texttt{GF} regime, so only the
-  \texttt{G}-vs-\texttt{L} contrast exists for it; it is deterministic
-  (single seed), so seed stability does not apply. The three contrasts
-  form a coherent chain: pooling costs $+0.017$, fine-tuning recovers
-  $-0.006$, and $+0.016$ of the deficit against the local model remains
-  (medians do not add exactly). No contrast is FDR-significant at the
-  contrast level: over the 266 pre-registered contrasts the smallest
-  median $q$ is 0.019 and only 30 fall below $0.10$, against 131 with
-  $|t_{\text{panel}}|>1.96$; in the post hoc family the smallest median
-  $q$ is 0.083 and 6 of 84 fall below $0.10$. The two criteria answer
-  different questions --- the panel statistic asks whether the effect is
-  present on average across countries, the $q$-value whether it is
-  detectable within individual countries after correction. Median $q$ and
-  FDR-sig.\ pool the three seeds of a neural contrast into one figure (30
-  cells instead of 10), because the per-country DM output does not carry
-  a seed identifier; the effect columns are per seed.
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Panels A and B give $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $d_t=W^A_t-W^B_t$, median over the ten countries, so a negative value means A has the lower loss. Panel C gives the Winkler skill of \cref{eq:skill}, where a positive value beats the reference. The two signs run in opposite directions. Panel $t$ averages across countries under a Newey--West variance at three lags. Median $q$ is the median per-country DM--HLN $q$-value and FDR-sig.\ the median share of countries below the FDR threshold. Seed-stable is the sign agreement across seeds 42/43/44. $\dagger$ marks the post hoc contrast.
+\end{minipage}}
 \end{table}
 
 \begin{table}[t]
 \centering
-\caption{Pre-registered contrast families. Effect is the
-         median normalised loss differential $\bar d/\bar W^{\text{ref}}$;
-         NEGATIVE values mean A is better. Share A better is the median
-         fraction of countries favouring A; FDR-sig.\ is the fraction of
-         contrasts with median $q<0.10$.}
+\caption{Pre-registered contrast families, one row per contrast, grouped by research question.}
 \label{tab:res_contrasts}
 \begin{tabular}{lrrrrr}
 \toprule
@@ -962,6 +932,12 @@ Contrast & $n$ & Effect & Share A better & Panel $t$ & FDR-sig. \\
 \texttt{lstm}/GF   & 42 & $+0.062$ & 0.10 & $+3.07$ & 0.57 \\
 \bottomrule
 \end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Effect is the median normalized loss differential $\bar d/\bar W^{\text{ref}}$ over the countries, so a negative value favors A. Share A better is the median fraction of countries in which A wins. Panel $t$ averages the normalized differential across countries under a Newey--West variance at three lags. FDR-sig.\ is the fraction of contrasts whose median $q$ falls below the threshold of \cref{eq:bhfdr}. $n$ is the number of contrasts in the family. The panels follow \cref{sec:res:rq3}, \cref{sec:res:rq1} and \cref{sec:res:rq2} in turn.
+\end{minipage}}
 \end{table}
 
 
@@ -1073,21 +1049,7 @@ Taking a closer look at lstm/G in Table~\ref{tab:res_rq2_lstmG} reveals that we 
 %        Korrektur nachweisbar ist.
 \begin{table}[htbp]
   \centering\small
-  \caption{Results for RQ2 (adaptive versus constant interval width).
-  \textbf{Panel A} reports normalised Diebold--Mariano loss differentials
-  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $A$ the adaptive model
-  and $B$ its constant-width twin, which shares the same median forecast
-  and the same covariates and differs only in whether the interval width
-  varies over time; a \emph{positive} value means the adaptive variant has
-  the higher loss, i.e.\ performs worse. Median $q$ is the median
-  BH-FDR-adjusted $p$-value of the per-country DM--HLN tests ($df=126$);
-  seed-stable is the share of contrasts whose sign agrees across seeds
-  42/43/44, the pre-registered condition for making a rank statement.
-  \textbf{Panel B} contrasts the two summaries that can diverge: the
-  median skill over all combinations of a family, and the single best
-  admissible package. \textbf{Panel C} gives the provenance of those best
-  packages. $\dagger$ marks a package whose seed range exceeds its own
-  skill.}
+  \caption{RQ2, adaptive against constant interval width. Panel A holds the twin contrasts, Panel A2 their seed stability, Panels B and C the package selection.}
   \label{tab:rq2_results}
   \begin{tabular}{llrrrrr}
     \toprule
@@ -1132,20 +1094,12 @@ Taking a closer look at lstm/G in Table~\ref{tab:res_rq2_lstmG} reveals that we 
     \multicolumn{2}{l}{\texttt{lstm}/L/\texttt{pid\_cqr}}             & adaptive & 0.062 & 0.810 & 10/10 & 3/3 \\
     \bottomrule
   \end{tabular}
-    \vspace{0.5em}
-  \footnotesize\raggedright
-  \textbf{Notes.} LightGBM is deterministic (single seed), so seed
-  stability does not apply and it has no \texttt{GF} regime; the
-  constant-width twins exist only for the trainable models
-  \texttt{lgbm}, \texttt{lstm} and \texttt{xlstm}. Only 46 of the 280
-  contrasts are FDR-significant, the smallest median $q$ being 0.003; no
-  aggregate contrast reaches $q<0.10$. In Panel B, \texttt{xlstm} is the
-  only family whose two summaries disagree, and Panel C shows why: the
-  package driving the ranking result, \texttt{xlstm}/L/\texttt{native},
-  is admissible for one of its three seeds only (0.094 for seed 44,
-  against 0.043 and $-0.008$ for seeds 42 and 43, both of which fail the
-  gate) and its seed range of 0.102 exceeds its own skill. Under the
-  pre-registered seed rule no rank statement may be made for it.
+
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} $A$ is the adaptive model and $B$ its constant-width twin, identical except for the time variation of the interval width. $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ is the median over the ten countries, so a positive value means the adaptive variant loses. Median $q$ is the median Benjamini--Hochberg value of the per-country DM--HLN tests. Seed-stable is the share of contrasts whose sign agrees across seeds 42/43/44. Skill in Panels B and C follows \cref{eq:skill}, where positive beats the reference. $\dagger$ marks a package whose seed range exceeds its own skill.
+\end{minipage}}
 \end{table}
 %  6. EIN SATZ EINSCHRAENKUNG (unveraendert gueltig): die staerkste
 %     Einzelinstanz im Story-Report (lstm/G/saocp_cqr, A um 21.7%
@@ -1254,9 +1208,7 @@ Our hypothesis why the adaptive part saw no general improvement over the constan
 % [arXiv-Kuerzung]: 1 Absatz, Fokus auf lstm_const als bestes NN-Paket.
 \begin{table}[t]
 \centering
-\caption{Country-level breakdown of the \texttt{lstm}/G contrast between the
-         adaptive-width model and its constant-width twin. Positive entries
-         favour the constant-width twin.}
+\caption{Country-level breakdown of the \texttt{lstm}/G contrast, with $A$ the adaptive model and $B$ its constant-width twin \texttt{lstm\_const}/G.}
 \label{tab:res_rq2_lstmG}
 \small
 \begin{tabular}{lcccccccc}
@@ -1283,21 +1235,7 @@ All cells & $+0.056$ & $+0.061$ & $+0.047$ & $+0.060$ & 0.17 & $+1.55$ & 0.175 &
 \vspace{4pt}
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
-\textit{Notes.} $A$ is \texttt{lstm}/G, $B$ is \texttt{lstm\_const}/G. Each of the
-42 contrasts pairs one recalibration method with one seed, and within a country it
-is a Diebold--Mariano test with the Harvey--Leybourne--Newbold correction on 127
-monthly Winkler-loss differences. We report
-$d_{\mathrm{norm}}=(\bar L_A-\bar L_B)/\bar W_{\mathrm{ref}}$, where
-$\bar W_{\mathrm{ref}}$ is the mean Winkler loss of \texttt{rw}/L/\texttt{native}
-in the same country, so a positive entry means the adaptive model loses. The seed
-columns are medians over the fourteen recalibration methods; $\tilde d_{\mathrm{norm}}$,
-$t_{\mathrm{HLN}}$ and $q$ are medians over all 42 contrasts. Share $A$ is the
-fraction of the 42 contrasts in which the adaptive model attains the lower loss.
-The $q$-values are Benjamini--Hochberg adjusted within the joint family of all
-12{,}490 country-level cells of the run. The last row pools the
-$10\times 42=420$ cells, which is why it differs from the $+0.062$ reported for
-this group in \cref{tab:rq2_results}: that number is the median of the 42
-per-contrast medians taken across countries.
+\textit{Notes.} Each of the 42 contrasts pairs a recalibration method with a seed. We test per country by DM--HLN on 127 monthly Winkler-loss differences. We report $d_{\mathrm{norm}}=(\bar L_A-\bar L_B)/\bar W_{\mathrm{ref}}$ against \texttt{rw}/L/\texttt{native} of the same country, so a positive entry means the adaptive model loses. The seed columns are medians over the fourteen recalibration methods. Share $A$ is the fraction of contrasts in which the adaptive model attains the lower loss. The $q$-values are Benjamini--Hochberg adjusted across all country cells. The last row pools all country cells and differs from \cref{tab:rq2_results}.
 \end{minipage}}
 \end{table}
 
@@ -1377,10 +1315,7 @@ We chose the covariates we used based on literature that provided evidence that 
 %   sie ist der originellste Einzelbefund -- nicht zu stark kuerzen.
 \begin{table}[t]
 \centering
-\caption{Covariates against no covariates in TiRex-2. Panel A holds the
-         recalibration method fixed and compares the two variants after
-         calibration; Panel B is the raw contrast inside the TiRex-2 run itself,
-         before the conformal layer.}
+\caption{Covariates against no covariates in TiRex-2. Panel A compares the two variants after calibration, Panel B the raw model output before it.}
 \label{tab:res_cov}
 \small
 \begin{tabular}{lccccccc}
@@ -1429,43 +1364,7 @@ Median & 0.2144 & $-0.0047$ & $-0.0076$ & $+0.0001$ & $-0.0157$ & 0.995 & 0.954 
 \vspace{4pt}
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
-\textit{Notes.} uni is \texttt{tirex2}, cov is \texttt{tirex2\_cov}. Both are the
-same pre-trained model in the ZS regime under seed 42 on the same 127 test months,
-so the 17 covariates are the only difference and the comparison carries no seed
-variance. The median rows are column-wise medians, which is why the $\Delta$ entry
-there is not the difference of the two skill medians above it.
-
-\textit{Panel A} reports the same comparison twice. $\Delta$ is the difference of
-the two median skills, where skill is the median across countries of
-$1-\bar W/\bar W_{\mathrm{ref}}$ against \texttt{rw}/L/\texttt{native}. The right
-block pairs the variants country by country instead: a Diebold--Mariano test with
-the Harvey--Leybourne--Newbold correction on 127 monthly Winkler-loss differences,
-with the recalibration method held fixed, giving $\tilde d_{\mathrm{norm}}$ as the
-median across countries of
-$(\bar L_{\mathrm{uni}}-\bar L_{\mathrm{cov}})/\bar W_{\mathrm{ref}}$, Share uni as
-the fraction of the ten countries in which the univariate variant wins, and Panel
-$t$ from averaging across countries first and then applying a Newey--West standard
-error with three lags. The two blocks carry opposite sign conventions and can
-disagree, because a difference of medians is not the median of differences: under
-\texttt{native} the univariate variant holds the higher median skill and still
-loses the paired comparison in seven of ten countries. Both effects are small
-against the scale of the study, where the best admissible package leads the best
-random-walk package by 0.0609 in median skill. Across the 140 country tests, 18
-reach $p<0.10$ before correction, close to the 14 expected under the null, and they
-split 10 to 8 by direction. Benjamini--Hochberg within this family of 140 leaves
-none of them: the smallest $q$ is 0.42 and the median is 0.98 under every method.
-Folding the 140 into the family of 12{,}490 country cells of the main run would
-instead leave 8, smallest $q$ 0.013, split 5 in favour of the covariates against 3
-against them; we keep the families separate because these tests address a different
-question from the pre-registered contrasts. The paired columns are computed post hoc
-with the same code as those contrasts and are not part of the shipped run
-artefacts.
-
-\textit{Panel B} is the raw test-phase output, evaluated before the conformal layer
-touches it, so a negative entry means the covariates help. They narrow the interval
-in all ten countries, by 2.2 to 6.9 per cent, and lower the Winkler score in seven
-of them. Coverage falls in nine countries, from a median of 0.843 to 0.831, which
-moves it towards the nominal 0.80 rather than away from it.
+\textit{Notes.} We write uni for \texttt{tirex2} and cov for \texttt{tirex2\_cov}, the same pre-trained model in the ZS regime under seed 42, so the covariates are the only difference. In Panel A, $\Delta$ is the difference of the two median skills and is positive when uni leads. The paired block instead gives $\tilde d_{\mathrm{norm}}$, the median across countries of $(\bar L_{\mathrm{uni}}-\bar L_{\mathrm{cov}})/\bar W_{\mathrm{ref}}$, which is negative when uni leads. Panel B is the raw model output before the conformal layer. A negative entry there favors the covariate variant.
 \end{minipage}}
 \end{table}
 
@@ -1489,7 +1388,7 @@ separate tests, while the panel $t$ averages over them first and then tests, whi
 handles their correlation and has more power. That is why 29 of the 66 pairs come out
 over 1.96.
 
-Using the MCS we wanted to find out whether we can isolate a winning group of models.
+Using the MCS \parencite{hansen2011mcs} we wanted to find out whether we can isolate a winning group of models.
 This did not work, as we can see in \cref{tab:res_mcs}. Here again we use the MCS on
 the 26 best admissible packages, one for each model family and regime, plus the
 Random Walk reference, which we force into the set so the test can say something
@@ -1562,10 +1461,7 @@ Even though not statistically significant we see a clear order in performance
 %   und der Satz "die MCS ist nicht trennscharf" MUESSEN beide drin bleiben.
 \begin{table}[t]
 \centering
-\caption{Pairwise cross-model comparison of the twelve best admissible packages,
-         one per model family. Above the diagonal: the normalised loss differential
-         of the row package against the column package, negative when the row wins.
-         Below the diagonal: the median FDR-adjusted $q$-value of the same pair.}
+\caption{Pairwise comparison of the twelve best admissible packages. Above the diagonal the loss differential, below it the median FDR-adjusted $q$-value.}
 \label{tab:res_xm}
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -1591,32 +1487,13 @@ Package & Skill & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
 \vspace{4pt}
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
-\textit{Notes.} Each package is the best admissible one of its family, and the full
-specification of regime, seed and recalibration method is in
-\cref{tab:res_ranking}. Skill repeats the median Winkler skill from that table, and
-the rows are ordered by it. Each of the 66 pairs is a Diebold--Mariano test with the
-Harvey--Leybourne--Newbold correction, run per country on 127 monthly Winkler-loss
-differences; the entry above the diagonal is the median across the ten countries of
-$(\bar L_{\mathrm{row}}-\bar L_{\mathrm{col}})/\bar W_{\mathrm{ref}}$ and the entry
-below is the median of the country $q$-values, adjusted by Benjamini--Hochberg
-within the family of all country-level cells of the run. The entry $-0.000$ in row 1
-is $-0.00006$. No pair reaches a median $q$ below 0.10; the smallest is 0.185 and
-the median across all 66 pairs is 0.564. Underneath that aggregate, 92 of the 660
-individual country tests do fall below 0.10, and 52 of the 66 pairs contain at least
-one of them. A dagger marks the 29 pairs whose panel $t$-statistic exceeds 1.96 in
-absolute value, 15 of them exceeding 2.58; the panel statistic averages the
-normalised difference across countries before applying a Newey--West standard error
-with three lags, and it carries no correction for the 66 comparisons. These packages
-were selected as the best of their family on the same test data on which they are now
-compared, so the comparison is optimistic in the sense of \cref{sec:exp:selection}.
+\textit{Notes.} Each package is the best admissible one of its family, with regime, seed and recalibration method given in \cref{tab:res_ranking}. Skill repeats the median Winkler skill from that table. Every pair is a Diebold--Mariano test with the Harvey--Leybourne--Newbold correction, run per country on 127 monthly Winkler-loss differences. The upper entry is the median across countries of $(\bar L_{\mathrm{row}}-\bar L_{\mathrm{col}})/\bar W_{\mathrm{ref}}$, so it is negative when the row package wins. The lower entry is the median country $q$ after Benjamini--Hochberg. $\dagger$ marks a pair whose panel $t$ exceeds 1.96 in absolute value.
 \end{minipage}}
 \end{table}
 
 \begin{table}[t]
 \centering
-\caption{Model Confidence Set over the curated candidate set, computed separately
-         for each country at the 10 per cent level. Panel A lists the candidates by
-         skill, Panel B the resulting set size per country.}
+\caption{Model Confidence Set over the curated candidates, computed per country. Panel A lists the candidates by skill, Panel B the resulting set size.}
 \label{tab:res_mcs}
 \small
 \begin{tabular}{llcl}
@@ -1672,19 +1549,7 @@ Country & MCS size & Terminal $p$ & Excluded packages \\
 \vspace{4pt}
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
-\textit{Notes.} Hansen's Model Confidence Set at $\alpha=0.10$, with the $T_{\max}$
-statistic and a moving-block bootstrap of 1000 replications at block length six, run
-separately for each of the ten countries over the 26 curated candidates. Skill is the
-median Winkler skill against \texttt{rw}/L/\texttt{native}, which is why candidate 24
-sits at exactly zero: it is the reference. Seeds are 42 except for candidates 5, 6, 17,
-18, 20 and 23 (seed 43) and 8, 11 and 19 (seed 44). Within a country every surviving
-package shares the same terminal $p$-value, so Panel B reports it once per country
-rather than per package. Panel A and Panel B together reconstruct all 260
-country--candidate decisions. Of those, 238 are inclusions, a rate of 0.915. Fifteen
-candidates survive in all ten countries and nine more in at least eight; only
-candidates 24 and 26 fall out in half of them. Set size and terminal $p$ do not move
-together: Finland retains all 26 at the lowest $p$ of 0.103, while the Netherlands
-excludes two at the highest $p$ of 0.406.
+\textit{Notes.} We run Hansen's Model Confidence Set separately for each country over the 26 candidates. The statistic is $T_{\max}$, with a moving-block bootstrap \parencite{kunsch1989mbb} of 1000 replications at block length six. Skill repeats \cref{eq:skill}, so candidate 24 sits at zero as the reference. In MCS counts the countries retaining the package. Seeds are 42, except 43 for candidates 5, 6, 17, 18, 20, 23, 25 and 44 for candidates 8, 11, 19, 22. Within a country every surviving package shares the terminal $p$-value, so Panel B reports it once.
 \end{minipage}}
 \end{table}
 
@@ -1914,10 +1779,7 @@ Both methods for the regime classification were ex ante fixed. The realized spre
 
 \begin{table}[t]
 \centering
-\caption{Regime-conditional behaviour on the two volatility axes. Panel A
-         aggregates over the 485 admissible combinations, Panel B breaks the result
-         down by recalibration method, and Panel C follows the twelve best
-         admissible packages, one per model family.}
+\caption{Regime-conditional behavior on the two volatility axes. Panel A aggregates over admissible combinations; Panels B and C break it down by method and by package.}
 \label{tab:res_regime}
 \small
 \begin{tabular}{lccccc}
@@ -1978,37 +1840,7 @@ Package & Skill calm & Skill stressed & Skill VIX $\leq 20$ & Skill VIX $> 20$ &
 \vspace{4pt}
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
-\textit{Notes.} Both axes use information available before the forecast month. The
-volatility terciles come from a twelve-month rolling standard deviation of realised
-spread changes, lagged one month and cut per country, so their month counts differ
-slightly across countries; the VIX split is global and its country-months are months
-times ten countries. The first twelve test months of a country carry no volatility
-window and fall into the neutral middle tercile. Coverage and Winkler in Panel A are
-means over the 485 admissible combinations, against a target coverage of 0.80. Skill
-is the median across countries of $1-\bar W/\bar W_{\mathrm{ref}}$ within the regime
-months of that country against \texttt{rw}/L/\texttt{native}, aggregated by median
-across combinations in Panels A and B and read off the single package in Panel C.
-The last column is the change in coverage in the top volatility tercile relative to
-full-sample coverage, so positive means the intervals cover more under stress.
-
-Panel C names each package by its model family; the regime, seed and recalibration
-method are in \cref{tab:res_ranking}. Under realised stress the overall ranking
-survives, with a Spearman correlation of $+0.846$ ($p=0.0005$) against the ranking
-of \cref{tab:res_ranking} and a largest rank change of four places. Under high VIX it
-does not, at $+0.399$ ($p=0.199$) and a largest rank change of seven:
-\texttt{tirex2}/ZS/\texttt{cqr\_static} falls from first to eighth, and the leading
-package becomes \texttt{lgbm}/G/\texttt{decay\_ocp\_cqr}. The skill advantage of
-\texttt{tirex2} in calm markets comes with a coverage of 0.654 against a target of
-0.80, so it is bought with intervals that undercover badly.
-
-The calendar split of \texttt{config/pipeline.yaml} is not reported separately.
-It is a single fixed date rather than a mapping of policy decisions, and it separates
-almost the same months as the volatility axis: 89.5 per cent of stressed
-country-months fall before 2022-01, and after that date 51.2 per cent of
-country-months are calm against 7.7 per cent stressed. The pre-registered complexity
-test uses a skill definition that differs from the one above, excluding
-\texttt{native} and applying no validity gate, and its group medians are not
-comparable with the levels in Panel C.
+\textit{Notes.} The volatility terciles come from a twelve-month rolling standard deviation of realized spread changes, lagged one month and cut per country. The VIX split is global, so its country-months are months times countries. Coverage and Winkler in Panel A are means over the admissible combinations. Skill is the median across countries of $1-\bar W/\bar W_{\mathrm{ref}}$ within the regime months of that country, so a positive value beats \texttt{rw}/L/\texttt{native}. The last column gives the coverage change in the top tercile against full-sample coverage. \cref{tab:res_ranking} specifies the Panel C packages.
 \end{minipage}}
 \end{table}
 
@@ -2271,7 +2103,7 @@ Finally we administer whether the ranking is consistent over the 10 countries. F
 %   by construction").
 \begin{table}[t]
 \centering
-\caption{Calibration-pool robustness. Panel A: classification of the 14 CP methods by whether they read the historical calibration-score pool at all. Panel B: coverage and Winkler skill under four calibration-pool definitions, restricted to the six pool-reading methods, and their deviation from the primary choice \texttt{rolling(36)}. Panel C: the three individual (model, regime, seed, method) combinations with the largest pool sensitivity (Story-Report finding F8). Panel D: cross-country stability of the combination ranking (Kendall's $\tau$, Story-Report finding F7).}
+\caption{Calibration-pool robustness under four pool definitions. Panels B and C restrict to the pool-reading methods; Panel D reports cross-country ranking stability.}
 \label{tab:res_robustness_pool}
 
 \textbf{Panel A: which CP methods can be pool-sensitive at all}\\[1mm]
@@ -2320,14 +2152,17 @@ Mean pairwise $\tau$ & Median pairwise $\tau$ & Minimum pair & Maximum pair \\
 \bottomrule
 \end{tabular}
 
-\vspace{3mm}
-{\footnotesize\textit{Notes:} \texttt{pool\_mode} is a calibration-pool parameter of the conformal-prediction layer only (\cref{sec:conformal}); base-model point forecasts and raw quantiles never depend on it. Winkler skill $= 1 - \overline{\text{Winkler}}/\overline{\text{Winkler}}_{\texttt{rw/L/native}}$, higher is better, computed per (model, regime, seed, method, country) cell and reported here as the median over the 10 countries. Panel B: all four rows use the same population (the 3{,}180 cells of the six pool-reading methods, 53 (model, regime, seed) combinations $\times$ 10 countries); $\Delta$cov columns are the mean/max absolute coverage difference against \texttt{rolling(36)}. For reference, the eight pool-invariant methods (Panel A) have mean coverage 0.847 and median Winkler skill $-0.024$, identical under all four pool definitions by construction. Panel C: all three extreme cases use CP method \texttt{cqr\_rolling}, the only one of the six pool-reading methods that fully recomputes its quantile from the current pool every month rather than updating a state online. Panel D: $\tau$ (Kendall's $\tau_b$) computed pairwise across the 10 countries' Winkler-skill rankings over all 742 (model, regime, seed, method) combinations, pool \texttt{rolling(36)} (all 14 methods; this check does not compare across pools).}
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} \texttt{pool\_mode} is a parameter of the conformal layer only (\cref{sec:conformal}). Base-model point forecasts and raw quantiles never depend on it. Winkler skill follows \cref{eq:skill}, computed per cell and reported as the median over countries, so a positive value beats \texttt{rw}/L/\texttt{native}. Panel B holds the population fixed across its four rows, and the $\Delta$cov columns give the mean and maximum absolute coverage difference against \texttt{rolling(36)} in percentage points. Panel D uses Kendall's $\tau_b$, computed pairwise across the countries' skill rankings over all combinations under \texttt{rolling(36)}.
+\end{minipage}}
 \end{table}
 
 
 \begin{table}[t]
 \centering
-\caption{Sensitivity of the combination ranking to excluding Ireland. Top block: the five combinations most exposed to Ireland (highest Winkler skill including Ireland, all \texttt{ZS}, Seed 42). Bottom block: the six combinations with the largest drop in Winkler skill when Ireland is excluded (all \texttt{L}, Seed 42).}
+\caption{Sensitivity of the combination ranking to excluding Ireland, for the five most exposed combinations and the six with the largest drop.}
 \label{tab:res_robustness_ie}
 \begin{tabular}{lccc}
 \toprule
@@ -2350,14 +2185,17 @@ Combination (Regime, Seed 42) & Winkler skill (10 countries) & Winkler skill (ex
 \bottomrule
 \end{tabular}
 
-\vspace{3mm}
-{\footnotesize\textit{Notes:} Winkler skill as defined in \cref{tab:res_robustness_pool}. $\Delta$ = skill excluding Ireland minus skill including Ireland; negative means the combination looks worse without Ireland. Over all $n=485$ validity-gated combinations: mean $\Delta = -0.021$, median $\Delta = -0.018$, Spearman rank correlation between the with-Ireland and ex-Ireland rankings (median skill) $\rho = 0.939$ ($p<0.001$). Ireland's own median Winkler skill (country breakdown, validity-gated combinations) is 0.231, the highest of the 10 countries (next: Portugal 0.191) -- the mechanical reason the top ranks are Ireland-exposed.}
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} Winkler skill follows \cref{eq:skill}, taken as the median over countries against \texttt{rw}/L/\texttt{native}, so a positive value beats that reference. The ex-IE column recomputes the same median over the nine remaining countries. $\Delta$ is the ex-IE skill minus the full skill, so a negative value means the combination looks worse without Ireland. The top block is ordered by skill including Ireland, the bottom block by $\Delta$. All rows use seed 42.
+\end{minipage}}
 \end{table}
 
 
 \begin{table}[t]
 \centering
-\caption{Seed fragility of the neural-network combinations (\texttt{xlstm}, \texttt{xlstm\_const}, \texttt{lstm}, \texttt{lstm\_const}; 3 seeds each). Panel A: seed-span of the Winkler skill by model family, for all combinations and restricted to validity-gated combinations. Panel B: two worked examples showing the per-seed Winkler skill.}
+\caption{Seed fragility of the neural-network combinations. Panel A gives the seed-span of the Winkler skill by family, Panel B two worked examples.}
 \label{tab:res_robustness_seeds}
 
 \textbf{Panel A: seed-span of the Winkler skill, by model family}\\[1mm]
@@ -2384,14 +2222,17 @@ Combination & Seed 42 & Seed 43 & Seed 44 & Seed-span \\
 \bottomrule
 \end{tabular}
 
-\vspace{3mm}
-{\footnotesize\textit{Notes:} ``Fragile'' = seed-span of the Winkler skill exceeds $|$median skill$|$ across the 3 seeds; for these combinations no ranking claim is made (seed discipline, \cref{sec:res:robustness}). ``Validity-gated'' restricts to combinations passing the coverage-validity gate (\cref{sec:res:gate}); gating does not rescue fragility. $^\ast$Seed 44 is the seed reported for \texttt{xlstm/L/native} elsewhere in this chapter (the model's best validity-gated package); its own seed-span (0.102) exceeds its reported skill (0.094).}
+\vspace{4pt}
+{\footnotesize
+\begin{minipage}{0.98\textwidth}
+\textit{Notes.} The seed-span is the range of the median Winkler skill across the three seeds 42/43/44. A combination counts as fragile when its seed-span exceeds the absolute value of its median skill; no ranking claim is made for those. Validity-gated restricts to combinations passing the gate of \cref{def:gate}, and $n$ in that column is the gated count. $^\ast$ marks the seed reported for \texttt{xlstm}/L/\texttt{native} elsewhere in this chapter.
+\end{minipage}}
 \end{table}
 
 
 \begin{table}[t]
 \centering
-\caption{Burn-in sensitivity: mean coverage in the first 36 test months minus the remaining test months, by CP method (pool \texttt{rolling(36)}, 530 cells per method = 53 (model, regime, seed) combinations $\times$ 10 countries).}
+\caption{Burn-in sensitivity by recalibration method: mean coverage in the first 36 test months minus the remaining months, in percentage points. Negative means lower early coverage.}
 \label{tab:res_robustness_burnin}
 \begin{tabular}{lc}
 \toprule

@@ -70,8 +70,7 @@ is 2015-10 to 2026-04, giving 127 test months per country.
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Refit block structure. Burn-in blocks initialize the conformal
-    calibration pool and are not evaluated.}
+    \caption{Refit block structure. The cutoff month ends the training window, and the model then forecasts the listed months one step ahead.}
     \label{tab:refit_blocks}
     \begin{tabular}{@{}llll@{}}
         \toprule
@@ -92,9 +91,7 @@ test-window information enters the hyperparameter selection. Every trainable mod
 
 \begin{table}[htbp]
   \centering\small
-  \caption{Model selection across families. All trainable models share the
-  refit-block structure, per-country scaling and the 24-month information cap;
-  they differ only as listed here.}
+  \caption{Model selection across families. Info-horizon HP names the hyperparameter that sets a model's lookback; ``---'' marks a setting that does not exist for that family.}
   \label{tab:model_selection}
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{@{}lllll@{}}

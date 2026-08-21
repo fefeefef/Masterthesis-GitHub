@@ -1,0 +1,172 @@
+\section*{Übersicht verwendeter Hilfsmittel}
+\addcontentsline{toc}{section}{Übersicht verwendeter Hilfsmittel}
+\label{app:hilfsmittel}
+
+In dieser Arbeit wurden generative KI-Systeme als Hilfsmittel eingesetzt.
+
+\begin{tabular}{@{}p{3.2cm}p{2.4cm}p{8cm}@{}}
+\toprule
+\textbf{System / Version} & \textbf{Zeitraum} & \textbf{Verwendung} \\
+\midrule
+Tabellen 21.8.2026 & 21.08.2026 & Erzeugung der Caption- und Notes-Texte aller
+  37 Tabellen und der Abbildung der Arbeit (Prompt siehe unten) \\
+PRODUKT X.Y & MM/JJJJ--MM/JJJJ & Entwurfsfassungen von Fließtext in
+  \cref{sec:model-setup} und \cref{sec:conformal}, von mir überarbeitet \\
+PRODUKT X.Y & MM/JJJJ--MM/JJJJ & Implementierung der Auswertungs-Pipeline
+  (Python), \LaTeX-Satz \\
+PRODUKT X.Y & MM/JJJJ--MM/JJJJ & Rechtschreib- und Grammatikkorrektur \\
+\bottomrule
+\end{tabular}
+
+\bigskip
+\noindent
+Konzeption, Modellauswahl, Implementierung, Durchführung der Experimente und
+Interpretation der Ergebnisse liegen ausschließlich bei mir.
+
+\subsection*{Prompt für die Tabellenbeschreibungen}
+
+Pro Tabelle einmal ausgeführt, mit dem Fließtext des Abschnitts, dem
+Tabellencode und der Ergebnisdatei als Kontext. Der Prompttext war in allen
+Durchläufen identisch. Der folgende Block gibt ihn in ASCII-Umschrift wieder;
+das Zeichen $\dagger$ erscheint darin als \verb|\dagger|.
+
+\begin{quote}\small
+\begin{verbatim}
+Du erstellst die Beschreibung fuer EINE Tabelle meiner Masterarbeit.
+
+Ich gebe dir drei Dinge: (1) den vollstaendigen Fliesstext des Abschnitts, in
+dem die Tabelle steht, (2) den LaTeX-Code der Tabelle selbst, (3) die
+zugrundeliegende CSV aus results/tables/.
+
+AUFGABE
+Schreibe genau zwei Dinge, auf Englisch:
+  A) einen \caption{}-Text, hoechstens 25 Woerter
+  B) einen Notes-Block, hoechstens 90 Woerter
+Bei einer Tabelle ohne Panels und ohne Marker entfaellt B ersatzlos.
+
+WAS IN DIE NOTES GEHOERT - und sonst nichts:
+  1. Definition jeder Spalte, deren Bedeutung sich nicht aus der Kopfzeile
+     ergibt UND die nicht bereits in Kapitel 7 (Evaluation Framework)
+     definiert ist. Ist sie dort definiert: nur \cref-Verweis, keine
+     Wiederholung.
+  2. Stichprobe und Einheit der Zelle (z. B. "127 monthly observations per
+     country, ten countries").
+  3. Verwendeter Test samt Korrektur, in einem Satz.
+  4. Vorzeichenkonvention - welches Vorzeichen bedeutet welches Ergebnis.
+     Das ist verpflichtend, sobald die Tabelle eine Groesse zeigt, bei der
+     das nicht offensichtlich ist.
+  5. Legende der Marker (z. B. was \dagger bedeutet).
+  6. Provenienz, falls sie zum Nachvollziehen noetig ist (etwa welche Seeds
+     welcher Zeile zugrunde liegen).
+
+DREI HARTE VERBOTE
+  * KEINE Zahl, die bereits im mitgelieferten Fliesstext steht. Pruefe jede
+    Zahl gegen den Fliesstext, bevor du sie schreibst. Zahlen, die nur in der
+    Tabelle stehen, sind erlaubt, wenn sie zur Definition einer Spalte noetig
+    sind.
+  * KEINE Interpretation, Bewertung oder Einordnung. Keine Saetze ueber das,
+    was das Ergebnis bedeutet, warum es so ausfaellt oder wie stark es ist.
+    Die Beschreibung sagt, wie man die Tabelle LIEST, nicht was sie ZEIGT.
+  * KEINE Zahl, die du nicht in der Tabelle oder der CSV verifizieren kannst.
+    Erfinde nichts, runde nichts um, rechne nichts nach.
+
+STIL - halte dich messbar an diese Vorgaben:
+  * Amerikanische Schreibung: normalized, behavior, favor, optimization.
+    NICHT normalised, behaviour, favour, per cent.
+  * Hoechstens ein Semikolon pro 90 Woerter.
+  * Keine Geviertstriche.
+  * Keine Dreierparallelen der Form "A, B, and C" mit gleichgebautem
+    Nebensatz an jedem Glied.
+  * Keine "not X but Y"- und "rather than"-Konstruktionen.
+  * Durchschnittliche Satzlaenge um 18 Woerter, hoechstens 28.
+  * Schlichte Aussagesaetze. Wo es passt, mit "We", "This" oder "The"
+    beginnen.
+  * Stil aus dem Fliesstext wird uebernommen.
+
+KONVENTIONEN DER ARBEIT
+  * Uebernimm die Notation des Fliesstextes unveraendert: d_norm, Winkler
+    skill, admissible, package, cell, stream, gate.
+  * Referenzen als \cref{}, Modellnamen in \texttt{}.
+  * Die Arbeit verwendet mehrere unterschiedliche Vorzeichenkonventionen
+    nebeneinander. Pruefe im Fliesstext, welche fuer DIESE Tabelle gilt, und
+    uebernimm sie woertlich. Rate nicht.
+
+AUSGABE
+  1. Der fertige LaTeX-Code fuer \caption{} und, falls noetig, den
+     Notes-Block.
+  2. Falls dir im Fliesstext eine Definition fehlt, die du fuer die Notes
+     braeuchtest: sag es, statt sie zu erfinden.
+\end{verbatim}
+\end{quote}
+
+\subsection*{Betroffene Tabellen}
+
+Caption und Notes-Block jeder Tabelle und der Abbildung wurden vollständig neu
+erzeugt; die vorherigen Fassungen wurden verworfen. \emph{Bearbeitung} bezeichnet meine
+Nachbearbeitung des erzeugten Textes: \emph{unverändert},
+\emph{redaktionell} (nur Tippfehler und Umbrüche) oder \emph{überarbeitet}
+(von mir neu formuliert).
+
+\begin{tabular}{@{}p{6.2cm}llc@{}}
+\toprule
+\textbf{Tabelle / Abbildung} & \textbf{Datum} & \textbf{Bearbeitung} & \textbf{Zahlen gegen CSV geprüft} \\
+\midrule
+\cref{tab:features_overview}          & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:publication-lags}           & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:refit_blocks}               & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:model_selection}            & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:cp_methods}                 & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_gate}                   & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_point}                  & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{fig:skill_heatmap}            & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_ranking}                & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_tirex2_cp}              & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_percountry}             & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:rq3_results}                & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:rq1_results}                & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_contrasts}              & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:rq2_results}                & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_rq2_lstmG}              & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_cov}                    & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_xm}                     & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_mcs}                    & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_regime}                 & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_robustness_pool}        & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_robustness_ie}          & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_robustness_seeds}       & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:res_robustness_burnin}      & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:lim_point}                  & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:lim_dq}                     & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:lim_amendments}             & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_frozen}                 & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_protocol}               & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_nn_space}               & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_lgbm_space}             & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_frozen_nn}              & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_frozen_lgbm}            & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_frozen_arma}            & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_country}                & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_tail}                   & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_pool}                   & 21.8.2026 & unver\"andert & $\square$ \\
+\cref{tab:app_fragility}              & 21.8.2026 & unver\"andert & $\square$ \\
+\bottomrule
+\end{tabular}
+
+\subsection*{Prompt-Fassungen}
+
+\begin{tabular}{@{}llp{9cm}@{}}
+\toprule
+\textbf{Fassung} & \textbf{Datum} & \textbf{Änderung und Geltungsbereich} \\
+\midrule
+v1 & 21.8.2026 & Erstfassung, angewendet auf alle 37 Tabellen \\
+\addlinespace
+v2 & 21.8.2026 & Ergänzt die Stilregel ``Stil aus dem Fließtext wird
+  übernommen''; die Ausgabe verlangt keine Kontrollliste mehr. Auf alle 37
+  Tabellen erneut angewendet, davon zehn textlich geändert
+  (\cref{tab:publication-lags}, \cref{tab:cp_methods}, \cref{tab:res_point},
+  \cref{tab:res_ranking}, \cref{tab:res_tirex2_cp}, \cref{tab:res_rq2_lstmG},
+  \cref{tab:res_cov}, \cref{tab:res_mcs}, \cref{tab:lim_point},
+  \cref{tab:app_fragility}). \cref{fig:skill_heatmap} wurde direkt unter v2
+  erzeugt. Der oben abgedruckte Prompt ist v2. \\
+\bottomrule
+\end{tabular}
