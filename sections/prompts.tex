@@ -511,3 +511,76 @@ We assumed that especially the exponential gating would lead to good results on 
 #################################################
 
 ich habe die aktelle version auf von oferleaf gepushed nd local gepulled. ich will das du das ganze limitations kapitel durch arbeitest und alle rechtschrieb und gramatik fehler ausbesserst. lasse meine formulierungen wie sie sind.
+
+#################################################
+
+Produkt / Version: Tabellen 21.8.2026
+
+Bearbeitung: `unverändert` · `redaktionell` (nur Tippfehler, Umbrüche) · `überarbeitet` (von mir neu formuliert)
+
+| Tabelle | Datum | Bearbeitung | Zahlen gegen CSV geprüft |
+|---|---|---|---|
+| tab:res_ranking |21.8.2026 |unverändert | ☐ |
+| tab:res_percountry |21.8.2026 |unverändert | ☐ |
+| tab:rq1_results |21.8.2026 | unverändert| ☐ |
+| tab:res_contrasts |21.8.2026 |unverändert | ☐ |
+| tab:rq2_results |21.8.2026 |unverändert | ☐ |
+| tab:res_rq2_lstmG |21.8.2026 |unverändert | ☐ |
+| tab:res_cov |21.8.2026 |unverändert | ☐ |
+| tab:res_xm |21.8.2026 |unverändert | ☐ |
+| tab:res_mcs |21.8.2026 | unverändert| ☐ |
+| tab:res_regime |21.8.2026 |unverändert | ☐ |
+| tab:res_robustness_pool |21.8.2026 |unverändert | ☐ |
+| tab:res_robustness_ie |21.8.2026 |unverändert | ☐ |
+| tab:res_robustness_seeds |21.8.2026 |unverändert | ☐ |
+| tab:res_robustness_burnin |21.8.2026 |unverändert | ☐ |
+| tab:lim_point |21.8.2026 |unverändert | ☐ |
+| tab:lim_dq |21.8.2026 |unverändert | ☐ |
+| tab:lim_amendments |21.8.2026 |unverändert | ☐ |
+
+Prompt geändert? Neue Fassung hier notieren und oben vermerken, für welche Tabellen sie galt.
+
+| Fassung | Datum | Änderung |
+|---|---|---|
+| v1 |21.8.2026 | Erstfassung |
+
+
+Du erstellst die Beschreibung für EINE Tabelle meiner Masterarbeit.
+Ich gebe dir drei Dinge: (1) den vollständigen Fließtext des Abschnitts, in dem die Tabelle steht, (2) den LaTeX-Code der Tabelle selbst, (3) die zugrundeliegende CSV aus results/tables/.
+AUFGABE Schreibe genau zwei Dinge, auf Englisch: A) einen \caption{}-Text, höchstens 25 Wörter B) einen Notes-Block, höchstens 90 Wörter Bei einer Tabelle ohne Panels und ohne Marker entfällt B ersatzlos.
+WAS IN DIE NOTES GEHÖRT — und sonst nichts:
+
+1. Definition jeder Spalte, deren Bedeutung sich nicht aus der Kopfzeile ergibt UND die nicht bereits in Kapitel 7 (Evaluation Framework) definiert ist. Ist sie dort definiert: nur \cref-Verweis, keine Wiederholung.
+2. Stichprobe und Einheit der Zelle (z. B. "127 monthly observations per country, ten countries").
+3. Verwendeter Test samt Korrektur, in einem Satz.
+4. Vorzeichenkonvention — welches Vorzeichen bedeutet welches Ergebnis. Das ist verpflichtend, sobald die Tabelle eine Größe zeigt, bei der das nicht offensichtlich ist.
+5. Legende der Marker (z. B. was † bedeutet).
+6. Provenienz, falls sie zum Nachvollziehen nötig ist (etwa welche Seeds welcher Zeile zugrunde liegen).
+
+DREI HARTE VERBOTE
+
+* KEINE Zahl, die bereits im mitgelieferten Fließtext steht. Prüfe jede Zahl gegen den Fließtext, bevor du sie schreibst. Zahlen, die nur in der Tabelle stehen, sind erlaubt, wenn sie zur Definition einer Spalte nötig sind.
+* KEINE Interpretation, Bewertung oder Einordnung. Keine Sätze über das, was das Ergebnis bedeutet, warum es so ausfällt oder wie stark es ist. Die Beschreibung sagt, wie man die Tabelle LIEST, nicht was sie ZEIGT.
+* KEINE Zahl, die du nicht in der Tabelle oder der CSV verifizieren kannst. Erfinde nichts, runde nichts um, rechne nichts nach.
+
+STIL — halte dich messbar an diese Vorgaben:
+
+* Amerikanische Schreibung: normalized, behavior, favor, optimization. NICHT normalised, behaviour, favour, per cent.
+* Höchstens ein Semikolon pro 90 Wörter.
+* Keine Geviertstriche (---).
+* Keine Dreierparallelen der Form "A, B, and C" mit gleichgebautem Nebensatz an jedem Glied.
+* Keine "not X but Y"- und "rather than"-Konstruktionen.
+* Durchschnittliche Satzlänge um 18 Wörter, höchstens 28.
+* Schlichte Aussagesätze. Wo es passt, mit "We", "This" oder "The" beginnen
+* Stil aus dem Fließtext wird übernommen
+
+KONVENTIONEN DER ARBEIT
+
+* Übernimm die Notation des Fließtextes unverändert: d_norm, Winkler skill, admissible, package, cell, stream, gate.
+* Referenzen als \cref{}, Modellnamen in \texttt{}.
+* Die Arbeit verwendet mehrere unterschiedliche Vorzeichenkonventionen nebeneinander. Prüfe im Fließtext, welche für DIESE Tabelle gilt, und übernimm sie wörtlich. Rate nicht.
+
+AUSGABE
+
+1. Der fertige LaTeX-Code für \caption{} und, falls nötig, den Notes-Block.
+2. Falls dir im Fließtext eine Definition fehlt, die du für die Notes bräuchtest: sag es, statt sie zu erfinden.

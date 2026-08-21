@@ -497,14 +497,13 @@ In Table ~\ref{tab:res_percountry} we how the top 3 packages and the best classi
 
 \begin{table}[t]
 \centering
-\caption{% TODO Caption. Best admissible package per model family, ranked
-         by median Winkler skill against RW/L/native.         Under a stricter, post hoc gate requiring all ten countries,
-         four of the twelve selections change: \texttt{tirex2} to
+\caption{Best admissible package per model family, ranked
+         by median Winkler skill against the baseline (RW/L/native). The 4 of the 12 rankings change if admissibility is required in 10/10 countys instead of 7/10: \texttt{tirex2} to
          \texttt{decay\_ocp\_cqr} (0.144), \texttt{tirex2\_cov} to
          \texttt{decay\_ocp\_cqr} (0.139), \texttt{lgbm} to
          \texttt{agaci\_cqr} (0.128), and \texttt{xlstm} to
-         \texttt{cqr\_rolling} (0.068); the remaining eight are
-         unchanged. The ordering of the leading group is unaffected, but
+         \texttt{cqr\_rolling} (0.068). The other eight are
+         unchanged. The leading Model doesent change,
          \texttt{xlstm} then ranks below the random walk.}
 \label{tab:res_ranking}
 \begin{tabular}{llccc}
@@ -558,12 +557,7 @@ Method & Median skill & Mean coverage & Admissible countries \\
 
 \begin{table}[t]
 \centering\small
-\caption{% TODO Caption. Per-country skill and coverage of the three
-         leading packages and of the best classical benchmark. Skill is
-         relative to RW/L/\texttt{native} of the same country; coverage
-         target is 0.80. $\dagger$ marks a country in which the
-         calibration null is rejected (FDR $q<0.10$), i.e.\ a cell that
-         fails the admissibility gate.}
+\caption{Skill (relative to  RW/L/native in the same country) and coverage of the three leading Packages per country as well as the best classical Package. The coverage target is 0.8. $\dagger$ marks the countrys where the Package fails the admissibility gate  (FDR q < 0.10).}
 \label{tab:res_percountry}
 \begin{tabular}{lcccccccc}
 \toprule
@@ -831,21 +825,19 @@ The best valid xlstm package is xlstm/L/native (0.094) even though it only passe
 % [arXiv-Kuerzung]: 1 Absatz, die drei Kontraste als Zahlentripel im Satz.
 \begin{table}[htbp]
   \centering\small
-  \caption{Results for RQ1 (pooling and fine-tuning). \textbf{Panels A and B}
+  \caption{Results for RQ1. \textbf{Panels A and B}
   report normalised Diebold--Mariano loss differentials
   $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $d_t=W_t^{A}-W_t^{B}$,
-  aggregated as the median over the ten countries; a \emph{negative} value
-  means A has the lower loss, i.e.\ A is better. \textbf{Panel C} reports
+  aggregated as the median over the ten countries. Here a \emph{negative} value
+  means A has the lower loss, so A is better. \textbf{Panel C} reports
   the median Winkler skill $1-\bar W/\bar W^{\text{ref}}$, where a
-  \emph{positive} value means the regime beats the benchmark. The two
-  quantities carry opposite sign conventions and must not be read against
-  each other. The benchmark $\bar W^{\text{ref}}$ is RW/L/\texttt{native}
-  of the same country and month throughout. Panel $t$ is the
+  \emph{positive} value means the regime beats the benchmark. The benchmark $\bar W^{\text{ref}}$ is RW/L/\texttt{native}
+  of the same country and month. Panel $t$ is the
   time-clustered panel statistic (cross-sectional mean, then Newey--West
-  HAC with three lags); it is asymptotically standard normal and has no
+  HAC with three lags). It is asymptotically standard normal and has no
   degrees of freedom. Median $q$ is the median BH-FDR-adjusted $p$-value
-  of the per-country DM--HLN tests ($df=126$); FDR-sig.\ is the share of
-  cells surviving $q<0.10$; seed-stable is the share of contrasts whose
+  of the per-country DM--HLN tests ($df=126$). FDR-sig.\ is the share of
+  cells surviving $q<0.10$. Seed-stable is the share of contrasts whose
   sign agrees across seeds 42/43/44, the pre-registered condition for
   making a rank statement. $\dagger$ marks the post hoc contrast
   \texttt{GF} vs.\ \texttt{L}, which is not part of the pre-registered
@@ -891,21 +883,11 @@ The best valid xlstm package is xlstm/L/native (0.094) even though it only passe
   \vspace{0.5em}
   \footnotesize\raggedright
   \textbf{Notes.} LightGBM has no \texttt{GF} regime, so only the
-  \texttt{G}-vs-\texttt{L} contrast exists for it; it is deterministic
-  (single seed), so seed stability does not apply. The three contrasts
-  form a coherent chain: pooling costs $+0.017$, fine-tuning recovers
-  $-0.006$, and $+0.016$ of the deficit against the local model remains
-  (medians do not add exactly). No contrast is FDR-significant at the
-  contrast level: over the 266 pre-registered contrasts the smallest
-  median $q$ is 0.019 and only 30 fall below $0.10$, against 131 with
-  $|t_{\text{panel}}|>1.96$; in the post hoc family the smallest median
-  $q$ is 0.083 and 6 of 84 fall below $0.10$. The two criteria answer
-  different questions --- the panel statistic asks whether the effect is
-  present on average across countries, the $q$-value whether it is
-  detectable within individual countries after correction. Median $q$ and
-  FDR-sig.\ pool the three seeds of a neural contrast into one figure (30
-  cells instead of 10), because the per-country DM output does not carry
-  a seed identifier; the effect columns are per seed.
+  \texttt{G}-vs-\texttt{L} contrast exists for it. it is deterministic
+  (single seed), so seed stability does not apply. The two test statistics answer
+  different questions: the panel t asks whether the effect is
+  present on average across countries, the $q$-value whether the effect is present in individual countries after correction. Median $q$ and FDR-sig.\ pool the three seeds of a neural contrast into one figure (30
+  cells instead of 10). The effect columns are per seed.
 \end{table}
 
 \begin{table}[t]
@@ -1068,18 +1050,14 @@ Taking a closer look at lstm/G in Table ~\ref{tab:res_rq2_lstmG} reveals that we
   \centering\small
   \caption{Results for RQ2 (adaptive versus constant interval width).
   \textbf{Panel A} reports normalised Diebold--Mariano loss differentials
-  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $A$ the adaptive model
-  and $B$ its constant-width twin, which shares the same median forecast
-  and the same covariates and differs only in whether the interval width
-  varies over time; a \emph{positive} value means the adaptive variant has
-  the higher loss, i.e.\ performs worse. Median $q$ is the median
-  BH-FDR-adjusted $p$-value of the per-country DM--HLN tests ($df=126$);
-  seed-stable is the share of contrasts whose sign agrees across seeds
-  42/43/44, the pre-registered condition for making a rank statement.
-  \textbf{Panel B} contrasts the two summaries that can diverge: the
-  median skill over all combinations of a family, and the single best
-  admissible package. \textbf{Panel C} gives the provenance of those best
-  packages. $\dagger$ marks a package whose seed range exceeds its own
+  $d_{\text{norm}}=\bar d/\bar W^{\text{ref}}$ with $A$ being the adaptive model
+  and $B$ its constant-width twin. Both share the same median forecast aswell as covariates and only differ in the type of intervall they produce. A \emph{positive} value means the adaptive variant has
+  the higher loss, so it performs worse. Median q is the is the median BH FDR adjusted $p$-value of the per-country DM--HLN tests ($df=126$). Seed-stable share is the mean share of contrasts whose sign agrees across all seed (42/43/44) overall countrys. 
+  \textbf{Panel B} shows the divergence from 
+  median winkler skill over all combinations of a family and the single best
+  admissible package and its skill relative to the baseline (RW/L/native).
+  \textbf{Panel C} shows the provenance of those best
+  packages. $\dagger$ marks packages whose seed range exceeds its own
   skill.}
   \label{tab:rq2_results}
   \begin{tabular}{llrrrrr}
@@ -1128,17 +1106,10 @@ Taking a closer look at lstm/G in Table ~\ref{tab:res_rq2_lstmG} reveals that we
     \vspace{0.5em}
   \footnotesize\raggedright
   \textbf{Notes.} LightGBM is deterministic (single seed), so seed
-  stability does not apply and it has no \texttt{GF} regime; the
+  stability does not apply and it has no \texttt{GF} regime. The
   constant-width twins exist only for the trainable models
   \texttt{lgbm}, \texttt{lstm} and \texttt{xlstm}. Only 46 of the 280
-  contrasts are FDR-significant, the smallest median $q$ being 0.003; no
-  aggregate contrast reaches $q<0.10$. In Panel B, \texttt{xlstm} is the
-  only family whose two summaries disagree, and Panel C shows why: the
-  package driving the ranking result, \texttt{xlstm}/L/\texttt{native},
-  is admissible for one of its three seeds only (0.094 for seed 44,
-  against 0.043 and $-0.008$ for seeds 42 and 43, both of which fail the
-  gate) and its seed range of 0.102 exceeds its own skill. Under the
-  pre-registered seed rule no rank statement may be made for it.
+  contrasts are FDR-significant, the smallest median $q$ being 0.003.
 \end{table}
 %  6. EIN SATZ EINSCHRAENKUNG (unveraendert gueltig): die staerkste
 %     Einzelinstanz im Story-Report (lstm/G/saocp_cqr, A um 21.7%
@@ -1247,9 +1218,9 @@ Our Hypothesis why the adaptive part saw no general improvement over the constan
 % [arXiv-Kuerzung]: 1 Absatz, Fokus auf lstm_const als bestes NN-Paket.
 \begin{table}[t]
 \centering
-\caption{Country-level breakdown of the \texttt{lstm}/G contrast between the
-         adaptive-width model and its constant-width twin. Positive entries
-         favour the constant-width twin.}
+\caption{Country-level breakdown of the \texttt{lstm}/G contrast
+         adaptive width versus its constant width twin. Positive entries
+         are in favour of the constant width twin.}
 \label{tab:res_rq2_lstmG}
 \small
 \begin{tabular}{lcccccccc}
@@ -1282,10 +1253,10 @@ is a Diebold--Mariano test with the Harvey--Leybourne--Newbold correction on 127
 monthly Winkler-loss differences. We report
 $d_{\mathrm{norm}}=(\bar L_A-\bar L_B)/\bar W_{\mathrm{ref}}$, where
 $\bar W_{\mathrm{ref}}$ is the mean Winkler loss of \texttt{rw}/L/\texttt{native}
-in the same country, so a positive entry means the adaptive model loses. The seed
-columns are medians over the fourteen recalibration methods; $\tilde d_{\mathrm{norm}}$,
+in the same country. A positive entry means the adaptive model loses. The seed
+columns are medians over the fourteen recalibration methods. $\tilde d_{\mathrm{norm}}$,
 $t_{\mathrm{HLN}}$ and $q$ are medians over all 42 contrasts. Share $A$ is the
-fraction of the 42 contrasts in which the adaptive model attains the lower loss.
+fraction of the 42 contrasts in which the adaptive model has the lower loss.
 The $q$-values are Benjamini--Hochberg adjusted within the joint family of all
 12{,}490 country-level cells of the run. The last row pools the
 $10\times 42=420$ cells, which is why it differs from the $+0.062$ reported for
@@ -1370,9 +1341,9 @@ We chose the covariances we used based on literature that provided evidence that
 %   sie ist der originellste Einzelbefund -- nicht zu stark kuerzen.
 \begin{table}[t]
 \centering
-\caption{Covariates against no covariates in TiRex-2. Panel A holds the
+\caption{Covariates versus no covariates in TiRex-2. Panel A holds the
          recalibration method fixed and compares the two variants after
-         calibration; Panel B is the raw contrast inside the TiRex-2 run itself,
+         calibration. Panel B is the raw contrast with native quantile outputs inside the TiRex-2 run itself,
          before the conformal layer.}
 \label{tab:res_cov}
 \small
@@ -1423,8 +1394,8 @@ Median & 0.2144 & $-0.0047$ & $-0.0076$ & $+0.0001$ & $-0.0157$ & 0.995 & 0.954 
 {\footnotesize
 \begin{minipage}{0.98\textwidth}
 \textit{Notes.} uni is \texttt{tirex2}, cov is \texttt{tirex2\_cov}. Both are the
-same pre-trained model in the ZS regime under seed 42 on the same 127 test months,
-so the 17 covariates are the only difference and the comparison carries no seed
+same pre-trained model in the ZS regime under seed 42 on the same 127 test months.
+The 17 covariates are the only difference and the comparison carries no seed
 variance. The Median rows are column-wise medians, which is why the $\Delta$ entry
 there is not the difference of the two skill medians above it.
 
@@ -1436,29 +1407,11 @@ the Harvey--Leybourne--Newbold correction on 127 monthly Winkler-loss difference
 with the recalibration method held fixed, giving $\tilde d_{\mathrm{norm}}$ as the
 median across countries of
 $(\bar L_{\mathrm{uni}}-\bar L_{\mathrm{cov}})/\bar W_{\mathrm{ref}}$, Share uni as
-the fraction of the ten countries in which the univariate variant wins, and Panel
+the fraction of the ten countries were the univariate variant wins, and Panel
 $t$ from averaging across countries first and then applying a Newey--West standard
-error with three lags. The two blocks carry opposite sign conventions and can
-disagree, because a difference of medians is not the median of differences: under
-\texttt{native} the univariate variant holds the higher median skill and still
-loses the paired comparison in seven of ten countries. Both effects are small
-against the scale of the study, where the best admissible package leads the best
-random-walk package by 0.0609 in median skill. Across the 140 country tests, 18
-reach $p<0.10$ before correction, close to the 14 expected under the null, and they
-split 10 to 8 by direction. Benjamini--Hochberg within this family of 140 leaves
-none of them: the smallest $q$ is 0.42 and the median is 0.98 under every method.
-Folding the 140 into the family of 12{,}490 country cells of the main run would
-instead leave 8, smallest $q$ 0.013, split 5 in favour of the covariates against 3
-against them; we keep the families separate because these tests address a different
-question from the pre-registered contrasts. The paired columns are computed post hoc
-with the same code as those contrasts and are not part of the shipped run
-artefacts.
+error with three lags.
 
-\textit{Panel B} is the raw test-phase output, evaluated before the conformal layer
-touches it, so a negative entry means the covariates help. They narrow the interval
-in all ten countries, by 2.2 to 6.9 per cent, and lower the Winkler score in seven
-of them. Coverage falls in nine countries, from a median of 0.843 to 0.831, which
-moves it towards the nominal 0.80 rather than away from it.
+\textit{Panel B} is the native quantile output, evaluated before the conformal layer, so a negative entry means the covariates help.
 \end{minipage}}
 \end{table}
 
