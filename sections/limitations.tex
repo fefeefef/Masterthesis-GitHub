@@ -167,7 +167,7 @@
 %========================================================================
 \section{Limitations}
 \label{sec:limitations}
-The results in \cref{sec:results} are valid within the pre register protocol (\cref{sec:evaluation}). This Section points out where the limits of this protocol are. There are two types of limitations. First limitations in the design and second in the evidence. With the second being a limitation in the data. The most serious limitation concerns the best performing Model family. All limitations pointed out here dont change the ranking at all they just put it into context.
+The results in \cref{sec:results} are valid within the pre-registered protocol (\cref{sec:evaluation}). This section points out where the limits of this protocol are. There are two types of limitations. First, limitations in the design, and second, in the evidence, with the second being a limitation in the data. The most serious limitation concerns the best performing model family. All limitations pointed out here do not change the ranking at all; they just put it into context.
 
 % WAS HIER STEHT (Kapitel-Kopf, 1 kurzer Absatz, 4-5 Saetze):
 %  - Ein Satz Rahmung: die Befunde aus \cref{sec:results} gelten innerhalb
@@ -205,7 +205,7 @@ The results in \cref{sec:results} are valid within the pre register protocol (\c
 % Trainingsdaten du nicht kennst. Wenn diese Limitation greift, ist
 % Befund (3) nicht abgeschwaecht, sondern hinfaellig. Deshalb Absatz 1.
 %
-The best performing Model family, TiRex2 was released on 2026-07-01 with no know pre training cut off date. Our evaluation window ends before the release date ( 2015-10 to 2026-04) and by that is potentially part of the trainings set. This caveat is already documented in \cref{sec:models:tirex2}
+The best performing model family, TiRex-2, was released on 2026-07-01 with no known pretraining cutoff date. Our evaluation window ends before the release date (2015-10 to 2026-04) and by that is potentially part of the training set. This caveat is already documented in \cref{sec:models:tirex2}.
 % WAS HIER STEHT:
 %  1. Der Sachverhalt nuechtern: TiRex-2 wurde am 2026-07-01 released; der
 %     Pretraining-Cutoff ist nicht dokumentiert. Das Evaluationsfenster
@@ -213,13 +213,13 @@ The best performing Model family, TiRex2 was released on 2026-07-01 with no know
 %     potenziell vollstaendig im Pretraining-Zeitraum.
 %     -> Verweis \cref{sec:models:tirex2} (dort steht der Caveat schon in
 %        zwei Saetzen, Zeilen 236-238). Achtung Defekt [D2].
-This is especialy relevant for government credit spreads since the time series are publicly accessible, long term and included in alot of big time series corpulae. It doesent need an exotic datenset to be included in the time series since credit spreads are part of the standard sources.
+This is especially relevant for government credit spreads since the time series are publicly accessible, long term and included in a lot of big time series corpora. It does not need an exotic dataset to be included in the time series since credit spreads are part of the standard sources.
 %  2. Warum das bei Staatsanleihen-Spreads besonders heikel ist: die
 %     zugrundeliegenden Renditereihen sind oeffentlich, langjaehrig und
 %     in nahezu jedem grossen Zeitreihen-Korpus enthalten. Es braucht
 %     also keinen exotischen Datensatz, damit Kontamination plausibel ist
 %     -- die Standardquellen genuegen.
-The arguments work against this thesis. First TiRex2 is the best Model at the point forecast (MAE-Ratio of 0.9965) but it doesn't statistically beat the random walk as can be seen in the Panel-t of -0.4979 and an smallest q-value of 0.3803. A Model that remembers the target time series would perform better. The tests proofed to have power at the arma/L family (Panel-t +2.4473, FI mit q 0.0040).
+The arguments work against this thesis. First, TiRex-2 is the best model at the point forecast (MAE-Ratio of 0.9965) but it does not statistically beat the Random Walk as can be seen in the Panel-t of -0.4979 and a smallest q-value of 0.3803. A model that remembers the target time series would perform better. The tests proved to have power at the arma/L family (Panel-t +2.4473, FI with q 0.0040).
 %  3. WAS DAGEGEN SPRICHT (ehrlich beide Seiten, nicht nur die
 %     bequeme). Drei Gegenargumente, die du machen kannst:
 %     (a) Die Punktprognose ist NICHT besser als der Random Walk.
@@ -240,8 +240,8 @@ The arguments work against this thesis. First TiRex2 is the best Model at the po
 %     (b) Der Vorsprung liegt vollstaendig in der Breite der praediktiven
 %         Verteilung, nicht in ihrem Zentrum. Memorierung wuerde primaer
 %         das Zentrum treffen.
-Secondly the real advantage of the TiRex2 family lies in the width of the predictive distribution, not in the point forecast. Memorizing would mainly benefit the point forecast. 
-Third: The advantage of the Model family vanishes in the high VIX regime (median winkler skill from 0.1255 to -0.0025, diff. -0.1280). A Model that memorizes would specifically outperform classical models in stress months. 
+Secondly, the real advantage of the TiRex-2 family lies in the width of the predictive distribution, not in the point forecast. Memorizing would mainly benefit the point forecast.
+Third: The advantage of the model family vanishes in the high VIX regime (median winkler skill from 0.1255 to -0.0025, diff. -0.1280). A model that memorizes would specifically outperform classical models in stress months.
 %     (c) Im high-VIX-Regime verschwindet der Vorsprung (F13: tirex2 von
 %         +0.1255 auf -0.0025, Differenz -0.1280). Ein memorierendes
 %         Modell haette gerade in den auffaelligen Stressmonaten einen
@@ -253,7 +253,7 @@ Third: The advantage of the Model family vanishes in the high VIX regime (median
 %            andere Werte (tirex2 low_vix 0.1535 / high_vix 0.0237).
 %            Beide sind richtig. Wenn du beide Zahlen im Text hast, MUSST
 %            du die Basis nennen, sonst liest es sich als Widerspruch.
-None of the three arguments is proof. Without documented cutoff we cant discard the option. 
+None of the three arguments is proof. Without documented cutoff we cannot discard the option.
 %  4. WAS DAFUER SPRICHT / was ungeloest bleibt: keines der drei
 %     Argumente ist ein Beweis. Ohne dokumentierten Cutoff ist die Frage
 %     empirisch nicht entscheidbar. Das genau so hinschreiben.
@@ -263,7 +263,7 @@ None of the three arguments is proof. Without documented cutoff we cant discard 
 %        praediktiven Breite auf euroraeumlichen Spreads gelernt hat --
 %        und genau das ist der Kanal, auf dem tirex2 gewinnt. Diese
 %        Asymmetrie ist unangenehm und gehoert hin.
-To find out we would have to e valuate the Model on a window after the release or on a spread definition that cant be found in open source data. 
+To find out we would have to evaluate the model on a window after the release or on a spread definition that cannot be found in open-source data.
 %  5. Was ein sauberer Test waere (Future Work, konkret): Evaluation auf
 %     einem Fenster NACH dem Release (ab 2026-07), oder auf einer
 %     Spread-Definition, die so in keiner oeffentlichen Quelle steht.
@@ -299,8 +299,8 @@ To find out we would have to e valuate the Model on a window after the release o
 \begin{table}[t]
 \centering
 \small
-\caption{% TODO Caption. Post hoc test of point-forecast accuracy against
-         the random walk, added 2026-08-03 (see \cref{tab:lim_amendments}).
+\caption{Post hoc test of point-forecast accuracy against
+         the Random Walk, added 2026-08-03 (see \cref{tab:lim_amendments}).
          Diebold--Mariano with the Harvey--Leybourne--Newbold correction on
          127 monthly absolute-error differentials per country, $d_t =
          |e_t^{A}| - |e_t^{\mathrm{rw}}|$, normalised by the mean reference
@@ -309,9 +309,9 @@ To find out we would have to e valuate the Model on a window after the release o
          normalised differentials across countries per month and applies a
          Newey--West long-run variance with three lags. Panel B is the
          power control: the identical procedure detects that ARMA is worse
-         than the random walk. France is omitted from the ARMA test because
+         than the Random Walk. France is omitted from the ARMA test because
          the selected order collapses to $(0,0)$ on the differenced series
-         (\cref{tab:app_frozen_arma}), which reproduces the random walk
+         (\cref{tab:app_frozen_arma}), which reproduces the Random Walk
          exactly, so the loss differential is identically zero and the test
          is undefined; it enters the FDR family with $p=1$.}
 \label{tab:lim_point}
@@ -347,7 +347,7 @@ AT & 1.024 & $+0.024$ & $+0.79$ & 0.432 & 0.785 \\
 BE & 1.009 & $+0.009$ & $+0.30$ & 0.764 & 0.879 \\
 ES & 1.017 & $+0.017$ & $+0.61$ & 0.544 & 0.785 \\
 FI & 1.115 & $+0.115$ & $+3.64$ & 0.0004 & \textbf{0.004} \\
-FR & 1.000 & \multicolumn{4}{l}{undefined -- ARMA order $(0,0)$ reproduces the random walk} \\
+FR & 1.000 & \multicolumn{4}{l}{undefined -- ARMA order $(0,0)$ reproduces the Random Walk} \\
 GR & 1.101 & $+0.101$ & $+1.76$ & 0.082 & 0.408 \\
 IE & 1.009 & $+0.009$ & $+0.27$ & 0.791 & 0.879 \\
 IT & 1.018 & $+0.018$ & $+0.60$ & 0.550 & 0.785 \\
@@ -365,7 +365,7 @@ Panel $t$ (NW, 3 lags) & \multicolumn{5}{l}{$+2.447$ \quad countries with $q<0.1
 \subsection{The admissibility gate does not test what the methods fail at}
 \label{sec:lim:gate}
 %------------------------------------------------------------------------
-The admissibility gate (\cref{def:gate}) is exclusively based on the $q\_UC \ and \ q\_CC $ statistics. Both tests condition not at all or on the past. Yhe DQ test conditions additionally on the current intervall width and this regressor is also the one that would drive the rejection rate. The gate systematicaly permits cells to pass whose conditional calibration along the width axis is violated.
+The admissibility gate (\cref{def:gate}) is exclusively based on the $q\_UC$ and $q\_CC$ statistics. Both tests condition not at all or on the past. The DQ test conditions additionally on the current interval width and this regressor is also the one that would drive the rejection rate. The gate systematically permits cells to pass whose conditional calibration along the width axis is violated.
 % WARUM DAS DIE WICHTIGSTE METHODISCHE LIMITATION IST:
 %  Das Zulaessigkeitsgate (\cref{def:gate}) liest ausschliesslich q_UC und
 %  q_CC. Beide Tests konditionieren nur auf die VERGANGENHEIT der
@@ -374,7 +374,7 @@ The admissibility gate (\cref{def:gate}) is exclusively based on the $q\_UC \ an
 %  -- und genau dieser Regressor ist es, der die Ablehnungen treibt.
 %  Das Gate laesst also systematisch Kombinationen durch, deren bedingte
 %  Kalibrierung entlang der Breitenachse verletzt ist.
-The DQ test has a rejectionr ate of 49.3 $\%$. If we exlude the width regressor it drops to 20.8 $\%$, basically the same as the UC niveau ($20.6\%$). The christiffersen independance test substantiates this finding with a rejectionr ate of $6.1\%$. Testing just with the widt regressor yields a rejectionr ate of $68.9\%$.
+The DQ test has a rejection rate of 49.3 $\%$. If we exclude the width regressor it drops to 20.8 $\%$, basically the same as the UC level ($20.6\%$). The Christoffersen independence test substantiates this finding with a rejection rate of $6.1\%$. Testing just with the width regressor yields a rejection rate of $68.9\%$.
 %
 % ZAHLEN (post hoc nachgerechnet 2026-08-03, unabhaengig reproduziert
 % 2026-08-17 auf calibrated_all.parquet des Runs run_full_20260721_145309,
@@ -396,7 +396,7 @@ The DQ test has a rejectionr ate of 49.3 $\%$. If we exlude the width regressor 
 %      die Lags im vollen Modell Varianz absorbieren, ohne Struktur zu
 %      erklaeren. Ein Halbsatz.
 %
-From the 3949 cells with FDR significant gamma $99.92\%$ are negative with a median of -1.631. That means that months with wide intervalls overcoverage and month with narrow intervalls undercoverage. The width adjusment reacts in the right direction but it over corrects. Overall it still averages to $80\%$, thats why the kupiec test doesn't reject. 
+From the 3949 cells with FDR significant gamma, $99.92\%$ are negative with a median of -1.631. That means that months with wide intervals overcover and months with narrow intervals undercover. The width adjustment reacts in the right direction but it overcorrects. Overall it still averages to $80\%$, that is why the Kupiec test does not reject. 
 % RICHTUNG DES EFFEKTS (das ist die eigentliche Aussage):
 %   Von den 3949 Zellen mit FDR-signifikantem gamma haben 99.92% ein
 %   NEGATIVES gamma; Median gamma = -1.6310.
@@ -412,7 +412,7 @@ From the 3949 cells with FDR significant gamma $99.92\%$ are negative with a med
 %      Einzelzahl des Unterkapitels. Sie sagt: das ist kein Rauschen und
 %      kein Einzelfall, das ist der Mechanismus. Prominent setzen.
 %
-We observe a tradeoff between CP classes. Statistical methods $(native,\ cqr\_static,\ saocp,\ decay\_ocp)$ which have clusterd violations (Lag-column 40-54 $\%)$ and online tracker methods $(pid\_tan,\ spci,\ sfogd,\ pid\_local,\ pid, \ ac,\ agaci,\ dtaci)$ which trade the clustering against width conditional rejection (52-97 $\%)$. We also observe that the online methods have medfian gamma off -1.02 to -1.35 while the static have -0.13 to -0.37, as can be seen in ~\ref{tab:lim_dq}. The width conditional rejection is not only more likely but also a stronger effect. 
+We observe a tradeoff between CP classes. Statistical methods $(native,\ cqr\_static,\ saocp,\ decay\_ocp)$ which have clustered violations (Lag-column 40-54 $\%)$ and online tracker methods $(pid\_tan,\ spci,\ sfogd,\ pid\_local,\ pid, \ aci,\ agaci,\ dtaci)$ which trade the clustering against width conditional rejection (52-97 $\%)$. We also observe that the online methods have median gamma of -1.02 to -1.35 while the static have -0.13 to -0.37, as can be seen in \cref{tab:lim_dq}. The width conditional rejection is not only more likely but also a stronger effect. 
 % DER TRADE-OFF ZWISCHEN DEN METHODENKLASSEN (tab:lim_dq Panel B ist schon
 % befuellt -- du schreibst nur Caption und Fliesstext):
 %   -> Zwei saubere Fehlermodi, die du als Ergebnis verkaufen kannst:
@@ -441,7 +441,7 @@ We observe a tradeoff between CP classes. Statistical methods $(native,\ cqr\_st
 %      bedingt gut kalibriert, unbedingt zu breit (mittlere Coverage
 %      0.860 gegen Ziel 0.80). Ein Satz wert.
 %
-In the 485 admissible combinations the DQ rejection rate increases from $53.2\%$ in all combinations to $65.6\%$. This is due to the fact that the gate favors the online methods (Gate-Rate 0.96-1.00, ~\ref{tab:res_gate}) and by that fails to detect the width conditional dependence. The lag conditional ejection rate drops from $20.8\%$ before the gate to $8.2\%$ after the gate. So the gate trades one type of conditional dependance for another. 
+In the 485 admissible combinations the DQ rejection rate increases from $53.2\%$ in all combinations to $65.6\%$. This is due to the fact that the gate favors the online methods (Gate-Rate 0.96-1.00, \cref{tab:res_gate}) and by that fails to detect the width conditional dependence. The lag conditional rejection rate drops from $20.8\%$ before the gate to $8.2\%$ after the gate. So the gate trades one type of conditional dependence for another. 
 % DER UNBEQUEME TEIL (unbedingt hinschreiben, sonst ist es Schoenfaerberei):
 %   Auf den 485 zugelassenen Kombinationen (4850 Zellen [B3]) lauten die
 %   Raten: DQ voll 0.425 | gamma 0.656 | reine Lags 0.082
@@ -458,7 +458,7 @@ In the 485 admissible combinations the DQ rejection rate increases from $53.2\%$
 %      Fehlkalibrierung gegen die andere. Das ist praeziser als "das Gate
 %      versagt" und deutlich schwerer zu widerlegen.
 %
-In ~\ref{tab:lim_dq} we observe that the ranking goes by model compelxity and that the random walk is affected the least since it has the least width variation. For all Model familys the constant width twins have a lower width conditional rejection rate (xlstm 71.0 vs 43.8; lstm 60.8 vs 41.6; lgbm 44.3 vs 35.4). We conclude that the adaptive width is the problem not the undrlying architecture. The data points per family vary alot so only the meta contrast adaptive width vs constant width has evidence. 
+In \cref{tab:lim_dq} we observe that the ranking goes by model complexity and that the Random Walk is affected the least since it has the least width variation. For all model families the constant width twins have a lower width conditional rejection rate (xlstm 71.0 vs 43.8; lstm 60.8 vs 41.6; lgbm 44.3 vs 35.4). We conclude that the adaptive width is the problem not the underlying architecture. The data points per family vary a lot so only the meta contrast adaptive width vs constant width has evidence. 
 % BETROFFENHEIT NACH MODELLFAMILIE (tab:lim_dq Panel C):
 %   xlstm 71.0 | lstm 60.8 | tirex2 60.0 | tirex 51.4 | tirex2_cov 51.4 |
 %   lgbm 44.3 | xlstm_const 43.8 | lstm_const 41.6 | arma_monthly 37.9 |
@@ -478,7 +478,7 @@ In ~\ref{tab:lim_dq} we observe that the ranking goes by model compelxity and th
 %      zwischen tirex2, tirex und tirex2_cov ist damit nicht belastbar --
 %      nur der Kontrast NN gegen klassisch ist es. So formulieren.
 %
-Investigating the DQ rejection rate was not pre registerd. It ws motiveated by the high DQ rejection rate and doesent change the ranking nor produces new findings. 
+Investigating the DQ rejection rate was not pre-registered. It was motivated by the high DQ rejection rate and does not change the ranking nor produce new findings. 
 % !! EHRLICHKEITS-PFLICHT (sonst ist es HARKing):
 %   Diese Zerlegung steht NICHT in diagnostics_foundation.txt. Sie ist
 %   eine POST-HOC-Diagnostik, motiviert durch die hohe DQ-Ablehnrate im
@@ -490,7 +490,7 @@ Investigating the DQ rejection rate was not pre registerd. It ws motiveated by t
 %   Formulierung: "post hoc decomposition of a pre-registered statistic,
 %   reported to explain rather than to establish."
 %
-A gate that includes the DQ test would be stricter but it would leave almost no candidates at n=127. Future work could consist oft finding emthods to get rid of the withconditional dependancy. We conclude that the produced intervals cant be used as a riskmeassure since it undercoverages in calm and overcoverages in stressed regimes.
+A gate that includes the DQ test would be stricter but it would leave almost no candidates at n=127. Future work could consist of finding methods to get rid of the width-conditional dependency. We conclude that the produced intervals cannot be used as a risk measure since they undercover in calm and overcover in stressed regimes.
 % WAS DARAUS FOLGT (Absatz 3, konstruktiv statt nur selbstkritisch):
 %   1. Ein Gate, das q_DQ einschliesst, waere schaerfer -- aber es haette
 %      bei n=127 kaum noch Kandidaten uebrig gelassen (42.5% der validen
@@ -517,7 +517,7 @@ A gate that includes the DQ test would be stricter but it would leave almost no 
 \begin{table}[t]
 \centering
 \small
-\caption{% TODO Caption. Post hoc decomposition of the dynamic-quantile
+\caption{Post hoc decomposition of the dynamic-quantile
          rejections, computed 2026-08-03 and re-verified 2026-08-17
          (\cref{tab:lim_amendments}, row a). Each cell is one
          (model, regime, seed, method, country) combination on the primary
@@ -599,7 +599,7 @@ Model & $n$ cells & $\gamma$ rej. & Model & $n$ cells & $\gamma$ rej. \\
 % 17.08.). Schreib sie als vier Absaetze, nicht als Liste -- sie bauen
 % aufeinander auf.
 %
-None of the 66 cross model contrasts was FDR significant with the smallest median q value over all countries being 0.1851. At country level 52 of the 66 contrasts have at least one significant country at q < 0.10 and in the strongest contrast 4 out of the te countries are significant. Still no contrast rejetcs in the majority of countries.
+None of the 66 cross-model contrasts was FDR significant with the smallest median q value over all countries being 0.1851. At country level 52 of the 66 contrasts have at least one significant country at q < 0.10 and in the strongest contrast 4 out of the ten countries are significant. Still no contrast rejects in the majority of countries.
 % ---- ABSATZ 1: DIE RANGFOLGE IST DESKRIPTIV ----
 %  Der wichtigste Satz des ganzen Kapitels, und er gehoert hierher:
 %  KEINER der 66 Cross-Model-Kontraste ist FDR-signifikant. Der kleinste
@@ -624,7 +624,7 @@ None of the 66 cross model contrasts was FDR significant with the smallest media
 %  the majority of countries -- which is the criterion we fixed ex ante."
 %  Das ist kein Zusatz, das ist Pflicht.
 %
-The two strongest contrasts $tirex2/ZS/cqr\_static\ vs\ xlstm\_const/L/spci\_cqr$ and $tirex2\_cov/ZS/native\ vs\ xlstm\_const/L/spci\_cqr$ reveals that both have a Panel t above the conventional significance cutoff (-3.5488/-4.1586) which shows there is an effect over all countries that doesent survive the FDR correction per country.
+The two strongest contrasts $tirex2/ZS/cqr\_static\ vs\ xlstm\_const/L/spci\_cqr$ and $tirex2\_cov/ZS/native\ vs\ xlstm\_const/L/spci\_cqr$ reveal that both have a Panel t above the conventional significance cutoff (-3.5488/-4.1586) which shows there is an effect over all countries that does not survive the FDR correction per country.
 %  ZAHLEN (verifiziert, dm_crossmodel.csv):
 %    Staerkster Kontrast nach |d_norm| (und trotzdem n.s. nach K1):
 %      XM tirex2/ZS/cqr_static vs xlstm_const/L/spci_cqr
@@ -643,13 +643,13 @@ The two strongest contrasts $tirex2/ZS/cqr\_static\ vs\ xlstm\_const/L/spci\_cqr
 %     "ist der Effekt im Mittel ueber die Laender da?", der Laenderanteil
 %     fragt "ist er in einzelnen Laendern nachweisbar?". Erklaeren, sonst
 %     wirkt es wie ein Fehler.
-Due to this fact all rankings in \cref{sec:res:ranking} are descriptive.\\
+Due to this fact all rankings in \cref{sec:res:ranking} are descriptive.
 %  -> KONSEQUENZ, die du explizit ziehen musst: alle Rangaussagen in
 %     \cref{sec:res:ranking} sind DESKRIPTIV. Formulierungen wie "X
 %     outperforms Y" muessen im ganzen Dokument zu "X ranks above Y"
 %     werden. Das ist eine Durchsicht-Aufgabe, keine Stilfrage.
 %
-Also the MCS doesnt differenciate between the Packages at n=127. 15 out of 26 packages are included in all 10 countries and over all countries times candidates we have an inclusion rate of $91.54\%$. The median q value is 0.189 and the maximum 0.4060. At this sample size we cant differentiate between the contenders. in ~\ref{tab:res_mcs} we see how the MCS behaves on the different countries. For example france doesent exclude any country while Ireland excludes 8. 
+Also the MCS does not differentiate between the packages at n=127. 15 out of 26 packages are included in all 10 countries and over all countries times candidates we have an inclusion rate of $91.54\%$. The median q value is 0.189 and the maximum 0.4060. At this sample size we cannot differentiate between the contenders. In \cref{tab:res_mcs} we see how the MCS behaves on the different countries. For example France does not exclude any country while Ireland excludes 8.
 % ---- ABSATZ 2: DIE MCS DISKRIMINIERT NICHT ----
 %  ZAHLEN (verifiziert, mcs_results.csv, 26 x 10 = 260 Zeilen):
 %    Kandidaten je Land : 26 (kuratiert, nicht alle 742)
@@ -667,7 +667,7 @@ Also the MCS doesnt differenciate between the Packages at n=127. 15 out of 26 pa
 %     Laender (Frankreich schliesst keinen der 26 aus, Irland acht).
 %     Diese Streuung ist selbst ein Argument fuer 9.5.
 
-The standard approach for the pairwise Diebold-Mariano-Tests at a one step forecasting window (h=1) is to use the sample variance (HAC-Lag 0). A positive autocorrelation in the loss differncials is created by the 12 month refits (block dependancy) aswell as the statebased adaptive meethdos. This leads to a systematic underestiamtion of the sample variance and inturn to overly optimistic county p values. The test results should therefore be seen as an upper bound for the real statistical significance.
+The standard approach for the pairwise Diebold-Mariano tests at a one step forecasting window (h=1) is to use the sample variance (HAC-Lag 0). A positive autocorrelation in the loss differentials is created by the 12 month refits (block dependency) as well as the state-based adaptive methods. This leads to a systematic underestimation of the sample variance and in turn to overly optimistic country p values. The test results should therefore be seen as an upper bound for the real statistical significance.
 
 % ---- ABSATZ 3: DM-VARIANZ MIT HAC-LAG 0 ----
 %  WAS DER PUNKT IST:
@@ -691,13 +691,11 @@ The standard approach for the pairwise Diebold-Mariano-Tests at a one step forec
 %   systematisch zu optimistisch, und zwar in bekannter Richtung.
 %
 
-Dieser Ansatz stellt eine pragmatische, eindimensionale Variante der Driscoll-Kraay-Logik dar (Querschnittsmittelung kombiniert mit Zeitreihen-HAC). Wir weisen ausdrücklich darauf hin, dass dieses Vorgehen keine vollständige zweidimensionale Driscoll-Kraay-Kovarianzmatrix schätzt, jedoch verbleibende Autokorrelationen und Querschnittskorrelationen hinreichend kontrolliert.
-
-To correct for this systematic underestiamtion of the variance and serial autocorellation we use a time clusterd t Panel test for our main findings. In the first step we calculate the scale free normed loss differencials $\frac{d_{i,t}}{W^{ref}_{i}}$ every month meaned for all 10 countrys. This condenses joint cross-sectional effects to a single monthly observation point (N=127). In the second step we calcualte the t value of this timeseries mean by using the Newey-West-longterm variance with Bartlett-Kernel and a Lag-Window of 3:\\
+To correct for this systematic underestimation of the variance and serial autocorrelation we use a time clustered t Panel test for our main findings. In the first step we calculate the scale free normed loss differentials $\frac{d_{i,t}}{W^{ref}_{i}}$ every month meaned for all 10 countries. This condenses joint cross-sectional effects to a single monthly observation point (N=127). In the second step we calculate the t value of this timeseries mean by using the Newey-West long-term variance with Bartlett-Kernel and a Lag-Window of 3:\\
   
 $\sigma^2_{\text{LR}} = \gamma_0 + 2 \sum_{l=1}^{3} \left(1 - \frac{l}{4}\right) \gamma_l$\\
 
-this is a pragmatic one dimensional version of the Driscoll-Kraay-Logic. This procedure is no full two dimensional Driscoll-Kraay-Kovarianzmatrix estimator but still controlls autocorrelation and cross-sectional correlation sufficiently.
+This is a pragmatic one-dimensional version of the Driscoll-Kraay logic. This procedure is not a full two-dimensional Driscoll-Kraay covariance matrix estimator but still controls autocorrelation and cross-sectional correlation sufficiently.
 
 %  WAS DAGEGEN TATSAECHLICH GETAN WURDE (nicht nur vorgeschlagen --
 %  implementiert, Code: diagnostics_master_v2.ipynb, Zelle 15, Funktionen
@@ -720,7 +718,7 @@ this is a pragmatic one dimensional version of the Driscoll-Kraay-Logic. This pr
 %   -> Spalte t_panel in dm_contrasts.csv; auf ihr beruhen alle
 %      RQ-Aussagen in \cref{sec:res:rq3} bis \cref{sec:res:rq2}.
 %
-The per country DM tests stay without correction and from them the q values are created and from the q values the column $share\_sig\_fdr$ we see in every contrast table. Lag 3 is a convention and in no way a data driven value. It was chosen not optimized. The Panel t implicitly implys that the cross sectional country correlation is fully absorbed. 
+The per-country DM tests stay without correction and from them the q values are created and from the q values the column $share\_sig\_fdr$ we see in every contrast table. Lag 3 is a convention and in no way a data-driven value. It was chosen, not optimized. The Panel t implicitly implies that the cross-sectional country correlation is fully absorbed.
 %  WAS TROTZDEM OFFEN BLEIBT (das ist die eigentliche Limitation):
 %   1. Die PRO-LAND-DM-Tests selbst bleiben unkorrigiert. Aus ihnen
 %      entstehen die q-Werte, und aus den q-Werten die Spalte
@@ -735,7 +733,7 @@ The per country DM tests stay without correction and from them the q values are 
 %      heterogenen Laendern (mittleres Kendall-tau 0.346, siehe 9.5)
 %      ist das eine Naeherung.
 %
-A bias creating to low p values cant change the fact that a test is not significant and by that the cross model contrasts are not impacted. The significant contrasts from RQ1 and RQ2 are. 
+A bias creating too low p values cannot change the fact that a test is not significant and by that the cross-model contrasts are not impacted. The significant contrasts from RQ1 and RQ2 are.
 %  PRAKTISCHE KONSEQUENZ -- und warum sie hier klein ausfaellt:
 %   Der wichtigste Cross-Model-Befund ist ohnehin ein NICHT-Befund
 %   (Absatz 1). Eine Verzerrung, die p-Werte ZU KLEIN macht, kann diesen
@@ -747,7 +745,7 @@ A bias creating to low p values cant change the fact that a test is not signific
 %
 
 
-In the FDR correction we aggregated the contrasts based on their description. Since the descriptions dont differenciate the seeds we aggregated multiple runs of the same contrast. By that the FDR corrected $share\_sig\_fdr\ and\ median\_q)$ in the tables are for the mean over all 30 country seed combiantions while $t_{panel}$ and $d\_norm$ are seed specific. This ahs two consequences: First the aggregated FDR quote smoothes potential variance in the results between seeds. Second the threefold calculation of identical contrasts leads to an inflation of the Total number of hypotheses in the Benjamini-Hochberg-correction and by that to over conservativeity. The cross model contrasts with only one seed (66 labels) not subject to this problem. 
+In the FDR correction we aggregated the contrasts based on their description. Since the descriptions do not differentiate the seeds we aggregated multiple runs of the same contrast. By that the FDR corrected $(share\_sig\_fdr$ and $median\_q)$ in the tables are for the mean over all 30 country-seed combinations while $t_{panel}$ and $d\_norm$ are seed specific. This has two consequences: First, the aggregated FDR quote smoothes potential variance in the results between seeds. Second, the threefold calculation of identical contrasts leads to an inflation of the total number of hypotheses in the Benjamini-Hochberg correction and by that to over-conservatism. The cross-model contrasts with only one seed (66 labels) are not subject to this problem.
 % ---- ABSATZ 4 (NEU 17.08.): DIE FDR-FAMILIE KOLLABIERT DIE SEEDS ----
 %  WAS DER BEFUND IST (verifiziert am Code, Zelle 15, und an
 %  dm_contrasts.csv / dm_percountry.csv):
@@ -815,7 +813,7 @@ In the FDR correction we aggregated the contrasts based on their description. Si
 \subsection{Seed fragility of the neural results}
 \label{sec:lim:seeds}
 %------------------------------------------------------------------------
-For xLSTM and LSTM the whole pipeline runs three times, once for each seed (42/43/44). Forecasts are never meaned over all seeds (\cref{sec:exp:seeds}). For that the seed span of the skill is a direct measure of the randomness of the outcome. In $51.7\%$ of the 588 NN combiantions the seed span of the median skill is bigger than the median skill itself. In more than half of all NN the initialization is more important than the measured effect. In the admissible combinations the the percentage increases to $58.6\%$ at n= 372. \\
+For xLSTM and LSTM the whole pipeline runs three times, once for each seed (42/43/44). Forecasts are never meaned over all seeds (\cref{sec:exp:seeds}). For that the seed span of the skill is a direct measure of the randomness of the outcome. In $51.7\%$ of the 588 NN combinations the seed span of the median skill is bigger than the median skill itself. In more than half of all NN the initialization is more important than the measured effect. In the admissible combinations the percentage increases to $58.6\%$ at n=372.
 The best xLSTM package xlstm/L/native has a median skill of 0.0939 at seed 44 but the other seeds have 0.433 (42) and -0.0084 (43). The seed span is 0.1022 and with that exceeds the skill of the best combination and the worst skill even being negative. 
 % WAS HIER STEHT:
 %  1. Der Sachverhalt: fuer xLSTM und LSTM laeuft die komplette Pipeline
@@ -846,7 +844,7 @@ The best xLSTM package xlstm/L/native has a median skill of 0.0939 at seed 44 bu
 %        immer alle drei nennen oder den Median der drei (0.0433).
 %        Nicht relativieren -- es ist ein sauber gemessenes negatives
 %        Resultat und gehoert genau so berichtet.
-If the sign of all skill is not the same we cant rank the model. The rule applies in only 3 cases even at a seed fragility rate of $51.7\%$. To save resources we decided on three seeds even though more seeds would leads to more robust results. 
+If the sign of all skill is not the same we cannot rank the model. The rule applies in only 3 cases even at a seed fragility rate of $51.7\%$. To save resources we decided on three seeds even though more seeds would lead to more robust results.
 %  4. Was das Protokoll dagegen tut: die Ex-ante-Regel aus
 %     diagnostics_foundation.txt Paragraph 4.4 verbietet eine Rangaussage,
 %     wenn das Vorzeichen des Kontrasts nicht ueber alle Seeds stabil ist;
@@ -862,7 +860,7 @@ If the sign of all skill is not the same we cant rank the model. The rule applie
 %     zehn waeren belastbarer, kosten aber die komplette Kette
 %     (Modell -> CP -> Diagnostik) pro zusaetzlichem Seed. Als bewusste
 %     Ressourcenentscheidung deklarieren, nicht als Versehen.
-With this decision we introduced a bias towards more extreme outcomes which makes single results for models unreliable
+With this decision we introduced a bias towards more extreme outcomes which makes single results for models unreliable.
 %  6. Ein Satz zur Richtung der Verzerrung: Seed-Rauschen ist
 %     unsystematisch, es verzerrt den Median ueber Kombinationen also
 %     nicht in eine Richtung -- aber es blaeht die Streuung auf und macht
@@ -900,7 +898,7 @@ With this decision we introduced a bias towards more extreme outcomes which make
 \subsection{Sample size, cross-section and country heterogeneity}
 \label{sec:lim:sample}
 %------------------------------------------------------------------------
-Our sample consits of 10 countries x 277 Months = 2770 observations ranging from 2003-04 to 2026-04. Our test set are 127 Months for each country. For xLSTM, a very complex Model, 277 observations might be to little and we contribute the worse performance of xLSTM to this fact. 
+Our sample consists of 10 countries x 277 months = 2770 observations ranging from 2003-04 to 2026-04. Our test set is 127 months for each country. For xLSTM, a very complex model, 277 observations might be too little and we attribute the worse performance of xLSTM to this fact.
 % WAS HIER STEHT: das ist die "harte Obergrenze"-Sektion. Vier Punkte.
 %
 %  1. STICHPROBE. Panel 10 Laender x 277 Monate = 2770 Beobachtungen
@@ -913,13 +911,13 @@ Our sample consits of 10 countries x 277 Months = 2770 observations ranging from
 %        Das ist die plausibelste Erklaerung fuer das negative
 %        Kernergebnis und gehoert hier statt in \cref{sec:res:ranking}.
 %
-The 10 euro spreads are not independent and by that the effective count of independant observations is unknown and smaler thatn 1270.
+The 10 euro spreads are not independent and by that the effective count of independent observations is unknown and smaller than 1270.
 %  2. QUERSCHNITTSKORRELATION. Zehn Euro-Spreads sind keine zehn
 %     unabhaengigen Evidenzstuecke. Adressiert per Panel-t (9.3), aber
 %     nicht eliminiert. Die effektive Zahl unabhaengiger Beobachtungen
 %     ist unbekannt und kleiner als 1270.
 %
-The mean pairwise kendal-tau between the combination rankings of country is 0.346. The minimum is observed between Finnland and Greece (0.074) and the maximum between Spain and portugal (0.65). All values can be found in \ref{tab:app_country}. In generell we observe the highest correlation between periphery countries (ES/PT/GR) and the lowest between core and periphery countries. We conclude that there is not one ranking but at least two. Median rankings stay true but the best package is country specific. 
+The mean pairwise Kendall-tau between the combination rankings of countries is 0.346. The minimum is observed between Finland and Greece (0.074) and the maximum between Spain and Portugal (0.65). All values can be found in \cref{tab:app_country}. In general we observe the highest correlation between periphery countries (ES/PT/GR) and the lowest between core and periphery countries. We conclude that there is not one ranking but at least two. Median rankings stay true but the best package is country-specific.
 %  3. LAENDERHETEROGENITAET. Das mittlere paarweise Kendall-tau zwischen
 %     den Kombinations-Rankings der Laender betraegt 0.346.
 %     ZAHLEN (verifiziert, cells.csv [B2], Pivot Kombination x Land auf
@@ -939,7 +937,7 @@ The mean pairwise kendal-tau between the combination rankings of country is 0.34
 %        mindestens zwei Regime im Querschnitt. Medianaussagen ueber
 %        alle zehn Laender bleiben gueltig, aber "das beste Verfahren"
 %        ist laenderabhaengig. Das relativiert jede Einzelempfehlung.
-The tail asymmetrie spreads wider per country (0.431 to 0.642) than per model (0.483 to 0.618). Since the MCS outcomes also vary decisively from country to country we conclude that there is no overall best model.
+The tail asymmetry spreads wider per country (0.431 to 0.642) than per model (0.483 to 0.618). Since the MCS outcomes also vary decisively from country to country, we conclude that there is no overall best model.
 %     -> QUERVERBINDUNG, die gratis ist: die Tail-Asymmetrie streut
 %        ueber Laender staerker (0.431 bis 0.642) als ueber Modelle
 %        (0.483 bis 0.618) -- beides [B3], siehe tab:app_country und
@@ -950,7 +948,7 @@ The tail asymmetrie spreads wider per country (0.431 to 0.642) than per model (0
 %        Frankreich schliesst keinen der 26 Kandidaten aus, Irland acht.
 %        Drei unabhaengige Achsen, ein Befund. Das ist ein starker Absatz.
 %
-Greece is the country that rejects the most with a gate rate of $51.9\%$ and still it has the third highest median skill (0.120). It is a country a Model is hard to fit to, the reference random walk performs very poorly and by that drives the skill up. 
+Greece is the country that rejects the most with a gate rate of $51.9\%$ and still it has the third highest median skill (0.120). It is a country a model is hard to fit to; the reference Random Walk performs very poorly and by that drives the skill up.
 %  4. EINZELNE LAENDER. Zwei Faelle, die eigene Saetze brauchen:
 %     (a) GRIECHENLAND. Gate-Rate nur 0.519 -- das mit Abstand am
 %         schwersten kalibrierbare Land. Dazu der PSI-Strukturbruch 2012
@@ -972,7 +970,7 @@ Greece is the country that rejects the most with a gate rate of $51.9\%$ and sti
 %            den Skill nach oben. Das ist derselbe Mechanismus wie bei
 %            Irland in (b) -- nur ungeprueft. Genau deshalb ist der
 %            fehlende ex-GR-Check die groessere Luecke von beiden.
-In Ireland we observe something similar. If we exclude Ireland from the evaluation the ranking stays the same (Spearman-rho 0.9392) in the admissible combinations but but not the niveau. The winning packages median skill drops from 0.1461 to 0.1027. LightGBM Packages are hit the hardest by the exclusion of Ireland 4 of the 6 biggest losses are lgbm/L.
+In Ireland we observe something similar. If we exclude Ireland from the evaluation the ranking stays the same (Spearman-rho 0.9392) in the admissible combinations but not the level. The winning package's median skill drops from 0.1461 to 0.1027. LightGBM packages are hit the hardest by the exclusion of Ireland; 4 of the 6 biggest losses are lgbm/L.
 %     (b) IRLAND. Der bewertungsseitige ex-IE-Check
 %         (\cref{sec:eval:robustness}, tab:res_robustness_ie) zeigt: die
 %         ORDNUNG des Rankings ist stabil, das NIVEAU nicht.
@@ -1025,8 +1023,7 @@ In Ireland we observe something similar. If we exclude Ireland from the evaluati
 % es nicht um fehlende Evidenz, sondern um Kosten getroffener Wahlen.
 % Sechs Punkte, je 2-3 Saetze. Reihenfolge nach Tragweite.
 Here it is not about missing evidence but about measures taken to save costs.
-we decided for a symmetric CQR score $E = \max(q_{\text{lo}} - y, \, y - q_{\text{hi}})$, that treats violations in both directions in the same way even though the data is not symmetric. At the same amount of lower and upper violations (mean 0.5359, median 0.50) is the average upper violation  (0.0715) a $37.1\%$ higher than the lower violations (0.0521). A symmetric score, by structure, cant correct for this distribution. \\
-\\
+We decided for a symmetric CQR score $E = \max(q_{\text{lo}} - y, \, y - q_{\text{hi}})$, that treats violations in both directions in the same way even though the data is not symmetric. At the same amount of lower and upper violations (mean 0.5359, median 0.50), the average upper violation (0.0715) is $37.1\%$ higher than the lower violations (0.0521). A symmetric score, by structure, cannot correct for this distribution.
 %
 %  1. SYMMETRISCHER CQR-SCORE. Der Score E = max(q_lo - y, y - q_hi) ist
 %     einseitig definiert und behandelt beide Intervallraender gleich.
@@ -1051,9 +1048,7 @@ we decided for a symmetric CQR score $E = \max(q_{\text{lo}} - y, \, y - q_{\tex
 %        ist kein Widerspruch, sondern genau der Punkt: gleich viele,
 %        aber ungleich schwere Verletzungen.
 %
-The Burn ins et serves two purposes: as HPO validation window as well as initialization pool for the Conformal methods that are pool based. This leads to slightly optimistic predictions in this window. We observe an average coverage over all cells that is $1.07\%$ lower than in the rest. This effect exists, is focused on the non recalibrating streams and vanishes with a growing pool. Some of the online trackers even show pessimism in the burn in set $(aci\_cqr +0.96\$,\ pid\_cqr +0.39\$)$. This is consistent with the overshooting discussed in 9.2.\\
-
-\\
+The burn-in set serves two purposes: as HPO validation window as well as initialization pool for the conformal methods that are pool-based. This leads to slightly optimistic predictions in this window. We observe an average coverage over all cells that is $1.07\%$ lower than in the rest. This effect exists, is focused on the non-recalibrating streams and vanishes with a growing pool. Some of the online trackers even show pessimism in the burn-in set $(aci\_cqr +0.96\%,\ pid\_cqr +0.39\%)$. This is consistent with the overshooting discussed in 9.2.
 %  2. BURN-IN-DOPPELROLLE. Das Validierungsfenster dient sowohl der
 %     Hyperparameterwahl als auch der Initialisierung des
 %     Kalibrierpools. Diagnostiziert (F11), Effekt klein und
@@ -1071,7 +1066,7 @@ The Burn ins et serves two purposes: as HPO validation window as well as initial
 %        ziehen sich zusammen. Das ist konsistent mit dem
 %        Ueberschiessen aus 9.2 und verbindet die beiden Punkte.
 %
-Our primary configuration was the 36 month rolling burn in set, but we also tested with rolling 24 and 48 month sets aswell as an expanding set. This test is only relevant for  the 6 out of the 14 conformal methods  that use a pool $(cqr\_rolling,\ aci\_cqr,\ agaci\_cqr,\ dtaci\_cqr,\ spci\_cqr,\ mondrian\_cqr)$. For the other 8 rolling and expanding are identical and therefore we calculated the test only for the 318 out of 742 combinations. Overalll we observe an increase in coverage with an increase in the length of the pool (rolling(24) 0.8127, rolling(36) 0.8165, rolling(48) 0.8204, expanding 0.8378). At the cell level the mean absolute deviation is $4\%$ and the maximum is $18.9\%$.
+Our primary configuration was the 36 month rolling burn-in set, but we also tested with rolling 24 and 48 month sets as well as an expanding set. This test is only relevant for the 6 out of the 14 conformal methods that use a pool $(cqr\_rolling,\ aci\_cqr,\ agaci\_cqr,\ dtaci\_cqr,\ spci\_cqr,\ mondrian\_cqr)$. For the other 8 rolling and expanding are identical and therefore we calculated the test only for the 318 out of 742 combinations. Overall we observe an increase in coverage with an increase in the length of the pool (rolling(24) 0.8127, rolling(36) 0.8165, rolling(48) 0.8204, expanding 0.8378). At the cell level the mean absolute deviation is $4\%$ and the maximum is $18.9\%$.
 
 %  3. KALIBRIERPOOL-FENSTER. Primaerfall rolling 36; die Varianten
 %     rolling24/rolling48/expanding sind Robustheitspaesse.
@@ -1100,8 +1095,7 @@ Our primary configuration was the 36 month rolling burn in set, but we also test
 %        Designabhaengigkeit -- und die Zellzahlen sind die
 %        aussagekraeftigeren.
 
-$lstm/GI/cqr\_rolling$  has the largest increase in coverage ($+8.9\%$) at rolling vs expanding in a single month. SPCI is the method that is most sensible to a change in pool ( $5.4\%$) with the coverage ranging from $0.7416$ to $0.7953$.\\
-\\
+$lstm/GI/cqr\_rolling$ has the largest increase in coverage ($+8.9\%$) at rolling vs expanding in a single month. SPCI is the method that is most sensitive to a change in pool ($5.4\%$) with the coverage ranging from $0.7416$ to $0.7953$.
 %     -> F8-Bruch mit dem groessten Ausschlag: lstm/GI/cqr_rolling mit
 %        8.9pp Coverage-Differenz rolling gegen expanding (Story-Report
 %        F8, tab:res_robustness_pool Panel C).
@@ -1118,8 +1112,7 @@ $lstm/GI/cqr\_rolling$  has the largest increase in coverage ($+8.9\%$) at rolli
 %        Vorregistrierung, die man praezise widerlegt, ist mehr wert als
 %        eine, die man pauschal fuer falsch erklaert.
 %
-The amount of quantile crossing is on average is neglectable $0.398\%$ but not equally distributed with $pid\_tan\_cqr\ 2.554\%$ and $cqr\_static\ 0.724\%$ crossing rate. The msot extreme cell is (xlstm/L/seed42/IE) with $77.95\%$ crossing rate. Native and $saocp\_cqr$ never cross. This shows the crossing is ana rtifact of the recalibration not of the models.\\
-\\
+The amount of quantile crossing is on average negligible $0.398\%$ but not equally distributed with $pid\_tan\_cqr\ 2.554\%$ and $cqr\_static\ 0.724\%$ crossing rate. The most extreme cell is (xlstm/L/seed42/IE) with $77.95\%$ crossing rate. Native and $saocp\_cqr$ never cross. This shows the crossing is an artifact of the recalibration not of the models.
 %  4. QUANTILKREUZUNG. Im Mittel vernachlaessigbar (0.451% aller
 %     kalibrierten Intervalle [B2]; 81.7% der Zellen kreuzen nie; auf
 %     [B3] 0.398%), aber ungleich verteilt:
@@ -1137,7 +1130,7 @@ The amount of quantile crossing is on average is neglectable $0.398\%$ but not e
 %        zeigt, dass Kreuzung ein Artefakt der Rekalibrierung ist und
 %        nicht der Modelle.
 %
-For the Volatility Regimes we decided that the first 12 Months are categorized as mid. We fixed the VIX threshold to 20. Both where ex ante decided and not data driven. The two types of stress have opposing signs when it comes to coverage. At the volatility terciles the coverage increases with increasing stress while at VIX the coverage drops at increasing stress. 
+For the volatility regimes we decided that the first 12 months are categorized as mid. We fixed the VIX threshold to 20. Both were ex ante decided and not data-driven. The two types of stress have opposing signs when it comes to coverage. At the volatility terciles the coverage increases with increasing stress while at VIX the coverage drops at increasing stress.
 %  5. REGIME-KONVENTIONEN. Zwei Festlegungen, die Ergebnisse mitbestimmen:
 %     (a) Die ersten 12 Testmonate haben keinen Volatilitaetswert (das
 %         rollierende Fenster sieht nur Testrealisationen) und werden
@@ -1165,7 +1158,7 @@ For the Volatility Regimes we decided that the first 12 Months are categorized a
 %        Nenne die Basis, sonst stimmt der Vergleich mit tab:res_regime
 %        nicht (Panel A dort ist ebenfalls die valide Menge).
 %
-We decided for the 12 month refit interval since it is an efficient tradeoff between refit frequency and computational cost. For ARMA we tested the 12 mont5 refit versus a monthly refit. Over all 14 cp contrasts the median deviation in normed winkler score is $0.65\%$ and only 2 out of the 14 contrasts were segnificant (q<0,10). For Neural Networks we didnt do that kind of check. 
+We decided for the 12 month refit interval since it is an efficient tradeoff between refit frequency and computational cost. For ARMA we tested the 12 month refit versus a monthly refit. Over all 14 CP contrasts the median deviation in normed winkler score is $0.65\%$ and only 2 out of the 14 contrasts were significant (q<0.10). For neural networks we did not do that kind of check.
 %  6. FESTE SPLITS UND REFIT-FREQUENZ. Der 12-Monats-Refit ist empirisch
 %     abgesichert (F10), aber nur GEGEN monatliches Refit und nur fuer
 %     ARMA. Fuer die NN-Modelle gibt es keinen entsprechenden Check --
@@ -1207,13 +1200,13 @@ We decided for the 12 month refit interval since it is an efficient tradeoff bet
 % Abgrenzung. Fuenf Punkte, je 1-2 Saetze. Das ist die Sektion, die dem
 % Gutachter zeigt, dass du weisst, was du gemessen hast.
 %
-All findings are predicative comparative within the described protocol. No feature effect is interpreted causal not even the covariate contrast $tirex2\_cov$ vs. tirex2. 
+All findings are predictive-comparative within the described protocol. No feature effect is interpreted causally, not even the covariate contrast $tirex2\_cov$ vs. tirex2.
 %  1. KEINE KAUSALITAET. Alle Befunde sind praediktiv-komparativ
 %     innerhalb dieses Protokolls. Kein Feature-Effekt wird kausal
 %     interpretiert, auch nicht der Kovariaten-Kontrast
 %     tirex2_cov - tirex2.
 %
-We dont test MAE-vs-RW as a preregister hypothesis. All the MAE in ~\ref{tab:res_point} are descriptive (\cref{sec:eval:skill}. in a post hoc added contrast Tirex2 does not achieve a significantly better MAE ration than the Random Walk (0.35$\%$ advantage, Panel-t = -0.4979, 0/10 countries significant). A controll contrast form arma vs. rw showed the power of the tests with finding that arma is significant inferior to the random walk (Panel-t = +2.4473; 9-country panel, as France reduces to ARMA(0,0) and reproduces the RW identically).
+We do not test MAE-vs-RW as a pre-registered hypothesis. All the MAE in \cref{tab:res_point} are descriptive (\cref{sec:eval:skill}). In a post hoc added contrast TiRex-2 does not achieve a significantly better MAE ratio than the Random Walk (0.35$\%$ advantage, Panel-t = -0.4979, 0/10 countries significant). A control contrast from arma vs. rw showed the power of the tests by finding that arma is significantly inferior to the Random Walk (Panel-t = +2.4473; 9-country panel, as France reduces to ARMA(0,0) and reproduces the RW identically).
 %  2. KEINE PUNKTPROGNOSE-UEBERLEGENHEIT. Das Framework testet
 %     MAE-vs-RW nicht als vorregistrierte Hypothese; die MAE-Ratios in
 %     tab:res_point sind deskriptiv (\cref{sec:eval:skill},
@@ -1243,7 +1236,7 @@ We dont test MAE-vs-RW as a preregister hypothesis. All the MAE in ~\ref{tab:res
 %        Das schwaecht den Kontrollbefund nicht (FI bleibt bei q 0.0040
 %        signifikant), aber es ist eine Zahl, die ein Gutachter
 %        nachrechnet, und sie steht besser bei dir als bei ihm.
-The directional hit rate of the random walk is an artifact. Its value of 0.578 is just the amout of times the spread stays the same or goes down, since a lower forecast is defined as less or equal than the last datapoint. 
+The directional hit rate of the Random Walk is an artifact. Its value of 0.578 is just the amount of times the spread stays the same or goes down, since a lower forecast is defined as less than or equal to the last datapoint.
 %     -> WEITERER POST-HOC-BEFUND, der eine offene Frage aus
 %        \cref{sec:res:point} schliesst: die Richtungstrefferquote des
 %        Random Walk ist ein ARTEFAKT.
@@ -1292,7 +1285,7 @@ The directional hit rate of the random walk is an artifact. Its value of 0.578 i
 %        uebereinstimmen -- das ist die einzige Stelle im Kapitel, wo
 %        eine Inkonsistenz als Unehrlichkeit gelesen wird.
 %
-the reproducability of the findings is ensured. All calculations over all 7 modell familys are absed on an identical data artefact (SHA-256: 5f27a412...68ec2e) and the exact code can be found on github. The execution was done in a fully defined software environment (Python 3.13.1, NumPy 2.1.3, Pandas 2.3.3, SciPy 1.17.1).
+The reproducibility of the findings is ensured. All calculations over all 7 model families are based on an identical data artefact (SHA-256: 5f27a412...68ec2e) and the exact code can be found on GitHub. The execution was done in a fully defined software environment (Python 3.13.1, NumPy 2.1.3, Pandas 2.3.3, SciPy 1.17.1).
 % >>> THESIS-ONLY >>>
 % - Ein Absatz zur Reproduzierbarkeit: identischer data_sha256
 %   (5f27a412...68ec2e) ueber alle sieben Modellfamilien, git-Commit
@@ -1316,7 +1309,7 @@ the reproducability of the findings is ensured. All calculations over all 7 mode
 \begin{table}[t]
 \centering
 \small
-\caption{% TODO Caption. Register of all deviations from and additions to
+\caption{Register of all deviations from and additions to
          the pre-registered protocol
          (\texttt{diagnostics\_foundation.txt}). ``Finding'' states whether
          the item produced an entry in the automated finding catalogue;
@@ -1341,7 +1334,7 @@ Date & Item & Character & Find. & Rank. \\
              pre-registered statistic, reported to explain rather than to
              establish & no & no \\
 \addlinespace
-2026-08-03 & Point-forecast DM against the random walk, with the ARMA
+2026-08-03 & Point-forecast DM against the Random Walk, with the ARMA
              power control (\cref{tab:lim_point}) & Post hoc; confirms a
              non-result that was already reported descriptively & no & no \\
 \addlinespace

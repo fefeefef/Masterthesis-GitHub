@@ -4,7 +4,7 @@ We will walk through all models we use in our experiments, going from the
 simplest to the most complex. The Random Walk is our naive baseline. ARIMA
 serves as the linear sequential baseline, in contrast to LightGBM, our
 non-linear, non-sequential baseline. LSTM is the non-linear sequential baseline,
-and xLSTM the state-of-the-art extension of LSTM. We also use TiRex and TiRex2
+and xLSTM the state-of-the-art extension of LSTM. We also use TiRex and TiRex-2
 (the latter in a univariate and a univariate + covariates variant), two pretrained foundation models
 based on the xLSTM architecture. All models share the same three-quantile
 interface (\cref{sec:exp:task}); how they are trained is described in
@@ -33,7 +33,7 @@ $(p,1,q)$ on levels is the same as ARMA$(p,q)$ on the differenced spreads
   \label{eq:arima}
 \end{equation}
 We assume no drift (\texttt{trend="n"}), so the model can collapse into an
-ARMA$(0,0)$, which is the random walk. To estimate the model's coefficients we
+ARMA$(0,0)$, which is the Random Walk. To estimate the model's coefficients we
 use maximum likelihood estimation (more precisely, a Kalman filter via
 \texttt{statsmodels}). The order $(p,q)$ is determined once on the burn-in set
 ($\le$ month 114) per country and then frozen, by AIC on the grid
@@ -63,7 +63,7 @@ $\{1,2,3,6,12,24\}$. Optionally we include the rolling means over $\{3,6,12\}$ f
 all features, under the 24-month cap. In G the country enters as a native
 categorical feature column. We employ early stopping after 50 boosting rounds.
 LightGBM only has the L and G regime, since there is no fine-tuning analogue.
-After hyperparameter optimisation we obtained the following. Frozen L:
+After hyperparameter optimization we obtained the following. Frozen L:
 \texttt{num\_leaves}$=7$, \texttt{max\_depth}$=-1$, \texttt{min\_data\_in\_leaf}$=5$,
 \texttt{lr}$=0.153$, no rolling means. Frozen G: \texttt{num\_leaves}$=15$,
 \texttt{max\_depth}$=3$, \texttt{min\_data\_in\_leaf}$=40$, \texttt{lr}$=0.083$,
@@ -211,14 +211,14 @@ spreads, since regime changes require a fast adaptation rate.
 \subsection{Pre-trained foundation models}
 \label{sec:models:tirex2}
 TiRex \parencite{auer2025tirex} and TiRex-2 \parencite{podest2026tirex2} are pretrained time
-series foundation models from NXAI. Both models tokenise the series by splitting it
+series foundation models from NX-AI. Both models tokenize the series by splitting it
 into non-overlapping patches, process the token sequence with an xLSTM backbone
 \parencite{beck2024xlstm}, and emit quantiles through a residual output head. The same
 architecture we train from scratch (\cref{sec:models:xlstm}) therefore also powers
 the pretrained models, so our comparison ends with the same architecture it
 started with. They are pretrained on large
 time series corpora and are used in a zero-shot way: we did not retrain, fine-tune,
-or optimise the hyperparameters. We input the raw level series of the spreads
+or optimize the hyperparameters. We input the raw level series of the spreads
 $(s_1, s_2, \dots, s_{t-1})$ as context, expanding monthly and one step ahead. We
 dynamically select the $\{0.1, 0.5, 0.9\}$ quantiles from the native quantile
 output. We then transform the levels into differences,
@@ -236,7 +236,6 @@ comparison, and the G+I residual adjustment is intentionally omitted. When we lo
 at the results, we have to take into account that TiRex-2 was released on
 2026-07-01 with an undocumented pretraining cutoff. There might be a potential
 contamination in the evaluation window.
-\label{sec:models:tirex2}
 % TIEF, aber auf SETUP/Varianten, nicht auf die pretrained-Architektur.
 %   (a) Was es ist: pretrained Time-Series-Foundation-Model von NX-AI, xLSTM-
 %       basiert (schliesst die Leiter: xLSTM im Grossen). Architektur ZITIEREN

@@ -15,7 +15,7 @@ to 2026-04: the start is the first month, and the end the last month, in which
 all required data points are simultaneously available.
 
 Greece is an exception. In 2015-07 there was no market data because of the
-capital controls during the Greek crisis. This missing window is carried forward and doesn't lie in the test set. A second limitation of including Greece is the 2012 private-sector
+capital controls during the Greek crisis. This missing window is carried forward and does not lie in the test set. A second limitation of including Greece is the 2012 private-sector
 involvement, which produced a structural break in the spread data.
 
 \subsection{Target variable: delta-spreads}
@@ -41,7 +41,7 @@ performed in level space, via \cref{eq:back-transform}.
 
 The feature selection is not part of this work, so we adhere to the features
 proposed in \textcite[ECB WP 1781]{afonso2015} with some additions. This is a
-good fit, since \textcite[ECB WP 1781]{afonso2015} investigates spread drivers
+good fit, since \textcite[ECB WP 1781]{afonso2015} investigate spread drivers
 for the same countries and the same monthly data structure that we forecast.
 One caveat is that they use data from 1999-01 to 2010-12, a period that does not
 even cover half of ours, and, as \textcite[ECB WP 1781]{afonso2015} themselves
@@ -51,10 +51,10 @@ We use monthly industrial production growth as a monthly GDP proxy, since GDP
 growth is only available quarterly. This follows \textcite[ECB WP 1781]{afonso2015}.
 They use expected debt/GDP and fiscal balance/GDP instead of the realized values
 we use. Expected data would probably yield more signal, but they were not
-available to us. Because realized data are subject to revisions that inject
+available to us. Because realized data is subject to revisions that inject
 information unknown at the reference date, we implement a lag dictionary to
 prevent this data leakage (\cref{sec:data:lags}). We would also have liked to
-use the bid-ask spread, but here too no free data were available.
+use the bid-ask spread, but here too no free data was available.
 \Cref{tab:features_overview} lists all the features we use.
 
 \begin{table}[htbp]
@@ -92,7 +92,7 @@ use the bid-ask spread, but here too no free data were available.
 \end{table}
 
 \paragraph{Global risk factors.}
-\textcite[ECB WP 1781]{afonso2015} uses only the VIX as a global risk factor;
+\textcite[ECB WP 1781]{afonso2015} use only the VIX as a global risk factor;
 we add three more. \textcite{codogno2003yield} showed that US credit risk is a
 spread driver in its own right, so we include \texttt{us\_aaa\_treasury}
 (Moody's Seasoned Aaa Corporate Yield $-$ 10y US Treasury), as well as the
@@ -104,8 +104,8 @@ Yield $-$ Moody's Aaa Corporate Yield as an indicator of investor risk aversion
 and, by that, a driver of sovereign credit spreads. We also include the Economic
 Policy Uncertainty Europe index as a log. It measures how much newspapers report
 on economic uncertainty; its relevance in this context was shown by
-\textcite{bernal2016epu}.
-\footnote{We aimed to include the $us\_hy\_oas$ = US High Yield Option-Adjusted Spread as an indicator of the global risk tolerance, but without a license it was only available three years into the past.}
+\textcite{bernal2016epu}.%
+\footnote{We aimed to include the \texttt{us\_hy\_oas} = US High Yield Option-Adjusted Spread as an indicator of the global risk tolerance, but without a license it was only available three years into the past.}
 
 \paragraph{Fiscal fundamentals and relative market size.}
 \textcite{bernoth2004sovereign} also identified interest expenditure / total
@@ -115,18 +115,18 @@ credit spread drivers, so we include them as well. The fiscal balance and the
 debt-service ratio have a strong seasonal character, as seen from a regression
 on seasonal dummies with $R^{2}=0.35$. We therefore replace the quarterly data
 by their trailing four-quarter mean, which removes the seasonal component
-(quarter-dummy $R^{2}\approx0$) while keeping the four-month publication lag. This had to be done since the Seasonally and Calendar Adjusted data was not available here and we had to resort to Non-Seasonally-Adjusted data. The industrial production (IP) index is available as a SCA series, while the fiscal block (government balance B9, interest payable D41PAY, and total revenue TR) relies on non-seasonally adjusted (NSA) data, since Eurostat (e.g., table $gov\_10q\_ggnfa$) does not provide adjusted series for all countries; we apply the trailing four-quarter moving average there as well. Other variables like the real effective exchange rate (REER) and sovereign debt levels inherently do not require seasonal adjustment. For the debt-service ratio, the numerator and denominator each receive the same
+(quarter-dummy $R^{2}\approx0$) while keeping the four-month publication lag. This had to be done since the seasonally and calendar adjusted data was not available here and we had to resort to non-seasonally adjusted data. The industrial production (IP) index is available as an SCA series, while the fiscal block (government balance B9, interest payable D41PAY, and total revenue TR) relies on non-seasonally adjusted (NSA) data, since Eurostat (e.g., table \texttt{gov\_10q\_ggnfa}) does not provide adjusted series for all countries; we apply the trailing four-quarter moving average there as well. Other variables like the real effective exchange rate (REER) and sovereign debt levels inherently do not require seasonal adjustment. For the debt-service ratio, the numerator and denominator each receive the same
 treatment before dividing. The Eurostat quarterly government finance statistics
 are forward-filled until the next datapoint is available.
 
 \paragraph{Sovereign rating.}
-\textcite{afonso2012sovereign} has shown that the numeric sovereign rating on a
+\textcite{afonso2012sovereign} have shown that the numeric sovereign rating on a
 scale of 1--17, as a difference to Germany
 ($\text{rating}_i - \text{rating}_{\text{DE}}$), is also relevant, so we include
 it.
 
 \paragraph{Convertibility and capital flight.}
-The Trans-European Automated Real-time Gross settlement Express Transfer System,
+The Trans-European Automated Real-time Gross Settlement Express Transfer System,
 2nd generation, short TARGET2, is a market-based indicator of capital flight.
 \textcite{degrauweji2013} showed that the loss of investor confidence led to a
 bond sell-off and then a liquidity outflow in 2010--11. TARGET2 is what measures
@@ -145,9 +145,9 @@ country. Relative debt is again debt/GDP minus the same for Germany, and we agai
 work with the realized debt instead of the expected.
 
 \paragraph{Cross-sectional heterogeneity.}
-\texttt{pc2\_core\_periph} is calculated from the z-standardised country data,
+\texttt{pc2\_core\_periph} is calculated from the z-standardized country data,
 with a 12-month refit on an expanding window of minimum 36 months. The loadings
-are anchored so that periphery countries always load positive. The missing value
+are anchored so that periphery countries always load positively. The missing value
 for Greece is handled by imputing 0. PC2 measures only the core--periphery
 contrast and is not a measure of monetary risk.
 
@@ -159,7 +159,7 @@ country contributes the same 17 features.
 \subsection{Publication-lag protocol}
 \label{sec:data:lags}
 
-As already stated, we did not have access to vintage data and had to resort to later published, revised data instead. In the revision process, information can enter that was not yet available in the reference period. That is a form of data leakage we want to prevent. So we employ a lag dictionary: every datapoint in reference period $t$ is moved $k=\lceil \text{lag}/30\rceil$ full months forward, so we can only use the datapoint at $t + k$. Since we are always snapping to the end of the month, we risk overlagging by 29 to 30 days. The target itself is never lagged. Look-ahead bias still remains in the monthly average series (Moody's Aaa/Baa yields, EPU): they appear about 5 days into the next month. We still employ no time lag since we judge
+As already stated, we did not have access to vintage data and had to resort to later published, revised data instead. In the revision process, information can enter that was not yet available in the reference period. That is a form of data leakage we want to prevent. So we employ a lag dictionary: every datapoint in reference period $t$ is moved $k=\lceil \text{lag}/30\rceil$ full months forward, so we can only use the datapoint at $t + k$. Since we are always snapping to the end of the month, we risk over-lagging by 29 to 30 days. The target itself is never lagged. Look-ahead bias still remains in the monthly average series (Moody's Aaa/Baa yields, EPU): they appear about 5 days into the next month. We still employ no time lag since we judge
 it negligible and record it here rather than leave it unstated.
 
 

@@ -30,7 +30,7 @@
 %========================================================================
 \section{The Conformal Layer}
 \label{sec:conformal}
-All models from \cref{sec:models} only give us raw quantiles without any statistical guarantees; this is changed after applying the conformal layer. The conformal methods are calibrated exclusively in a notebook that runs after all the models have been trained. This is methodologically sound since all conformal methods work with the same information and the same protocol for all models. This allows us to isolate the effect of the model from the effect of the method. We provide a comparison of all combinations of method $\times$ model $\times$ seed for all 10 countries. Split-CP gives us finite-sample coverage under the assumption of exchangeability \parencite{vovk2005algorithmic,lei2018distribution}. The data we are working with does not fulfil the exchangeability criteria because of the regime changes. That is why we make use of the adaptive conformal methods.
+All models from \cref{sec:models} only give us raw quantiles without any statistical guarantees; this is changed after applying the conformal layer. The conformal methods are calibrated exclusively in a notebook that runs after all the models have been trained. This is methodologically sound since all conformal methods work with the same information and the same protocol for all models. This allows us to isolate the effect of the model from the effect of the method. We provide a comparison of all combinations of method $\times$ model $\times$ seed for all 10 countries. Split-CP gives us finite-sample coverage under the assumption of exchangeability \parencite{vovk2005algorithmic,lei2018distribution}. The data we are working with does not fulfill the exchangeability criteria because of the regime changes. That is why we make use of the adaptive conformal methods.
 % SCHREIBE: Einleitungsabsatz (4–6 Sätze).
 %  - Was die Schicht leistet: alle Modelle aus \cref{sec:models} liefern nur
 %    rohe Quantile; die Kalibrierung passiert AUSSCHLIESSLICH hier, in einem
@@ -63,7 +63,7 @@ We are working with the CQR-score \parencite{romano2019cqr} on the level scale a
 
 Let $\hat q_{0.1}(t)$, $\hat q_{0.5}(t)$ and $\hat q_{0.9}(t)$ denote the
 rearranged level quantiles a given model emits for forecast month $t$, and let
-$y_t$ be the realised spread level. The conformity score is the CQR score of
+$y_t$ be the realized spread level. The conformity score is the CQR score of
 \textcite{romano2019cqr},
 \begin{equation}
   E_t \;=\; \max\!\big\{\, \hat q_{0.1}(t) - y_t,\;\; y_t - \hat q_{0.9}(t) \,\big\},
@@ -101,7 +101,8 @@ with the calibrated interval for month $t$ given by
 
 Calibration is carried out separately for every stream, that is, for every
 combination of model, training regime, seed and country; scores are never
-pooled across countries.\\
+pooled across countries.
+
 Instead of the standard empirical quantiles we use the order statistics convention introduced by \textcite{vovk2005algorithmic} as seen in \cref{eq:conf-quantile}. To prevent infinite or empty intervals the rank is clamped to the range $[1,n]$. This is a finite-pool approximation and mildly anti-conservative.
 
 % SCHREIBE: Absatz zum endlichen Stichprobenquantil (2–3 Sätze).
@@ -173,12 +174,12 @@ In every month the methods first produce their calibrated intervals relying excl
 At month $t$ the pool available to a pool-reading method is
 \begin{equation}
   \mathcal{P}_t \;=\;
-  \big\{\, E_s \;:\; s < t,\; E_s \text{ realised} \,\big\}_{\text{last } w},
+  \big\{\, E_s \;:\; s < t,\; E_s \text{ realized} \,\big\}_{\text{last } w},
   \label{eq:pool}
 \end{equation}
 % KOMMENTAR: "last w" = die letzten w Elemente in chronologischer Reihenfolge;
 % w = infty entspricht dem expanding pool.
-with the primary setting $w = 36$. The pool the methods can draw from is a rolling 36-month calibration pool. This is the length of the burn-in set, which allows the pool to be exactly populated at the start of the test phase. To obtain robust results we are also working with an expanding, rolling 24-month and rolling 48-month calibration pool. The 24- and 48-month periods were fixed ex ante. The rolling 48-month window holds only 36 entries at the start of the test period and is only fully populated 12 months after the start of the test period. The length of the burn-in period is always 36 across all types of window lengths.\footnote{The window variants are only calculated for the methods that require a pool. For the online tracking methods as well as \texttt{cqr\_static} and \texttt{native}, rolling and expanding are byte-identical duplicates.}
+with the primary setting $w = 36$. The pool the methods can draw from is a rolling 36-month calibration pool. This is the length of the burn-in set, which allows the pool to be exactly populated at the start of the test phase. To obtain robust results we are also working with an expanding, a rolling 24-month, and a rolling 48-month calibration pool. The 24- and 48-month periods were fixed ex ante. The rolling 48-month window holds only 36 entries at the start of the test period and is only fully populated 12 months after the start of the test period. The length of the burn-in period is always 36 across all types of window lengths.\footnote{The window variants are only calculated for the methods that require a pool. For the online tracking methods as well as \texttt{cqr\_static} and \texttt{native}, rolling and expanding are byte-identical duplicates.}
 
 % SCHREIBE: Absatz Pool-Modi / Robustheit (3–4 Sätze).
 %  - Primärfall: rolling 36 (= Länge des Burn-in, also am Teststart exakt
@@ -277,7 +278,7 @@ maximum-score approximation is necessary.
   \mathrm{err}_t = \Ind\{E_t > Q_t\},
   \label{eq:m-aci}
 \end{equation}
-initialised at $\alpha_{115} = \alphamis$ with $\gamma = 0.005$.
+initialized at $\alpha_{115} = \alphamis$ with $\gamma = 0.005$.
 
 The best learning rate $\gamma$ is heavily data-dependent. \texttt{agaci}
 \parencite{zaffran2022agaci} therefore turns the choice into an online aggregation
@@ -328,7 +329,7 @@ permanently dominating the aggregation, so the method stays adaptive after
 regime shifts; the learning rate is fixed to $\eta = 2.72$. Both values are
 taken ex ante from the original paper. Our implementation uses the
 deterministic weighted mean of the expert thresholds. The original authors
-also propose sampling an expert according to the weights. We didn't do that. Our
+also propose sampling an expert according to the weights. We did not do that. Our
 evaluation already aggregates across multiple seeds, so adding sampling
 variance on top would only blur the methodological contrasts.
 
@@ -373,7 +374,7 @@ distribution of the next score. Then
   \label{eq:m-spci}
 \end{equation}
 
-\subsubsection{Group (e): online control and online convex optimisation}
+\subsubsection{Group (e): online control and online convex optimization}
 \label{sec:conformal:online}
 
 The methods in this last category keep no historical pool of scores. The
@@ -417,7 +418,7 @@ with $\eta = 0.1\,\bar S$ and the integrator term
   \label{eq:m-pid-integrator}
 \end{equation}
 and $d_t = 0$ except for \texttt{pid\_tan}, where an AR(1) scorecaster fitted
-on the realised score history $\{E_s\}_{s<t}$ with mean $\mu$ and clipped
+on the realized score history $\{E_s\}_{s<t}$ with mean $\mu$ and clipped
 autoregressive coefficient $\varphi \in [-0.95, 0.95]$ contributes
 \begin{equation}
   d_t \;=\; \hat E_{t} - E_{t-1}
@@ -466,7 +467,7 @@ for the sleeping-experts prior, the emitted threshold is
   \label{eq:m-saocp}
 \end{equation}
 falling back to $p_t = \pi_t$ when all $[w_e]_+ = 0$. The betting statistics
-accumulate the clipped, normalised instantaneous regrets
+accumulate the clipped, normalized instantaneous regrets
 $g_t = \big(\rho_\tau(E_t, Q_t) - \rho_\tau(E_t, Q_t^{(e)})\big)
         \big/ \big(\sqrt{3}\,\bar S \max\{\alphamis, 1-\alphamis\}\big)$
 via $z_e \leftarrow z_e + g_t$ and $\mathit{wz}_e \leftarrow \mathit{wz}_e + g_t w_e$.
@@ -556,7 +557,7 @@ and \texttt{dtaci} determine the grid online. This is the best approach for comp
 
 We construct two additional prediction streams computationally from the
 saved model artifacts, without any extra training. They serve as the
-control groups for Research Questions (1,2) and go through the same 14
+control groups for Research Questions (1, 2) and go through the same 14
 calibration methods as every other stream.
 
 The constant-width twin takes the model's median point forecast and
@@ -647,7 +648,7 @@ deviations. We list them here for transparency.
   since our one-sided CQR score fixes the interval through the
   $(1-\alphamis)$-quantile alone.
 
-  \item In rare cases the calibrated interval inverts (lower bound above upper bound). We repair this by swapping the edges and log the event with \texttt{crossed\_cal} flag.
+  \item In rare cases the calibrated interval inverts (lower bound above upper bound). We repair this by swapping the edges and log the event with the \texttt{crossed\_cal} flag.
 %------------------------------------------------------------------------
 % !! UEBERARBEITEN 2026-08-03 -- "in rare cases" ist als pauschale Aussage
 %    NICHT HALTBAR und im Aggregat irrefuehrend. Der Mechanismus ist hier

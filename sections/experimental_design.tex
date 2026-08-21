@@ -42,7 +42,7 @@ The deep models are trained in three regimes:
   \item \textbf{GF} (global fine-tuned): the global model is fully fine-tuned
         for each country at one tenth of the global training learning rate.
 \end{itemize}
-This way we get a fair comparison between a local, a global and a specialised model.
+This way we get a fair comparison between a local, a global and a specialized model.
 LightGBM uses only L and G, while the classical and zero-shot models use a
 single setting (\cref{tab:model_selection}).
 
@@ -51,7 +51,7 @@ single setting (\cref{tab:model_selection}).
 The input is the sequence of the last $W$ monthly feature vectors up to the
 decision month $t$, from which we estimate $\dspread_{t+1}$. Before feeding it to
 the model, we apply a per-country, per-feature (and per-target)
-$z$-standardisation, fitted only on the training window of each refit, so no
+$z$-standardization, fitted only on the training window of each refit, so no
 future information enters the scaling. The single missing input (Greece,
 2015-07) is carried forward one month; the target and the evaluation are never
 imputed.
@@ -64,13 +64,13 @@ $C+1, C+2, \dots, C+12$ one step ahead, each using only the data available at
 that point. The first 114 months form the minimal training set. Months 115 to
 150 serve a double role: they are the burn-in set on which the conformal methods
 are calibrated (\cref{sec:conformal}), and the validation set for the
-hyperparameter optimisation. Evaluation takes place on months 151 to 277, that
+hyperparameter optimization. Evaluation takes place on months 151 to 277, that
 is 2015-10 to 2026-04, giving 127 test months per country.
 
 \begin{table}[htbp]
     \centering
     \small
-    \caption{Refit block structure. Burn-in blocks initialise the conformal
+    \caption{Refit block structure. Burn-in blocks initialize the conformal
     calibration pool and are not evaluated.}
     \label{tab:refit_blocks}
     \begin{tabular}{@{}llll@{}}
@@ -85,10 +85,10 @@ is 2015-10 to 2026-04, giving 127 test months per country.
 
 \subsection{Hyperparameter selection}
 \label{sec:exp:hpo}
-The hyperparameter optimisation of all tuned models uses months 1 to 114 as the
+The hyperparameter optimization of all tuned models uses months 1 to 114 as the
 training set and months 115 to 150 as the validation set. Afterwards the
 hyperparameters are frozen and the models are retrained with them; no
-test-window information enters the hyperparameter selection. Every  trainable model with an information horizon is restricted to a shared maximum of 24 months, so that no model can use a longer lookback than the others. TiRex and TiRex2 use the full expanding level history, which gives an information advantage to these models. Wherever a loss had to be minimised, the selection criterion was the mean pinball loss on the standardised $\Delta$ scale, averaged across countries, over the burn-in validation months.
+test-window information enters the hyperparameter selection. Every trainable model with an information horizon is restricted to a shared maximum of 24 months, so that no model can use a longer lookback than the others. TiRex and TiRex-2 use the full expanding level history, which gives an information advantage to these models. Wherever a loss had to be minimized, the selection criterion was the mean pinball loss on the standardized $\Delta$ scale, averaged across countries, over the burn-in validation months.
 
 \begin{table}[htbp]
   \centering\small
@@ -144,7 +144,7 @@ Kalman filter); the order $(p,q)$ is selected by AIC over the grid
 $(p,q)\in\{0,\dots,3\}^2$ (16 candidates) on the burn-in (data up to month 114)
 and frozen per country. The models are therefore not fitted to a point-error
 loss such as MAE or RMSE. The trend is suppressed (\texttt{trend="n"}), so
-ARMA$(0,0)$ nests the random walk. Both models are deterministic, and their
+ARMA$(0,0)$ nests the Random Walk. Both models are deterministic, and their
 prediction quantiles come from the empirical quantiles of their in-sample
 one-step residuals, not from a quantile loss. They share the test window and the
 conformal layer with the other models, but none of the selection machinery.

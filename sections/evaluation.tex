@@ -148,12 +148,13 @@ The Winkler skill is evaluated on the common sample with the reference being Ran
   \mathrm{Skill}_m \;=\; \operatorname{median}_{c}\,\mathrm{Skill}_m(c).
   \label{eq:skill}
 \end{equation}
-We use the Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) ratios of the models median forecast relative to native Random Walk baseline to evaluate the point forecast performance. 
+We use the Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) ratios of the model's median forecast relative to the native Random Walk baseline to evaluate the point forecast performance. 
 \begin{equation}
   \mathrm{MAE\text{-}Ratio}_m(c) \;=\; \frac{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{m,t}(c) - s_{t}(c) \big|}{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{\mathrm{RW},t}(c) - s_{t}(c) \big|}
   \label{eq:mae_ratio}
 \end{equation}
-\noindent Here $T$ is the number of months in the common out-of-sample evaluation period and $t$ indexes time. $s_{t}(c)$ is the observed value for country $c$ at time $t$, $\hat{s}_{m,t}(c)$ is the point forecast (the median of the predictive distribution) of model $m$, and $\hat{s}_{\mathrm{RW},t}(c)$ is the forecast of the naive Random Walk baseline.\\
+\noindent Here $T$ is the number of months in the common out-of-sample evaluation period and $t$ indexes time. $s_{t}(c)$ is the observed value for country $c$ at time $t$, $\hat{s}_{m,t}(c)$ is the point forecast (the median of the predictive distribution) of model $m$, and $\hat{s}_{\mathrm{RW},t}(c)$ is the forecast of the naive Random Walk baseline.
+
 The ratios are first calculated per country and then the median is taken across all countries. At the raw point forecast our \emph{tirex2} model was practically on par with the Random Walk (MAE-Ratio = 0.9965). This matches the narrative of our paper: the main advantage of the model is not a superior point forecast but a superiority in predicting intervals and correctly quantifying uncertainty \parencite{hyndman2006mase}. We also measure the directional forecast quality, i.e.\ if the model gets the trend right. For that we employ the Pesaran--Timmermann test \parencite{pesaran1992} in \eqref{eq:pt_test} on the sign of the median $\Delta$ forecast.
 \begin{equation}
   PT \;=\; \frac{\hat{P}_S - \hat{P}_*}{\sqrt{\widehat{\operatorname{Var}}(\hat{P}_S) - \widehat{\operatorname{Var}}(\hat{P}_*)}} \;\xrightarrow{d}\; \mathcal{N}(0,1)
@@ -243,7 +244,7 @@ $\hat{\pi}$ with $\alpha$ through the likelihood ratio
 Here $T$ is the number of test months in the cell, $x$ the number of
 violations, $\alpha$ the target miscoverage, and $\hat{\pi}=x/T$ its empirical
 counterpart. The statistic is asymptotically $\chi^2$ with one degree of
-freedom. It only checks the rate.\\
+freedom. It only checks the rate.
 \paragraph{Independence and conditional coverage.}
 To detect clustering we use the Markov test of \textcite{christoffersen1998}.
 Let $n_{ij}=\#\{t: I_{t-1}=i,\,I_t=j\}$ be the transition counts of the hit
@@ -287,7 +288,7 @@ $z_t=\big(1,\,\mathrm{Hit}_{t-1},\dots,\mathrm{Hit}_{t-4},\,\hat{u}_t-\hat{l}_t\
   \;\xrightarrow{d}\; \chi^2_{q},
   \label{eq:dq}
 \end{equation}
-where $\mathrm{Hit}_t=I_t-\alpha$ is the centred violation, $[\hat{l}_t,\hat{u}_t]$
+where $\mathrm{Hit}_t=I_t-\alpha$ is the centered violation, $[\hat{l}_t,\hat{u}_t]$
 are the interval bounds, $Z$ is the $T\times q$ matrix of instruments, and
 $q=6$ is its number of columns (constant, four lags, width), which sets the
 degrees of freedom. Under the null every coefficient of the regression of
