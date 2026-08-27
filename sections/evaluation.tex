@@ -314,6 +314,10 @@ when $q_{(i)}\ge 0.10$.
 %------------------------------------------------------------------------
 % Das ist das inhaltlich dichteste Unterkapitel -- hier haengen die RQs dran.
 %
+To compare the packages we did pairwise, per country, Diebold-Mariano contrasts on the winkler differentials $(d_t = W_{A,t} - W_{B,t})$ with Harvey-Leybourne-Newbold Small-Sample-Korrektur for h=1 on the common sample.
+$$DM = \frac{\bar{d}}{\sqrt{\frac{\widehat{\text{LRV}}_{\text{HLN}}}{n}}}, \quad d_t = W_{A,t} - W_{B,t}$$Our DM test is a test on the forecast and not on the underlying Model. Because of this the loss of the normal distibution in the DM test for nested Models is not relevant. 10 strongly correlated countrys cant be seen as 10 idependant tests, so, on the panel level, we test on the monthly mean over all countrys. First $\bar{d}_t = \frac{1}{10} \sum_c d_{c,t}$ is calculated, then the t-Test statistic is calculated on the $\bar{d}_t$ with ewey-West-HAC (Lag 3) to correct for the autocorrelation. \\
+
+Our preregisted contrast familys where: RQ3: method vs native, RQ1: G vs L, GF vs G, GF vs G+I, RQ2: model vs const-Zwilling, arma vs $arma\_monthly$. This acts as our defense against p-hacking. 
 % WAS HIER STEHT:
 %  A) PAARWEISE, PRO LAND: Diebold-Mariano auf Winkler-DIFFERENTIALEN
 %     (Loss-Differential d_t = W_A,t - W_B,t), mit Harvey-Leybourne-Newbold
@@ -335,11 +339,13 @@ when $q_{(i)}\ge 0.10$.
 %       RQ2: model vs _const-Zwilling    (adaptive Breite vs const-width)
 %       F10: arma vs arma_monthly        (Refit-Frequenz)
 %     Betonen: ex ante festgelegt -> keine p-hacking-Anfaelligkeit.
+Post Hoc we did the best valid package per model family contrasts. They have their own FDR family and the tests are overly confident since the the best models where chosen from the same set they are tested on. Due to this fact we can read the test outcomes only as descriptive.
 %  D) POST-HOC-FAMILIE XM (cross-model): beste valide Pakete je Familie
 %     paarweise (z.B. tirex2 vs lgbm/G). EIGENE FDR-Familie UND expliziter
 %     Anti-Konservativitaets-/Selektions-Caveat: die Pakete wurden AUF den
 %     Testdaten als "beste" gewaehlt -> Inferenz optimistisch, nur
 %     deskriptiv/explorativ lesen. Das MUSS dastehen (Ehrlichkeit).
+We report three descriptive metrics: the differential $d_{\text{norm}} = \frac{\bar{d}}{\bar{W}_{\text{ref}}}$, $share\_a\_better\ (Share\ of\ countrys\ with\ A\ better)$, median-p over countrys. 
 %  E) Kennzahl je Kontrast: normalisiertes mittleres Differential d_norm
 %     (= mean d / mean W_ref), share_a_better (Anteil Laender mit A besser),
 %     Median-p ueber Laender. Genau die Groessen, die im Results-Text
@@ -377,6 +383,13 @@ when $q_{(i)}\ge 0.10$.
 \subsection{Model Confidence Set}
 \label{sec:eval:mcs}
 %------------------------------------------------------------------------
+The Idea of the Model Confidence Set (MCS) is to find the set of models that, at level $(1 - alpha_{MCS}=0.10)$, is not statisticaly distinguishable from the best Model \citep{hansen2011model}. For that we use the $T_{\max}$ statistic with a moving block bootstrap of length 6 and 1000 bootstrap draws to correct for the autocorrelation of the loss differentials.
+\begin{equation}
+    T_{\max} = \max_{i \in M} t_{i\cdot}, \quad \text{with} \quad t_{i\cdot} = \frac{\bar{d}_{i\cdot}}{\widehat{\text{SE}}(\bar{d}_{i\cdot})},
+\end{equation}
+where $\bar{d}_{i\cdot} = |M|^{-1} \sum_{j \in M} \bar{d}_{ij}$ denotes the sample loss of model $i$ relative to the average loss of all remaining models in $M$. The MCS is done on a currated model set of the best valid Models of each Model x regime combination plus the random Walk reference. This is done since on 742 strongly correlated Kombinations the MCS would lose its power to discriminate. We report which Models survive in which countrys in chapter \ref{sec:results}.
+
+
 % WAS HIER STEHT:
 %  1. MCS-Idee: Menge der Modelle, die auf Konfidenzniveau (1 - alpha_MCS)
 %     NICHT statistisch vom besten unterscheidbar sind. Statistik: T_max
@@ -411,9 +424,10 @@ when $q_{(i)}\ge 0.10$.
 \subsection{Regime-conditional analysis}
 \label{sec:eval:regime}
 %------------------------------------------------------------------------
-% WAS HIER STEHT (drei Regime-Achsen, alle strikt leakage-frei):
-%  1. Kalenderregime: QE-Aera (bis 2021-12) vs Hiking/QT (ab 2022-01).
-%     Ein Satz oekonomische Motivation (Politikregime bricht die Dynamik).
+We compared the Models performance on two groups of volatility regimes. First on realised volatility terziles based on the rolling 12 month standard deviation of the \textbf{realized} delta spreads. Here we have the regimes stressed, mid and calm. Second on wether the VIX was higher or less than or equal to 20. here we have the regimes stressed and calm. \\
+
+We evaluate per regime and report coverage and sharpness as well as stress coverage drop ( Coverage(Stressed) -Coverage(calm) ). Here we wanted to test weither complexer Models beat simpler models in stressed regimes. The outcomes can be found in section \ref{sec:results}.
+%qunatitative easing gestrichen. diese regime definition wurde entfernt
 %  2. Volatilitaets-Terzile: rollierende 12-Monats-Std der REALISIERTEN
 %     Delta-Spreads, NUR Vergangenheit (shift(1)!), in Terzile geschnitten.
 %     -> "nur Vergangenheit" explizit betonen (kein Look-ahead).
@@ -449,40 +463,10 @@ when $q_{(i)}\ge 0.10$.
 
 
 %------------------------------------------------------------------------
-\subsection{Economic evaluation (supplementary)}
-\label{sec:eval:economic}
+%\subsection{Economic evaluation (supplementary)}
+%\label{sec:eval:economic}
 %------------------------------------------------------------------------
-% WICHTIG: Dieser Block ist ERGAENZEND und wird NIE zum Rangkriterium
-% (STRUKTURVORGABE + CLAUDE.md: Coverage/Winkler entscheiden, nicht Sharpe).
-% Ein einleitender Satz muss das explizit sagen, sonst missversteht der
-% Leser die Story.
-%
-% WAS HIER STEHT:
-%  1. Kapital-Proxy (Basel-Stil): Intervallbreite RELATIV zur breitesten
-%     validen Benchmark je Land (capital_ratio = width / baseline_width).
-%     Interpretation: schmalere valide Intervalle = weniger regulatorisches
-%     Kapital fuer dieselbe Absicherung. NUR Proxy -> nennen, nicht als
-%     echte RWA-Rechnung verkaufen. Optional bcbs2019mar zitieren.
-%  2. Intervallbasierte Handelsregel: aktiv, wenn s_{t-1} AUSSERHALB des
-%     Intervalls liegt (Signal: Mean-Reversion erwartet); Position =
-%     sign x (Funktion der Breite); annualisierter Sharpe. Ein Satz, dass
-%     das eine STILISIERTE Regel ist (Transaktionskosten/Liquiditaet
-%     ignoriert), also nur relativer Methodenvergleich.
-%
-% ZAHLEN AUS:
-%   capital_efficiency.parquet (5258 x 14): + baseline_width, capital_ratio
-%   carry_trade.parquet (5258 x 10): sharpe, n, mean_pnl, std_pnl,
-%       active_share, method_tier
-%   master_summary.parquet -> median_sharpe
-%
-% ZITATE: bcbs2019mar (Basel-Kontext -- optional/THESIS). Sonst keine.
-
-% TODO Prosa 1-2 mit dem "nie Rangkriterium"-Vorbehalt an Position 1.
-
-% [arXiv-Kuerzung]: auf 2-3 Saetze eindampfen (Kapital-Proxy + Handelsregel-
-%   Sharpe als reine oekonomische Illustration, ausdruecklich sekundaer).
-%   Bei sehr knappem arXiv-Limit: ganzes Unterkapitel streichbar -> dann
-%   1 Fussnote im Results.
+% dieser teil wurde gestrichen
 
 
 %------------------------------------------------------------------------
@@ -490,18 +474,28 @@ when $q_{(i)}\ge 0.10$.
 \label{sec:eval:robustness}
 
 %------------------------------------------------------------------------
+Our primary setting for the conformal prediction calibration window was 36 months. To check for robustness of the ranking we also tested with a rolling window of 24 and 36 months as well as an expanding window. This is only relevant for conformal prediction methods methods that employ a pool. We report the spearman roh of the rankings.\\
 % WAS HIER STEHT (Liste der Robustheits-Checks; Ergebnisse -> Results 8.8):
 %  1. CP-Pool-Fenster: Primaerfall rolling 36; Robustheit rolling 24/48 +
 %     expanding (nur fuer pool-lesende Methoden -- Verweis \cref{sec:conformal}).
 %     Berichtet: aendert sich das Ranking? (Spearman-rho der Rankings).
+Ireland was the country where the winning methods gained the most Winkler skill, so we ranked the Packages on the dataset excluding Ireland to see if the ranking is stable. We report the spearman roh aof the ranking with and without Ireland.\\
+
 %  2. ex-IE-Reaggregation: Ranking-Mediane OHNE Irland neu bilden
 %     (Leprechaun-/IP-Verzerrung, vgl. Data-Limitations); Spearman-rho des
 %     Rankings mit vs. ohne IE als Stabilitaetsmass.
+For the Neural Network trainings we used three seeds (Seeds 42/43/44). We report the seed span of the skill to distinguish statistical noise from actual effects. \\
 %  3. Seed-Spannen: nur fuer NN-Modelle (Seeds 42/43/44); berichte
 %     Skill-Spanne ueber Seeds, um Zufallsanteil vom Effekt zu trennen.
+Since the Burn is set is used for HPO validation set as well as the conformal method calibration pool we comapred the performance on the burnin set with the rest to find out if this distorts the results. \\
 %  4. Burn-in-Diagnostik: Coverage in den ersten 36 Testmonaten vs. Rest
 %     (F11) -> prueft, ob die Burn-in-Doppelrolle (HPO-Val = CP-Init) das
 %     fruehe Testfenster verzerrt. Selbstlimitierend, ehrlich ausweisen.
+All aggregates in this paper are a median over all 10 countrys. The median only makes sense if all 10 countrys have a consistent ranking. FOr every country pair (i,j) we calcualte the kendal rank korrealtionskoeffizient $tau_b$ between the skill vectos of the 742 combiantions. We report the mean over all 42 $\binom{10}{2}$ pairs. We use kendal isntead of spearman since tau is more robust to frequent ties and near ties.
+\begin{equation}
+\tau_b = \frac{C - D}{\sqrt{(C + D + T_x)(C + D + T_y)}}
+\end{equation}
+where $C$ denotes the number of concordant pairs, $D$ the number of discordant pairs, and $T_x$ and $T_y$ the number of ties present only in $x$ or $y$, respectively. A tau close to 1 means a common ranking and justifys the aggregation. A tau around 0.3-0.4 is a sign of country specific rankings and a tau of 0 means that the aggregation is not interpretable
 %  5. LAENDER-KONSISTENZ DER RANKINGS (F7) -- NEU EINZUFUEGEN 2026-08-03.
 %     Diese Kennzahl wird in 8.9 BERICHTET, aber bisher nirgends
 %     EINGEFUEHRT. Das ist eine Luecke: der Leser trifft dort auf ein

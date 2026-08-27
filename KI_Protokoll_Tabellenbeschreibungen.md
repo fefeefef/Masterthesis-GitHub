@@ -1,3 +1,113 @@
+# KI-Protokoll (intern, nicht abgeben)
+
+Ausgefüllt am 21.8.2026.
+
+Produkt / Version: **Tabellen 21.8.2026**
+
+Umfang: **37 Tabellen und 1 Abbildung**, gesamte Arbeit (`data.tex` 2,
+`experimental_design.tex` 2, `conformal.tex` 1, `results.tex` 18 Tabellen und die
+einzige eingebundene Abbildung, `limitations.tex` 3, `appendix.tex` 11).
+Caption und Notes-Block jeder Tabelle und der Abbildung vollständig neu erzeugt, die alten Fassungen
+verworfen. `sections/prompts.tex` ist ausgenommen, die Datei ist in `main.tex` nicht
+eingebunden und enthält nur alte Duplikate.
+
+Bearbeitung: `unverändert` · `redaktionell` (nur Tippfehler, Umbrüche) · `überarbeitet` (von mir neu formuliert)
+
+| Tabelle / Abbildung | Datum | Bearbeitung | Zahlen gegen CSV geprüft |
+|---|---|---|---|
+| tab:features_overview | 21.8.2026 | unverändert | ☐ |  
+| tab:publication-lags | 21.8.2026 | unverändert | ☐ | 
+| tab:refit_blocks | 21.8.2026 | unverändert | ☐ |  
+| tab:model_selection | 21.8.2026 | unverändert | ☐ | 
+| tab:cp_methods | 21.8.2026 | unverändert | ☐ |  
+| tab:res_gate | 21.8.2026 | unverändert | ☐ |  
+| tab:res_point | 21.8.2026 | unverändert | ☐ |  
+| fig:skill_heatmap | 21.8.2026 | unverändert | ☐ | 
+| tab:res_ranking | 21.8.2026 | unverändert | ☐ |
+| tab:res_tirex2_cp | 21.8.2026 | unverändert | ☐ |  
+| tab:res_percountry | 21.8.2026 | unverändert | ☐ |
+| tab:rq3_results | 21.8.2026 | unverändert | ☐ |  
+| tab:rq1_results | 21.8.2026 | unverändert | ☐ |
+| tab:res_contrasts | 21.8.2026 | unverändert | ☐ |
+| tab:rq2_results | 21.8.2026 | unverändert | ☐ |
+| tab:res_rq2_lstmG | 21.8.2026 | unverändert | ☐ |
+| tab:res_cov | 21.8.2026 | unverändert | ☐ |
+| tab:res_xm | 21.8.2026 | unverändert | ☐ |
+| tab:res_mcs | 21.8.2026 | unverändert | ☐ |
+| tab:res_regime | 21.8.2026 | unverändert | ☐ |
+| tab:res_robustness_pool | 21.8.2026 | unverändert | ☐ |
+| tab:res_robustness_ie | 21.8.2026 | unverändert | ☐ |
+| tab:res_robustness_seeds | 21.8.2026 | unverändert | ☐ |
+| tab:res_robustness_burnin | 21.8.2026 | unverändert | ☐ |
+| tab:lim_point | 21.8.2026 | unverändert | ☐ |
+| tab:lim_dq | 21.8.2026 | unverändert | ☐ |
+| tab:lim_amendments | 21.8.2026 | unverändert | ☐ |
+| tab:app_frozen | 21.8.2026 | unverändert | ☐ | 
+| tab:app_protocol | 21.8.2026 | unverändert | ☐ |  
+| tab:app_nn_space | 21.8.2026 | unverändert | ☐ | 
+| tab:app_lgbm_space | 21.8.2026 | unverändert | ☐ |  
+| tab:app_frozen_nn | 21.8.2026 | unverändert | ☐ | 
+| tab:app_frozen_lgbm | 21.8.2026 | unverändert | ☐ | 
+| tab:app_frozen_arma | 21.8.2026 | unverändert | ☐ | 
+| tab:app_country | 21.8.2026 | unverändert | ☐ |
+| tab:app_tail | 21.8.2026 | unverändert | ☐ |  
+| tab:app_pool | 21.8.2026 | unverändert | ☐ |  
+| tab:app_fragility | 21.8.2026 | unverändert | ☐ |  
+
+
+Prompt geändert? Neue Fassung hier notieren und oben vermerken, für welche Tabellen sie galt.
+
+| Fassung | Datum | Änderung | Galt für |
+|---|---|---|---|
+| v1 | 21.8.2026 | Erstfassung | alle 37 Tabellen |
+
+## Datenquelle je Tabelle
+
+Für das Abhaken der Spalte *Zahlen gegen CSV geprüft*. Tabellen mit `—` enthalten
+keine Ergebniszahlen (Konfigurations- und Katalogtabellen).
+
+- `tab:features_overview` (data.tex) — —
+- `tab:publication-lags` (data.tex) — —
+- `tab:refit_blocks` (experimental_design.tex) — —
+- `tab:model_selection` (experimental_design.tex) — —
+- `tab:cp_methods` (conformal.tex) — —
+- `tab:res_gate` (results.tex) — calibration_tests.csv, validity_flags.csv
+- `tab:res_point` (results.tex) — cells.csv
+- `fig:skill_heatmap` (results.tex) — ranking_all.csv
+- `tab:res_ranking` (results.tex) — ranking_all.csv
+- `tab:res_tirex2_cp` (results.tex) — ranking_all.csv
+- `tab:res_percountry` (results.tex) — cells.csv
+- `tab:rq3_results` (results.tex) — dm_contrasts.csv
+- `tab:rq1_results` (results.tex) — dm_contrasts.csv
+- `tab:res_contrasts` (results.tex) — dm_contrasts.csv
+- `tab:rq2_results` (results.tex) — dm_contrasts.csv
+- `tab:res_rq2_lstmG` (results.tex) — dm_percountry.csv, dm_contrasts.csv
+- `tab:res_cov` (results.tex) — cells.csv
+- `tab:res_xm` (results.tex) — dm_crossmodel.csv, dm_crossmodel_percountry.csv
+- `tab:res_mcs` (results.tex) — mcs_results.csv, run_metadata.json
+- `tab:res_regime` (results.tex) — regime_results.csv, stress_drop.csv
+- `tab:res_robustness_pool` (results.tex) — cells.csv
+- `tab:res_robustness_ie` (results.tex) — robustness_ex_ie.csv
+- `tab:res_robustness_seeds` (results.tex) — ranking_all.csv
+- `tab:res_robustness_burnin` (results.tex) — cells.csv
+- `tab:lim_point` (limitations.tex) — cells.csv, dm_percountry.csv
+- `tab:lim_dq` (limitations.tex) — calibration_tests.csv
+- `tab:lim_amendments` (limitations.tex) — —
+- `tab:app_frozen` (appendix.tex) — —
+- `tab:app_protocol` (appendix.tex) — —
+- `tab:app_nn_space` (appendix.tex) — —
+- `tab:app_lgbm_space` (appendix.tex) — —
+- `tab:app_frozen_nn` (appendix.tex) — —
+- `tab:app_frozen_lgbm` (appendix.tex) — —
+- `tab:app_frozen_arma` (appendix.tex) — —
+- `tab:app_country` (appendix.tex) — cells.csv, validity_flags.csv
+- `tab:app_tail` (appendix.tex) — cells.csv
+- `tab:app_pool` (appendix.tex) — cells.csv
+- `tab:app_fragility` (appendix.tex) — ranking_all.csv, robustness_ex_ie.csv
+
+
+
+
 # Prompt: Tabellen-Captions und Notes
 
 **Zweck:** Erzeugung der Tabellenbeschreibungen in `sections/results.tex` und `sections/limitations.tex`.
@@ -13,88 +123,7 @@
 
 ---
 
-## PROMPT v1 (Erstfassung, 21.8.2026 -- ueberholt)
-
-```
-Du erstellst die Beschreibung für EINE Tabelle meiner Masterarbeit
-(TU Wien, MSc Financial & Actuarial Mathematics; Arbeitssprache Englisch).
-
-Ich gebe dir drei Dinge:
-  (1) den vollständigen Fließtext des Abschnitts, in dem die Tabelle steht,
-  (2) den LaTeX-Code der Tabelle selbst,
-  (3) die zugrundeliegende CSV aus results/tables/.
-
-AUFGABE
-Schreibe genau zwei Dinge, auf Englisch:
-  A) einen \caption{}-Text, höchstens 25 Wörter
-  B) einen Notes-Block, höchstens 90 Wörter
-Bei einer Tabelle ohne Panels und ohne Marker entfällt B ersatzlos.
-
-WAS IN DIE NOTES GEHÖRT — und sonst nichts:
-  1. Definition jeder Spalte, deren Bedeutung sich nicht aus der
-     Kopfzeile ergibt UND die nicht bereits in Kapitel 7 (Evaluation
-     Framework) definiert ist. Ist sie dort definiert: nur \cref-Verweis,
-     keine Wiederholung.
-  2. Stichprobe und Einheit der Zelle (z. B. "127 monthly observations
-     per country, ten countries").
-  3. Verwendeter Test samt Korrektur, in einem Satz.
-  4. Vorzeichenkonvention — welches Vorzeichen bedeutet welches Ergebnis.
-     Das ist verpflichtend, sobald die Tabelle eine Größe zeigt, bei der
-     das nicht offensichtlich ist.
-  5. Legende der Marker (z. B. was † bedeutet).
-  6. Provenienz, falls sie zum Nachvollziehen nötig ist (etwa welche
-     Seeds welcher Zeile zugrunde liegen).
-
-DREI HARTE VERBOTE
-  * KEINE Zahl, die bereits im mitgelieferten Fließtext steht. Prüfe
-    jede Zahl gegen den Fließtext, bevor du sie schreibst. Zahlen, die
-    nur in der Tabelle stehen, sind erlaubt, wenn sie zur Definition
-    einer Spalte nötig sind.
-  * KEINE Interpretation, Bewertung oder Einordnung. Keine Sätze über
-    das, was das Ergebnis bedeutet, warum es so ausfällt oder wie stark
-    es ist. Die Beschreibung sagt, wie man die Tabelle LIEST, nicht was
-    sie ZEIGT.
-  * KEINE Zahl, die du nicht in der Tabelle oder der CSV verifizieren
-    kannst. Erfinde nichts, runde nichts um, rechne nichts nach.
-
-STIL — halte dich messbar an diese Vorgaben:
-  * Amerikanische Schreibung: normalized, behavior, favor, optimization.
-    NICHT normalised, behaviour, favour, per cent.
-  * Höchstens ein Semikolon pro 90 Wörter.
-  * Keine Geviertstriche (---).
-  * Keine Dreierparallelen der Form "A, B, and C" mit gleichgebautem
-    Nebensatz an jedem Glied.
-  * Keine "not X but Y"- und "rather than"-Konstruktionen.
-  * Durchschnittliche Satzlänge um 18 Wörter, höchstens 28.
-  * Schlichte Aussagesätze. Wo es passt, mit "We", "This" oder "The"
-    beginnen.
-
-KONVENTIONEN DER ARBEIT
-  * Übernimm die Notation des Fließtextes unverändert: d_norm, Winkler
-    skill, admissible, package, cell, stream, gate.
-  * Referenzen als \cref{}, Modellnamen in \texttt{}.
-  * Die Arbeit verwendet mehrere unterschiedliche Vorzeichenkonventionen
-    nebeneinander. Prüfe im Fließtext, welche für DIESE Tabelle gilt,
-    und übernimm sie wörtlich. Rate nicht.
-
-AUSGABE
-  1. Der fertige LaTeX-Code für \caption{} und, falls nötig, den
-     Notes-Block.
-  2. Darunter eine kurze Liste: welche Angaben du bewusst WEGGELASSEN
-     hast, weil sie schon im Fließtext stehen — mit Zitat der jeweiligen
-     Fließtextstelle. Diese Liste ist meine Kontrolle. Ohne sie ist die
-     Antwort unvollständig.
-  3. Falls dir im Fließtext eine Definition fehlt, die du für die Notes
-     bräuchtest: sag es, statt sie zu erfinden.
-```
-
----
-
-## PROMPT v2 (gueltige Fassung, 21.8.2026)
-
-Unterschied zu v1: die Stilregel *"Stil aus dem Fliesstext wird uebernommen"*
-kommt dazu, und die Ausgabe verlangt keine Kontrollliste der weggelassenen
-Angaben mehr. Inhaltlich sind die Regeln identisch.
+## PROMPT (gueltige Fassung, 21.8.2026)
 
 ```
 Du erstellst die Beschreibung fuer EINE Tabelle meiner Masterarbeit.
