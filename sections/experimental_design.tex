@@ -34,15 +34,15 @@
 %  NICHT hier: wie kalibriert wird (das ist \cref{sec:conformal}) und wie
 %  ausgewertet wird (das ist \cref{sec:evaluation}).
 
-For every country i and every month t three quantiles (0.1, 0.5, 0.9) for the change in spread $\Delta s_{i,t+1}$ with respect to the next month are predicted.
-From the lower and upper quantile we create the 80$\%$ prediction intervall, so $\alpha =0.2$. The 0.5 quantile is our point estimator. TiRex and TiRex2 only output deciles. For that reason we choose the widest possible quantiles all models could be compared on and endet up with 0.1 and 0.9. The trained Models, neural networks and lightgbm, are trained on the pinball loss:
+For every country $i$ and every month $t$ three quantiles (0.1, 0.5, 0.9) for the change in spread $\Delta s_{i,t+1}$ with respect to the next month are predicted.
+From the lower and upper quantile we create the 80$\%$ prediction interval, so $\alpha = 0.2$. The 0.5 quantile is our point estimator. TiRex and TiRex-2 only output deciles. For that reason we choose the widest possible quantiles all models could be compared on and ended up with 0.1 and 0.9. The trained models, neural networks and LightGBM, are trained on the pinball loss:
 \begin{equation}
   \mathcal{L}(\hat{q}, y) \;=\;
   \frac{1}{|\mathcal{T}|}\sum_{\tau \in \mathcal{T}}
   \max\!\big(\tau\,(y - \hat{q}_\tau),\; (\tau - 1)(y - \hat{q}_\tau)\big).
   \label{eq:pinball}
 \end{equation}
-The Models that only produce a pointforecast (Random Walk, ARIMA) dont have a quantile loss. We create their prediction intervalls from the respective impirical quantiles of their in sample residuals that are added onto the pointforecast. This works without an distribution assumption.
+The models that only produce a point forecast (Random Walk, ARIMA) do not have a quantile loss. We create their prediction intervals from the respective empirical quantiles of their in-sample residuals that are added onto the point forecast. This works without a distribution assumption.
 
 \subsection{Training regimes}
 \label{sec:exp:regimes}
@@ -66,13 +66,13 @@ The Models that only produce a pointforecast (Random Walk, ARIMA) dont have a qu
 %    Zero-Shot-Modelle laufen in einer einzigen Einstellung.
 %    Querverweis \cref{tab:model_selection}.
 
-We employ three training regimes per Model where possible. 
+We employ three training regimes per model where possible.
 \begin{itemize}
-  \item \textbf{L} (local): One Model per country that is trained up to 277 monthly observations.
-  \item \textbf{G} (global): One Model on the pooled panel trained on up to 2770 months, 277 per country. Country is a learned embedding in the neural networks and a native category in lightgbm. 
-  \item \textbf{GF} (global fine-tuned): The global modell is fully fine tuned per country with a tenth of of the learning rate.
+  \item \textbf{L} (local): One model per country that is trained on up to 277 monthly observations.
+  \item \textbf{G} (global): One model on the pooled panel trained on up to 2770 months, 277 per country. Country is a learned embedding in the neural networks and a native category in LightGBM.
+  \item \textbf{GF} (global fine-tuned): The global model is fully fine-tuned per country with a tenth of the learning rate.
 \end{itemize}
-We choose this design because it allows a fair comparison between a local, a global and a spezialiced model. For lightgbm there is no fine tuning equivalent so we only employ the L and G regimes here. The classical and zero shot models have a single configuration (\cref{tab:model_selection}).
+We choose this design because it allows a fair comparison between a local, a global and a specialized model. For LightGBM there is no fine-tuning equivalent so we only employ the L and G regimes here. The classical and zero-shot models have a single configuration (\cref{tab:model_selection}).
 
 \subsection{Input sequences and scaling}
 \label{sec:exp:sequences}
@@ -92,7 +92,7 @@ We choose this design because it allows a fair comparison between a local, a glo
 %    Unterschied klar benennen, er kommt in \cref{sec:conformal} wieder.
 %  - Querverweis auf \cref{sec:data} für die Datenlücke selbst.
 
-The forcast is done on the last W monthly feature vectors up to the decition month t. From that $\Delta s_{i,t+1}$ is estiamted. The input data is z standardised per country and feature, the target included. The standartisation is exclusively done on the trainings data of the current refit so there is no data leakage. The one missing input (Griechenland 2015-07) is forward filled \cref{sec:data}. Target and evaluation are never imputed. 
+The forecast is done on the last $W$ monthly feature vectors up to the decision month $t$. From that $\Delta s_{i,t+1}$ is estimated. The input data is $z$-standardized per country and feature, the target included. The standardization is exclusively done on the training data of the current refit so there is no data leakage. The one missing input (Greece 2015-07) is forward filled (\cref{sec:data}). Target and evaluation are never imputed.
 
 
 
@@ -118,7 +118,7 @@ The forcast is done on the last W monthly feature vectors up to the decition mon
 % ZAHLEN AUS: die Tabelle im Kapitel selbst; 127 Monate auch in
 %   sections/evaluation.tex (dort schon eingeführt) — Konsistenz prüfen.
 
-All models are refit every 12 months on an expanding train set. At train cutoff in month C the same model predicts the months C+1 to C+12 in one step ahead predictions using only the date availabe at the respective point in time. The first 114 months are minimal train set. The burn in set, months 115 to 150, serve as calibration set for the conformal methods (\cref{sec:conformal}) aswell as validation set for the hyperparameter optimisation. Months 151 to 277 are the test window, so 127 test months per country. The 127 months are months all the results in the results chapter are based on \cref{tab:refit_blocks}.
+All models are refit every 12 months on an expanding training set. At training cutoff in month $C$ the same model predicts the months $C+1$ to $C+12$ in one-step-ahead predictions using only the data available at the respective point in time. The first 114 months are the minimal training set. The burn-in set, months 115 to 150, serves as calibration set for the conformal methods (\cref{sec:conformal}) as well as validation set for the hyperparameter optimization. Months 151 to 277 are the test window, so 127 test months per country. The 127 months are the months all the results in the results chapter are based on (\cref{tab:refit_blocks}).
 
 \begin{table}[htbp]
     \centering
@@ -162,7 +162,7 @@ All models are refit every 12 months on an expanding train set. At train cutoff 
 %    schon in deiner Stimme, also dort abschauen, wie du das formulierst.)
 % ZAHLEN AUS: \cref{tab:app_protocol} (Sampler, Trial-Budget, Fenster).
 
-The months 1 to 114 are used for training and the months 115 to 150 for validation. This stays consistent for all trained models. After that the Hyperparameters are frozen and the models retrained with the same set every time. No data from a test window is used in the selection. Every trainable model with information horizon is caped to at max 24 months so no model can see further back than the others. TiRex and TiRex2 see the full expanding level history. The 24 month cap doesent apply to them. This is an inforamtion advantage for the zero shot models. The hyperparameter selectionw as done by minimising the average pinball loss on the standartised delta scale, averaged over all countrys, on the burn in/ validation set. The use the standardised scale since otherwise countrys with higher spread niveaus would dominate the selection.  
+The months 1 to 114 are used for training and the months 115 to 150 for validation. This stays consistent for all trained models. After that the hyperparameters are frozen and the models retrained with the same set every time. No data from a test window is used in the selection. Every trainable model with an information horizon is capped to at most 24 months so no model can see further back than the others. TiRex and TiRex-2 see the full expanding level history. The 24-month cap does not apply to them. This is an information advantage for the zero-shot models. The hyperparameter selection was done by minimizing the average pinball loss on the standardized $\Delta$ scale, averaged over all countries, on the burn-in/validation set. We use the standardized scale since otherwise countries with higher spread levels would dominate the selection.
 
 \begin{table}[htbp]
   \centering\small
@@ -214,8 +214,8 @@ The months 1 to 114 are used for training and the months 115 to 150 for validati
 % ZAHLEN AUS: \cref{tab:app_nn_space} (Suchraum),
 %   \cref{tab:app_frozen_nn} (eingefrorene Werte), \cref{tab:app_protocol}.
 
-Both LSTM and xLSTM share the same protokol and only deviate in the architecture itself. This is a necessity to attribute the skill difference to the cell and not the pipeline. More details in \cref{sec:models:lstm}. For hyperparameter optimization we use Optuna with TPE-Sampler, Seed 42, 20 startup trials, 3 warmup steps, MedianPruner, 100 trials and one study per regime. Per trial we at maximum use 100 epochs and early stopping with patience 15. We freece the epoch count from the winner trial. Then, for the L regime, we use the median of the best epochs over all 10 countrys and for the G regime we use the best epoch. All refits train on that fixed epoch count without early stopping to prevent the model capacity beeing dependant on one refit. The GF works by finetuning the G model at a thenth of the learningrate. The count of finetuning epochs is choosen once on the burn in set from the grid {5, 10, 20, 40}. We use three independant seeds (42, 43, 44). (Selected: xLSTM L W =3/5 ep., G W =24/1 ep.;
-LSTM L W =3/29 ep., G W =3/10 ep.)
+Both LSTM and xLSTM share the same protocol and only deviate in the architecture itself. This is a necessity to attribute the skill difference to the cell and not the pipeline. More details in \cref{sec:models:lstm}. For hyperparameter optimization we use Optuna with TPE sampler, seed 42, 20 start-up trials, 3 warm-up steps, MedianPruner, 100 trials and one study per regime. Per trial we at maximum use 100 epochs and early stopping with patience 15. We freeze the epoch count from the winner trial. Then, for the L regime, we use the median of the best epochs over all 10 countries and for the G regime we use the best epoch. All refits train on that fixed epoch count without early stopping to prevent the model capacity from being dependent on one refit. The GF works by fine-tuning the G model at a tenth of the learning rate. The count of fine-tuning epochs is chosen once on the burn-in set from the grid $\{5, 10, 20, 40\}$. We use three independent seeds (42, 43, 44). (Selected: xLSTM L $W=3$/5 ep., G $W=24$/1 ep.;
+LSTM L $W=3$/29 ep., G $W=3$/10 ep.)
 
 
 
@@ -241,7 +241,7 @@ LSTM L W =3/29 ep., G W =3/10 ep.)
 %  - Early Stopping wirkt hier auf Boosting-Runden, nicht auf Epochen.
 % ZAHLEN AUS: \cref{tab:app_lgbm_space}, \cref{tab:app_frozen_lgbm}.
 
-We use the same Optuna Protokoll as for the neural networks (TPE, 100 trials, the same pruner, the same burn-in selection). But for lightgbm there is no L and G regime since there is no fine tuning analogon for gradient boosting. Per quantile we train one booster. LightGBm can process sequential data so we create the lookback via an ex ante tabular lag structure from the nested lag sets {1,2,3,6,12,24} with the possiblity of added rolling means over {3,6,12} months. Lightgbm is also subject to the 24 month information cap to make the comparisson fair. Early stopping works here on boosting rounds not erpochs.
+We use the same Optuna protocol as for the neural networks (TPE, 100 trials, the same pruner, the same burn-in selection). But for LightGBM there is no GF regime since there is no fine-tuning analogue for gradient boosting. Per quantile we train one booster. LightGBM cannot process sequential data so we create the lookback via an ex ante tabular lag structure from the nested lag sets $\{1,2,3,6,12,24\}$ with the possibility of added rolling means over $\{3,6,12\}$ months. LightGBM is also subject to the 24-month information cap to make the comparison fair. Early stopping works here on boosting rounds, not epochs.
 
 \paragraph{ARIMA, Random Walk.}
 
@@ -270,7 +270,7 @@ We use the same Optuna Protokoll as for the neural networks (TPE, 100 trials, th
 %   kollabiert auf (0,0), reproduziert also den Random Walk — schöner
 %   Konsistenz-Check, den du erwähnen kannst).
 
-ARIMA only employs the L regime and is fitted per country on the difference of the target. This is equivalent to ARIMA(p,1,q) in level space. The coeffizients are fitted via maximum likelyhood estiamtion and order (p,q) via AIC over the grid $\{0,...,3\}^2$ with 16 candidates on the burnin set and is frozzen per country. The Model is not fitted on the MAE or RMSE. The trend is supressed so that ARMA(0,0) nests the random walk. The random walk is the denominator of all skill ratios. Both Models are deterministic and theyr prediction intervalls come from the empirical quantiles of the in sample one step residuals not aquantile loss. They share the test window and conformal methods with all the other models but not the selection mechanism. 
+ARIMA only employs the L regime and is fitted per country on the difference of the target. This is equivalent to ARIMA$(p,1,q)$ in level space. The coefficients are fitted via maximum likelihood estimation and order $(p,q)$ via AIC over the grid $\{0,\dots,3\}^2$ with 16 candidates on the burn-in set and are frozen per country. The model is not fitted to the MAE or RMSE. The trend is suppressed so that ARMA$(0,0)$ nests the Random Walk. The Random Walk is the denominator of all skill ratios. Both models are deterministic and their prediction intervals come from the empirical quantiles of the in-sample one-step residuals, not a quantile loss. They share the test window and conformal methods with all the other models but not the selection mechanism.
 
 
 
@@ -292,7 +292,7 @@ ARIMA only employs the L regime and is fitted per country on the difference of t
 %  Cutoff undokumentiert). Das steht in \cref{sec:models:tirex2} und in
 %  den Limitations. Hier nicht vorwegnehmen, sonst steht es dreimal.
 
-Both TiRex and TiRex2 are pretrained zero shot models so there is no training, refit or hyperparameter tuning. We use thema s NXAI has released them on hugging face (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}). This is done to isolate the effect of pretrained vs trained on the same (xlstm vs tiRex2) or similar architecture. TiRex2 also has a variant that takes in covariates. More details in \cref{sec:models}.
+Both TiRex and TiRex-2 are pretrained zero-shot models so there is no training, refit or hyperparameter tuning. We use them as NX-AI has released them on Hugging Face (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}). This is done to isolate the effect of pretrained vs.\ trained on the same (\texttt{xlstm} vs.\ \texttt{tirex2}) or similar architecture. TiRex-2 also has a variant that takes in covariates. More details in \cref{sec:models}.
 
 \subsection{Seeds and aggregation}
 \label{sec:exp:seeds}
