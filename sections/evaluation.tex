@@ -22,32 +22,43 @@
 \section{Evaluation Framework}
 \label{sec:evaluation}
 
-% WAS HIER STEHT (Kapitel-Kopf, 1 kurzer Absatz):
-%  - Ein Satz: alle Metriken werden im LEVEL-Raum auf dem gemeinsamen
-%    Testfenster (127 Monate, 2015-10..2026-04) berechnet, nachdem die
-%    Delta-Prognosen zurueckverankert wurden (Verweis \cref{sec:exp:...}).
-%  - Ein Satz zum tragenden Prinzip: Validity-first (Coverage ist ein Gate,
-%    Winkler-Skill das Rangkriterium) -> zeigt dem Leser sofort die Logik.
-%  - Ein Satz Roadmap: (i) Guetemass + Gate, (ii) skalenfreie Aggregation,
-%    (iii) Coverage-Tests, (iv) formale Vergleiche, (v) MCS, (vi) Regime,
-%    (vii) oekonomisch, (viii) Robustheit.
-%  - Ein Satz: Auswertungseinheit ("Zelle") = Modell x Regime x Seed x
-%    Methode x Land; Multiplizitaet wird ueberall per BH-FDR kontrolliert.
-%  NICHT hier schon Zahlen nennen -- das ist das Results-Kapitel.
+% SCHREIBE: Kapitelkopf Evaluation (4-6 Sätze).
+%
+%  1. WO gemessen wird (1 Satz):
+%     - Alle Intervall- und Punktmetriken im LEVEL-Raum.
+%     - Auf dem gemeinsamen Testfenster: 127 Monate, 2015-10 bis 2026-04.
+%     - Erst nachdem die Delta-Prognosen auf Levels zurückverankert
+%       wurden. Querverweis -> \cref{sec:data:target} (NICHT sec:exp:target,
+%       das gibt es nicht).
+%     - Warum Level und nicht Delta: die Intervalle, die jemanden
+%       interessieren, leben im Level-Raum. Ein Satz dazu, sonst wirkt es
+%       wie eine technische Fußnote.
+%
+We measure everything in level space, only after the $\Delta$ forcast ist transformed back into level space, on the shared test window of 127 months from 2015-10 to 2026-04 as can be seen in \cref{sec:data:target}. We evaluate in the level space since the intervalls that we are interested in live in the level space. \\
+A Model is either passes the calibration Gate and is admissible or not. We rank only inside the admissible set by winkler score and not based on the calibration gate. More detailed inforamtion in \cref{sec:eval:validity}. 
 
-All interval and point metrics are computed in level space on the common
-test window of \num{127} months (2015-10 to 2026-04), after the modelled
-$\Delta$-spread forecasts have been re-anchored to levels
-(\cref{sec:exp:target}). % TODO: exaktes Label des Rueckverankerungs-Absatzes.
-Our reporting follows a validity-first logic: the interval calibration works
-as an admissibility gate, and within the admissible set the Winkler interval
-score is the sole ranking criterion. This is our operational reading of
-``maximise sharpness subject to calibration''
-\parencite{gneiting2007sharpness}; we make it precise in \cref{sec:eval:validity}.
-The unit of evaluation, which we call a cell, is a
-model\,$\times$\,regime\,$\times$\,seed\,$\times$\,method\,$\times$\,country
-tuple. Multiplicity across the cells is controlled throughout with the
-Benjamini--Hochberg FDR \parencite{benjamini1995fdr}.
+%  2. DAS TRAGENDE PRINZIP (2 Sätze) — das ist der Kern des Absatzes:
+%     - Kalibrierung ist ein GATE, kein Rangkriterium. Eine Kombination
+%       ist entweder zulässig oder nicht.
+%     - Innerhalb der zulässigen Menge entscheidet allein der
+%       Winkler-Score über den Rang.
+%     - Das ist deine operative Lesart von "sharpness subject to
+%       calibration" \parencite{gneiting2007sharpness}.
+%     - PFLICHT: Verweis auf \cref{sec:eval:validity}, wo du es präzise
+%       machst.
+%     -> Die Original-Wendung "Our reporting follows a validity-first
+%        logic" ist der Tell. Sag dieselbe Sache, aber sag WARUM du es so
+%        machst: ein Intervall, das die Coverage verfehlt, ist nicht
+%        "etwas schlechter", sondern schlicht ungültig. Deshalb Gate.
+We evaluate per cell, which consists of Modell x Regime x Seed x Method x Country. Multiplicity over all cells is corrected for via Benjamini-Hochberg-FDR \parencite{benjamini1995fdr}.
+%  3. DIE AUSWERTUNGSEINHEIT (1-2 Sätze):
+%     - Eine "cell" = Modell x Regime x Seed x Methode x Land.
+%     - Multiplizität über alle Zellen wird durchgehend mit
+%       Benjamini-Hochberg-FDR kontrolliert \parencite{benjamini1995fdr}.
+%
+%  NICHT hier: Zahlen aus den Ergebnissen. Keine Skills, keine
+%  Coverage-Werte. Das ist das Results-Kapitel.
+%  NICHT hier: die 70%-Schwelle und q=0.10 im Detail -> sec:eval:validity.
 
 % [arXiv-Kuerzung]: dieser Kopf bleibt fast unveraendert (3-4 Saetze).
 
@@ -153,15 +164,62 @@ We use the Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) ratios of
   \mathrm{MAE\text{-}Ratio}_m(c) \;=\; \frac{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{m,t}(c) - s_{t}(c) \big|}{\frac{1}{T}\sum_{t=1}^T \big| \hat{s}_{\mathrm{RW},t}(c) - s_{t}(c) \big|}
   \label{eq:mae_ratio}
 \end{equation}
-\noindent Here $T$ is the number of months in the common out-of-sample evaluation period and $t$ indexes time. $s_{t}(c)$ is the observed value for country $c$ at time $t$, $\hat{s}_{m,t}(c)$ is the point forecast (the median of the predictive distribution) of model $m$, and $\hat{s}_{\mathrm{RW},t}(c)$ is the forecast of the naive Random Walk baseline.
 
-The ratios are first calculated per country and then the median is taken across all countries. At the raw point forecast our \emph{tirex2} model was practically on par with the Random Walk (MAE-Ratio = 0.9965). This matches the narrative of our paper: the main advantage of the model is not a superior point forecast but a superiority in predicting intervals and correctly quantifying uncertainty \parencite{hyndman2006mase}. We also measure the directional forecast quality, i.e.\ if the model gets the trend right. For that we employ the Pesaran--Timmermann test \parencite{pesaran1992} in \eqref{eq:pt_test} on the sign of the median $\Delta$ forecast.
+% SCHREIBE: Teil 1 — Symbolerklärung MAE-Ratio (2-3 Sätze).
+%  Ein Formelerklärer muss sein, der Leser braucht die Symbole. Der Tell
+%  ist nicht, DASS du erklärst, sondern die Aufzählungskadenz
+%  ("X is ..., Y is ..., and Z is ..."). Brich sie auf: zwei kurze Sätze
+%  statt einer Kette, oder ein Satz plus Halbsatz.
+%   - T = Zahl der Monate im gemeinsamen Out-of-Sample-Zeitraum, t der
+%     Zeitindex.
+%   - s_t(c) = beobachteter Wert für Land c zur Zeit t.
+%   - s^_{m,t}(c) = Punktprognose von Modell m; PFLICHT dazuzusagen, dass
+%     das der Median der prädiktiven Verteilung ist, nicht der Mittelwert.
+%   - s^_{RW,t}(c) = Prognose des Random Walk als Referenz.
+
+\noindent Here T is the number of months in the shared out of sample period and t the time index. $s_t(c)$ is the observed value for country c at time t while $\bar{s}_{m,t}(c)$ ist the point estimator of model m, so the 0.5 quantile. $\bar{s}_{RW,t}(c)$ is the point forecast of the random walk reference.
+
+%   - Die Ratios werden erst je Land berechnet, dann wird der Median über
+%     die Länder genommen. (Gleiche Logik wie in \cref{sec:exp:seeds} —
+%     ein Rückverweis spart dir hier die Wiederholung der Begründung.)
+%   - ZAHL: tirex2 liegt beim rohen Punktforecast praktisch gleichauf mit
+%     dem Random Walk, MAE-Ratio = 0.9965. Gegen cells.csv prüfen.
+%   - Die Einordnung: der Vorteil des Modells liegt NICHT im
+%     Punktforecast, sondern in der Intervallprognose und der
+%     Unsicherheitsquantifizierung \parencite{hyndman2006mase}.
+%     -> Das ist deine These, und du sagst sie hier zum ersten Mal in
+%        Zahlen. Formulier sie als deine Schlussfolgerung, nicht als
+%        Beobachtung, die sich selbst zieht. Die alte Wendung "This
+%        matches the narrative of our paper" ist ein Rest aus dem
+%        Humanize-Lauf (davor stand "This underscores the narrative").
+%   - Überleitung: zusätzlich wird die Richtungsqualität gemessen, also
+%     ob das Modell den Trend trifft. Dafür der Pesaran-Timmermann-Test
+%     \parencite{pesaran1992} auf dem Vorzeichen der Median-Delta-
+%     Prognose, \eqref{eq:pt_test}.
+
+The ratios are first calculated per country only then the median over all countrys is taken. The same approacha s in \cref{sec:exp:seeds}. Tirex2 and the random walk baseline are basically tied at the point forecast with tirex havin a mea ratio of 0.9965. We conclude that the advantage of a Model is not in the pointforecast but in the uncertainty quantification \parencite{hyndman2006mase}. The pesaran-timmermann test \parencite{pesaran1992} is used on the sign of the median delta forecast to measure the directional forecast quality of the Models, \eqref{eq:pt_test}.
+
+
 \begin{equation}
   PT \;=\; \frac{\hat{P}_S - \hat{P}_*}{\sqrt{\widehat{\operatorname{Var}}(\hat{P}_S) - \widehat{\operatorname{Var}}(\hat{P}_*)}} \;\xrightarrow{d}\; \mathcal{N}(0,1)
   \label{eq:pt_test}
 \end{equation}
-\noindent Here $\hat{P}_S$ is the observed share of correctly predicted directional changes (the hit rate) and $\hat{P}_*$ the share we would expect under the null of directional independence, so under pure chance. $\widehat{\operatorname{Var}}(\hat{P}_S)$ and $\widehat{\operatorname{Var}}(\hat{P}_*)$ are consistent estimates of the two variances. Under the null the statistic is asymptotically standard normal.
-We use the same reference for all calculated skills (Random Walk per country).
+% SCHREIBE: Teil 3 — Symbolerklärung PT-Test (2-3 Sätze).
+%   - P^_S = beobachteter Anteil korrekt vorhergesagter Richtungs-
+%     änderungen, also die Trefferquote.
+%   - P^_* = der Anteil, den man unter der Nullhypothese der
+%     Richtungsunabhängigkeit erwarten würde, also bei reinem Zufall.
+%   - Die beiden Var-Terme sind konsistente Schätzer der jeweiligen
+%     Varianzen.
+%   - Unter der Null ist die Statistik asymptotisch standardnormal.
+%   - Letzter Satz, gehört inhaltlich dazu: für alle berechneten Skills
+%     gilt dieselbe Referenz, der Random Walk je Land.
+%   ACHTUNG: Der Originalabsatz endet mit einem Satz, der nur wiederholt,
+%   was die Formel schon sagt ("Under the null the statistic is
+%   asymptotically standard normal" steht auch als Pfeil in der Gleichung).
+%   Beim Neuschreiben brauchst du ihn nicht zweimal.
+\noindent Here $\hat{P}_S$ is the amount of correctly predicted directions while $\hat{P}_*$ is the ratio that would be suspected under the null hypothesis of directional dependency, so in randomness. Both Var therms are consistent estimators of the respective varaince. Under the null hypothesis the statistic is asymptoticaly normal distributed. For all calculated skills we use the same refference: the random walk per country. 
+
 
 % >>> THESIS-ONLY >>>
 % Ausfuehrlicher Absatz zur Aggregations-Philosophie: warum Median statt

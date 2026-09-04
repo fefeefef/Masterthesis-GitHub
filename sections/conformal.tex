@@ -614,29 +614,84 @@ regime.
 \subsection{Implementation notes and deliberate adaptations}
 \label{sec:conformal:notes}
 %------------------------------------------------------------------------
+% SCHREIBE: A14 — Einleitung (2-3 Sätze).
+%   - Alle 14 Implementierungen folgen ihren Originalpapern.
+%   - ABER: das monatliche CQR-Setup braucht ein paar technische
+%     Konventionen und bewusste Abweichungen.
+%   - Warum das hier steht: Transparenz. Sag es als deine Entscheidung
+%     ("we list them" -> warum listest DU sie? weil ein Referee sonst zu
+%     Recht fragt, ob die Implementierung dem Paper entspricht).
+%   - Der Unterschied zwischen "technische Konvention" (erzwungen durch
+%     Monatsdaten) und "bewusste Abweichung" (deine Wahl) lohnt einen
+%     Halbsatz — die Liste enthält beides.
 
-All 14 implementations follow their original papers, but our monthly
-CQR-score setup needs a few technical conventions and deliberate
-deviations. We list them here for transparency.
+All 14 implementations follow the paper they originate from. Non the less the monthly CQR setup needs some technical conventions and some deliberate deviations. We list them here for transperacy.
+
+% SCHREIBE: A15 — pid_tan (3-4 Sätze).
+%   - WAS wir anders machen: der D-Term wird direkt auf die effektive
+%     Schwelle Q^eff_t addiert.
+%   - WAS im Original steht: dort regelt der P+I-Controller die
+%     Residuen des Scorecasters.
+%   - DIE FOLGE, und das ist der Punkt des Items: in unserer Version
+%     sieht der Regelkreis die Scorecaster-Prognose nie in seinem
+%     Fehlersignal. Der D-Term kann den Integrator also nicht
+%     mechanisch entlasten.
+%   - PFLICHT: die Folge muss dastehen, nicht nur der Unterschied.
+%     Sonst liest es sich wie ein Implementierungsdetail statt wie das,
+%     was es ist — eine Verhaltensänderung des Reglers.
+%   - Optional, wenn du es belegen willst: pid_tan hat die höchste
+%     Kreuzungsrate aller Methoden (2.554 %, cells.csv) und den
+%     schlechtesten Median-Skill. Das passt zu dieser Abweichung.
+%     Nur schreiben, wenn du die Zahlen prüfst.
 
 \begin{enumerate}
-  \item In \texttt{pid\_tan} the derivative (D) term is added directly onto
-  the effective threshold $Q^{\text{eff}}_t$. In the original composition the
-  P+I controller instead regulates the residuals of the scorecaster. In our
-  version the control loop never sees the scorecaster's forecast in its
-  error signal, so the D-term cannot mechanically relieve the integrator.
+  \item In \texttt{pid\_tan} the D thermis added directly to the effective threshold $Q^{\text{eff}}_t$. In the original method in the paper the residuals of the scorecaster are controlled by the P+I controller. in our version the scorecaster forecast is nerver seen in an error loop. It follows that the D therm relieve the Integrator.
 
-  \item The \texttt{saocp} reference implementation enforces non-negative
-  radii. On our signed CQR scores this means the algorithm can only widen the
-  raw interval and never narrow it. The conservative coverage of
-  \texttt{saocp} therefore comes from its domain definition and is not a
-  finding.
+% SCHREIBE: A16 — saocp (3 Sätze).
+%   - Die Referenzimplementierung erzwingt nichtnegative Radien.
+%   - Auf unseren VORZEICHENBEHAFTETEN CQR-Scores heißt das: der
+%     Algorithmus kann das rohe Intervall nur verbreitern, nie verengen.
+%   - PFLICHT, das ist die wichtigste Aussage des ganzen Unterabschnitts:
+%     die konservative Coverage von saocp folgt damit aus der
+%     Domänendefinition. Sie ist KEIN Befund. Wer das nicht sagt,
+%     berichtet ein Artefakt als Ergebnis.
+%     -> Diesen Satz musst du in der Defensio vertreten können. Formulier
+%        ihn so, dass du ihn im Schlaf erklären kannst.
+%   - Schöner Nebenbeleg, falls du ihn willst: saocp und native kreuzen
+%     exakt nie (0.000 %). Bei native per Konstruktion, bei saocp wegen
+%     genau dieser Nichtnegativität. Das bestätigt die Behauptung
+%     empirisch.
 
-  \item In the \texttt{aci} family a long violation streak can push
-  $\alpha_t$ below $1/(n+1)$. The interval would then be theoretically
-  infinite; we use the maximum observed score in the calibration pool
-  instead. This finite-pool approximation is necessary and makes the method
-  mildly anti-conservative at extreme miscoverage levels.
+   \item In the \texttt{saocp} reference non negative radii are forced. Since we work on signed CQR scores this means that the algorithm cant narrow but only widen the intervall. The conservative bias of \texttt{saocp} follows by definition. 
+
+% SCHREIBE: A17 — aci (3-4 Sätze).
+%   - Eine lange Violation-Streak kann alpha_t unter 1/(n+1) drücken.
+%   - Dann wäre das Intervall theoretisch unendlich.
+%   - Was wir stattdessen tun: das Maximum der beobachteten Scores im
+%     Kalibrierungspool.
+%   - PFLICHT (steht so auch in \cref{sec:conformal:score}): das ist eine
+%     finite-pool approximation und macht die Methode bei extremen
+%     Miscoverage-Levels MILD ANTIKONSERVATIV. Beide Wörter müssen
+%     fallen — "antikonservativ" heißt, die Intervalle sind eher zu eng,
+%     und das ist die Richtung, die einem Prüfer auffällt.
+%   - Achte darauf, dass die Formulierung zu der in
+%     \cref{sec:conformal:score} passt; dort steht dieselbe Aussage
+%     schon einmal. Zwei verschiedene Formulierungen desselben
+%     Sachverhalts wirken wie zwei verschiedene Aussagen.
+  \item In the \texttt{aci} family a long violation streak can decrease $\alpha_t$ to less than $\frac{1}{n+1}$ and by that lead to infinite intervalls. Insted we decided to cap widdening of the intervall to the maximum score in the calibration pool. This is a finite pool approximation and leads to the method being mildly anti conservative in extreme miscoverage levels as already statet in \cref{sec:conformal:score}. 
+
+% SCHREIBE: A18 — dtaci (2-3 Sätze).
+%   - Wir geben den deterministischen gewichteten Mittelwert der
+%     Expertenschwellen aus.
+%   - Das Originalpaper schlägt stattdessen vor, einen Experten
+%     stochastisch nach den Gewichten zu ziehen.
+%   - BEGRÜNDUNG, und die ist deine: unsere Auswertung aggregiert
+%     ohnehin schon über mehrere Seeds. Zusätzliche Sampling-Varianz
+%     würde die methodischen Kontraste nur verwischen.
+%   - Das ist eine saubere, verteidigbare Entscheidung — schreib sie als
+%     Entscheidung, nicht als Verzicht.
+
+  \item For \texttt{dtaci} we use the deterministicly weighted average of the expert threshold. Instead the original paper proposes to draw expers stochasticly by weights. Our evaluation already aggregates over multiple seeds added sample variance would only weaken the methodic contrasts. 
 
   \item For \texttt{dtaci} we emit the deterministic weighted mean of the
   expert thresholds instead of sampling an expert stochastically, since we do
