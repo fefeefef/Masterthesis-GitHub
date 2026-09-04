@@ -693,10 +693,6 @@ All 14 implementations follow the paper they originate from. Non the less the mo
 
   \item For \texttt{dtaci} we use the deterministicly weighted average of the expert threshold. Instead the original paper proposes to draw expers stochasticly by weights. Our evaluation already aggregates over multiple seeds added sample variance would only weaken the methodic contrasts. 
 
-  \item For \texttt{dtaci} we emit the deterministic weighted mean of the
-  expert thresholds instead of sampling an expert stochastically, since we do
-  not want to add unnecessary sampling variance to our seed-aggregated
-  evaluations.
 
   \item \texttt{agaci} aggregates the lower and upper bounds separately, with
   a symmetric-tail reading of the pinball loss at $\alphamis/2$ and at
