@@ -10,62 +10,115 @@
 
 \subsection{Forecasting task}
 \label{sec:exp:task}
-For each country $i$ and decision month $t$, the models produce three
-conditional quantiles of the one-month-ahead spread change $\dspread_{i,t+1}$
-at levels $\mathcal{T} = \{0.1, 0.5, 0.9\}$, giving a central
-$1-\alpha = 80\%$ prediction interval ($\alpha = 0.20$). The $0.5$ quantile
-serves as the point estimator. The pair $\{0.1, 0.9\}$ was chosen because the
-two pretrained models in the comparison, TiRex and TiRex-2, can only output the
-deciles $\{0.1, 0.2, \dots, 0.9\}$; $0.1$ and $0.9$ are therefore the widest
-levels available to every model without extrapolation. The trained quantile models, the deep models and LightGBM, are fitted with the
-pinball (quantile) loss:
+
+% SCHREIBE: Absatz Prognoseaufgabe (5-7 Sätze).
+%  - Was die Modelle ausgeben: für jedes Land i und jeden Entscheidungsmonat
+%    t drei bedingte Quantile der Spread-Änderung Delta s_{i,t+1} einen
+%    Monat voraus, auf den Stufen {0.1, 0.5, 0.9}.
+%  - Daraus wird das zentrale 80%-Prognoseintervall, also alpha = 0.20.
+%    Das 0.5-Quantil ist der Punktschätzer.
+%  - WARUM ausgerechnet {0.1, 0.9} — das ist eine Designentscheidung, die
+%    du begründen musst: TiRex und TiRex-2 geben nur Dezile aus. 0.1 und
+%    0.9 sind damit die breitesten Stufen, die JEDES Modell im Vergleich
+%    ohne Extrapolation liefern kann. Die Wahl richtet sich also nach dem
+%    schwächsten Glied der Vergleichskette, nicht nach Bequemlichkeit.
+%  - Die trainierten Quantilmodelle (die Deep Models und LightGBM) werden
+%    mit dem Pinball-Loss gefittet. Die Gleichung \eqref{eq:pinball} steht
+%    schon da, sie bleibt unverändert — ein Satz Hinführung reicht.
+%  - Die Punktprognosemodelle (Random Walk, ARIMA) haben keinen Quantil-
+%    Loss. Sie bauen ihr Intervall aus den empirischen Quantilen ihrer
+%    In-Sample-Residuen, die auf die Punktprognose addiert werden.
+%  - PFLICHT: dazusagen, dass das ohne Verteilungsannahme auskommt. Das
+%    ist der Grund, warum es zum verteilungsfreien Anspruch der Arbeit
+%    passt, und kein Nebensatz.
+%  NICHT hier: wie kalibriert wird (das ist \cref{sec:conformal}) und wie
+%  ausgewertet wird (das ist \cref{sec:evaluation}).
+
+For every country i and every month t three quantiles (0.1, 0.5, 0.9) for the change in spread $\Delta s_{i,t+1}$ with respect to the next month are predicted.
+From the lower and upper quantile we create the 80$\%$ prediction intervall, so $\alpha =0.2$. The 0.5 quantile is our point estimator. TiRex and TiRex2 only output deciles. For that reason we choose the widest possible quantiles all models could be compared on and endet up with 0.1 and 0.9. The trained Models, neural networks and lightgbm, are trained on the pinball loss:
 \begin{equation}
   \mathcal{L}(\hat{q}, y) \;=\;
   \frac{1}{|\mathcal{T}|}\sum_{\tau \in \mathcal{T}}
   \max\!\big(\tau\,(y - \hat{q}_\tau),\; (\tau - 1)(y - \hat{q}_\tau)\big).
   \label{eq:pinball}
 \end{equation}
-The point-forecast models (Random Walk and ARIMA) instead build their interval
-by adding the empirical quantiles of their in-sample residuals to the point
-forecast, which needs no distributional assumption.
+The Models that only produce a pointforecast (Random Walk, ARIMA) dont have a quantile loss. We create their prediction intervalls from the respective impirical quantiles of their in sample residuals that are added onto the pointforecast. This works without an distribution assumption.
 
 \subsection{Training regimes}
 \label{sec:exp:regimes}
-The deep models are trained in three regimes:
+
+% SCHREIBE: Kurzer Führungssatz + die drei Regime + zwei Sätze Einordnung.
+%  Die \begin{itemize} mit L / G / GF bleibt strukturell stehen, du
+%  schreibst den Rahmen und die Erläuterungen darin neu.
+%  - L (local): ein Modell pro Land, bis zu 277 Monatsbeobachtungen.
+%  - G (global): ein Modell auf dem gepoolten Panel, bis zu 2770
+%    Ländermonate. Die Länderidentität geht mit hinein — als gelerntes
+%    Embedding bei den neuronalen Netzen, als native kategoriale Variable
+%    bei LightGBM.
+%  - GF (global fine-tuned): das globale Modell wird je Land vollständig
+%    feingetunt, mit einem Zehntel der globalen Lernrate.
+%  - WARUM diese drei und nicht zwei: sie spannen genau die Achse lokal ->
+%    global -> spezialisiert auf. Das ist die Achse, an der RQ1 hängt.
+%    Ein Satz dazu, dass der Vergleich dadurch fair wird, weil sich die
+%    drei Regime nur in dieser einen Dimension unterscheiden.
+%  - Abgrenzung zum Schluss: LightGBM hat nur L und G (Begründung kommt
+%    erst in Block 7, hier nur die Tatsache). Die klassischen und die
+%    Zero-Shot-Modelle laufen in einer einzigen Einstellung.
+%    Querverweis \cref{tab:model_selection}.
+
+We employ three training regimes per Model where possible. 
 \begin{itemize}
-  \item \textbf{L} (local): one model per country, trained on up to 277 monthly
-        observations per country.
-  \item \textbf{G} (global): one model on the pooled panel of up to 2770
-        country-months. The country identity is passed to the model, as a
-        learned embedding for the neural networks and as a native categorical
-        feature for LightGBM.
-  \item \textbf{GF} (global fine-tuned): the global model is fully fine-tuned
-        for each country at one tenth of the global training learning rate.
+  \item \textbf{L} (local): One Model per country that is trained up to 277 monthly observations.
+  \item \textbf{G} (global): One Model on the pooled panel trained on up to 2770 months, 277 per country. Country is a learned embedding in the neural networks and a native category in lightgbm. 
+  \item \textbf{GF} (global fine-tuned): The global modell is fully fine tuned per country with a tenth of of the learning rate.
 \end{itemize}
-This way we get a fair comparison between a local, a global and a specialized model.
-LightGBM uses only L and G, while the classical and zero-shot models use a
-single setting (\cref{tab:model_selection}).
+We choose this design because it allows a fair comparison between a local, a global and a spezialiced model. For lightgbm there is no fine tuning equivalent so we only employ the L and G regimes here. The classical and zero shot models have a single configuration (\cref{tab:model_selection}).
 
 \subsection{Input sequences and scaling}
 \label{sec:exp:sequences}
-The input is the sequence of the last $W$ monthly feature vectors up to the
-decision month $t$, from which we estimate $\dspread_{t+1}$. Before feeding it to
-the model, we apply a per-country, per-feature (and per-target)
-$z$-standardization, fitted only on the training window of each refit, so no
-future information enters the scaling. The single missing input (Greece,
-2015-07) is carried forward one month; the target and the evaluation are never
-imputed.
+
+% SCHREIBE: Absatz Eingabe und Skalierung (4-5 Sätze).
+%  - Was das Modell sieht: die Sequenz der letzten W monatlichen
+%    Feature-Vektoren bis zum Entscheidungsmonat t. Daraus wird
+%    Delta s_{t+1} geschätzt.
+%  - Skalierung: z-Standardisierung pro Land und pro Feature, das Target
+%    eingeschlossen.
+%  - PFLICHT (das ist der eigentliche Punkt des Absatzes): der Skalierer
+%    wird NUR auf dem Trainingsfenster des jeweiligen Refits gefittet.
+%    Deshalb kann keine Zukunftsinformation über die Skalierung
+%    hereinlecken. Ohne diesen Satz ist der ganze Absatz Beiwerk.
+%  - Der eine fehlende Input (Griechenland 2015-07) wird um einen Monat
+%    vorgetragen. Target und Evaluation werden NIE imputiert. Diesen
+%    Unterschied klar benennen, er kommt in \cref{sec:conformal} wieder.
+%  - Querverweis auf \cref{sec:data} für die Datenlücke selbst.
+
+The forcast is done on the last W monthly feature vectors up to the decition month t. From that $\Delta s_{i,t+1}$ is estiamted. The input data is z standardised per country and feature, the target included. The standartisation is exclusively done on the trainings data of the current refit so there is no data leakage. The one missing input (Griechenland 2015-07) is forward filled \cref{sec:data}. Target and evaluation are never imputed. 
+
+
+
 
 \subsection{Rolling refit and temporal evaluation}
 \label{sec:exp:refit}
-We retrain all models on an expanding training set every 12 months. With the
-training cut off at month $C$, the same model forecasts months
-$C+1, C+2, \dots, C+12$ one step ahead, each using only the data available at
-that point. The first 114 months form the minimal training set. Months 115 to
-150 serve a double role: they are the burn-in set on which the conformal methods
-are calibrated (\cref{sec:conformal}), and the validation set for the
-hyperparameter optimization. Evaluation takes place on months 151 to 277, that
-is 2015-10 to 2026-04, giving 127 test months per country.
+
+% SCHREIBE: Absatz Refit-Schema (5-6 Sätze).
+%  - Alle Modelle werden alle 12 Monate auf einem expandierenden
+%    Trainingsset neu trainiert.
+%  - Mechanik: bei Trainings-Cutoff in Monat C prognostiziert dasselbe
+%    Modell die Monate C+1 bis C+12, jeweils einen Schritt voraus und
+%    jeweils nur mit den zu diesem Zeitpunkt verfügbaren Daten.
+%  - Die ersten 114 Monate sind das minimale Trainingsset.
+%  - Die Monate 115-150 haben eine DOPPELROLLE, und die gehört explizit
+%    benannt: Burn-in für die Kalibrierung der Conformal-Methoden
+%    (\cref{sec:conformal}) UND Validierungsset für die
+%    Hyperparameteroptimierung.
+%  - Testfenster: Monate 151-277, also 2015-10 bis 2026-04, das sind
+%    127 Testmonate pro Land. Die 127 sind die Zahl, auf die sich das
+%    ganze Results-Kapitel bezieht — hier sauber einführen.
+%  - Querverweis \cref{tab:refit_blocks}.
+% ZAHLEN AUS: die Tabelle im Kapitel selbst; 127 Monate auch in
+%   sections/evaluation.tex (dort schon eingeführt) — Konsistenz prüfen.
+
+All models are refit every 12 months on an expanding train set. At train cutoff in month C the same model predicts the months C+1 to C+12 in one step ahead predictions using only the date availabe at the respective point in time. The first 114 months are minimal train set. The burn in set, months 115 to 150, serve as calibration set for the conformal methods (\cref{sec:conformal}) aswell as validation set for the hyperparameter optimisation. Months 151 to 277 are the test window, so 127 test months per country. The 127 months are months all the results in the results chapter are based on \cref{tab:refit_blocks}.
 
 \begin{table}[htbp]
     \centering
@@ -84,10 +137,32 @@ is 2015-10 to 2026-04, giving 127 test months per country.
 
 \subsection{Hyperparameter selection}
 \label{sec:exp:hpo}
-The hyperparameter optimization of all tuned models uses months 1 to 114 as the
-training set and months 115 to 150 as the validation set. Afterwards the
-hyperparameters are frozen and the models are retrained with them; no
-test-window information enters the hyperparameter selection. Every trainable model with an information horizon is restricted to a shared maximum of 24 months, so that no model can use a longer lookback than the others. TiRex and TiRex-2 use the full expanding level history, which gives an information advantage to these models. Wherever a loss had to be minimized, the selection criterion was the mean pinball loss on the standardized $\Delta$ scale, averaged across countries, over the burn-in validation months.
+
+% SCHREIBE: Absatz HPO-Protokoll (5-6 Sätze).
+%  - Aufteilung: Monate 1-114 Training, Monate 115-150 Validierung, für
+%    alle getunten Modelle gleich.
+%  - Danach werden die Hyperparameter eingefroren und die Modelle damit
+%    neu trainiert. Kein Testfenster fließt in die Selektion ein.
+%  - Der gemeinsame Informationshorizont: jedes TRAINIERBARE Modell mit
+%    einem Informationshorizont ist auf höchstens 24 Monate begrenzt, so
+%    dass kein Modell weiter zurückschauen kann als die anderen.
+%  - PFLICHT (dein eigener Fix vom 03.08., Commit cb16d8d, aus Review
+%    §1.3 — dieser Satz MUSS erhalten bleiben): TiRex und TiRex-2 sehen
+%    die volle expandierende Level-Historie. Der 24-Monats-Cap gilt für
+%    sie NICHT. Das ist ein Informationsvorteil der Zero-Shot-Modelle und
+%    muss als solcher benannt werden, weil tirex2 dein Top-Modell ist.
+%    Wenn du das streichst, holst du dir den Referee-Einwand zurück.
+%    -> Das Wort "trainable" ist deshalb nicht kosmetisch.
+%  - Selektionskriterium, wo überhaupt ein Loss minimiert wurde: mittlerer
+%    Pinball-Loss auf der standardisierten Delta-Skala, über die Länder
+%    gemittelt, über die Burn-in-Validierungsmonate.
+%  - Ein Satz, warum auf der standardisierten Skala und nicht in Levels:
+%    sonst dominiert ein Land mit hohem Spread-Niveau die Auswahl.
+%    (Dasselbe Argument steht in "Seeds and aggregation" — dort ist es
+%    schon in deiner Stimme, also dort abschauen, wie du das formulierst.)
+% ZAHLEN AUS: \cref{tab:app_protocol} (Sampler, Trial-Budget, Fenster).
+
+The months 1 to 114 are used for training and the months 115 to 150 for validation. This stays consistent for all trained models. After that the Hyperparameters are frozen and the models retrained with the same set every time. No data from a test window is used in the selection. Every trainable model with information horizon is caped to at max 24 months so no model can see further back than the others. TiRex and TiRex2 see the full expanding level history. The 24 month cap doesent apply to them. This is an inforamtion advantage for the zero shot models. The hyperparameter selectionw as done by minimising the average pinball loss on the standartised delta scale, averaged over all countrys, on the burn in/ validation set. The use the standardised scale since otherwise countrys with higher spread niveaus would dominate the selection.  
 
 \begin{table}[htbp]
   \centering\small
@@ -109,49 +184,115 @@ test-window information enters the hyperparameter selection. Every trainable mod
   }
 \end{table}
 
+
 \paragraph{LSTM, xLSTM.}
-Both share the same protocol and differ only in architecture. The
-hyperparameters are tuned with Optuna (TPE sampler, seed 42, 20 start-up trials,
-MedianPruner with 20 start-up trials and 3 warm-up steps), using 100 trials per
-study and one study per regime (L, G). Within a trial, training runs for at most
-100 epochs with early stopping (patience 15). The epoch count of the winning
-trial is frozen (regime L: the median of the ten countries' best epochs; regime
-G: the best epoch), and all refits train that same epoch count without early
-stopping. The GF model is obtained by fine-tuning the G model at one tenth of the
-learning rate; the number of fine-tuning epochs is chosen once on the burn-in
-from the grid $\{5,10,20,40\}$. Three seeds (42, 43, 44) are run independently.
-(Selected: xLSTM L $W{=}3$/5 ep., G $W{=}24$/1 ep.; LSTM L $W{=}3$/29 ep., G
-$W{=}3$/10 ep.)
+
+% SCHREIBE: Absatz Protokoll der beiden Deep Models (6-8 Sätze).
+%  - Führungssatz: beide teilen dasselbe Protokoll und unterscheiden sich
+%    nur in der Architektur. Das ist die Voraussetzung dafür, dass der
+%    Skill-Unterschied der Zelle zugeschrieben werden kann und nicht der
+%    Pipeline — dieselbe Ablations-Logik steht in \cref{sec:models:lstm},
+%    hier nur kurz anreißen und verweisen.
+%  - Tuning: Optuna, TPE-Sampler, Seed 42, 20 Startup-Trials, MedianPruner
+%    (20 Startup-Trials, 3 Warm-up-Schritte), 100 Trials, eine Studie je
+%    Regime (L und G).
+%  - Innerhalb eines Trials: höchstens 100 Epochen, Early Stopping mit
+%    Patience 15.
+%  - Einfrieren der Epochenzahl aus dem Gewinner-Trial. Regime L: Median
+%    der besten Epochen über die zehn Länder. Regime G: die beste Epoche.
+%    Alle Refits trainieren dann diese feste Epochenzahl OHNE Early
+%    Stopping. Ein Satz dazu, warum: sonst hinge die effektive
+%    Modellkapazität am Zufall des einzelnen Refits.
+%  - GF entsteht durch Finetuning des G-Modells bei einem Zehntel der
+%    Lernrate. Die Zahl der Finetuning-Epochen wird einmal auf dem Burn-in
+%    aus dem Gitter {5, 10, 20, 40} gewählt.
+%  - Drei Seeds (42, 43, 44) laufen unabhängig.
+%  - Die gewählte Konfiguration am Ende: xLSTM L W=3 / 5 Epochen,
+%    G W=24 / 1 Epoche; LSTM L W=3 / 29 Epochen, G W=3 / 10 Epochen.
+%    Prüf die vier Werte gegen die Appendix-Tabelle, bevor du sie
+%    hinschreibst.
+% ZAHLEN AUS: \cref{tab:app_nn_space} (Suchraum),
+%   \cref{tab:app_frozen_nn} (eingefrorene Werte), \cref{tab:app_protocol}.
+
+Both LSTM and xLSTM share the same protokol and only deviate in the architecture itself. This is a necessity to attribute the skill difference to the cell and not the pipeline. More details in \cref{sec:models:lstm}. For hyperparameter optimization we use Optuna with TPE-Sampler, Seed 42, 20 startup trials, 3 warmup steps, MedianPruner, 100 trials and one study per regime. Per trial we at maximum use 100 epochs and early stopping with patience 15. We freece the epoch count from the winner trial. Then, for the L regime, we use the median of the best epochs over all 10 countrys and for the G regime we use the best epoch. All refits train on that fixed epoch count without early stopping to prevent the model capacity beeing dependant on one refit. The GF works by finetuning the G model at a thenth of the learningrate. The count of finetuning epochs is choosen once on the burn in set from the grid {5, 10, 20, 40}. We use three independant seeds (42, 43, 44). (Selected: xLSTM L W =3/5 ep., G W =24/1 ep.;
+LSTM L W =3/29 ep., G W =3/10 ep.)
+
+
+
 
 \paragraph{LightGBM.}
-We use the same Optuna protocol (TPE, 100 trials, the same pruner, the same
-burn-in selection), but only the regimes L and G exist: gradient boosting has no
-fine-tuning analogue, so there is no GF. One booster is fitted per quantile.
-Since LightGBM cannot process sequential data, we replace the lookback by an
-ex-ante tabular lag structure: nested lag sets drawn from $\{1,2,3,6,12,24\}$
-plus an optional block of rolling means over $\{3,6,12\}$ months, under the same
-24-month cap. In the G regime the country enters as a native categorical
-feature. Early stopping here acts on boosting rounds.
+
+% SCHREIBE: Absatz LightGBM-Protokoll (5-6 Sätze).
+%  - Gleiches Optuna-Protokoll wie oben (TPE, 100 Trials, derselbe Pruner,
+%    dieselbe Burn-in-Selektion) — nicht noch einmal ausbreiten, nur
+%    referenzieren.
+%  - Nur die Regime L und G. BEGRÜNDUNG statt bloßer Feststellung:
+%    Gradient Boosting hat kein Finetuning-Analogon, also kann es kein GF
+%    geben. Das ist eine Eigenschaft des Verfahrens, keine Auslassung
+%    deinerseits — genau so formulieren.
+%  - Ein Booster je Quantil.
+%  - Der eigentliche Unterschied: LightGBM kann keine Sequenzen
+%    verarbeiten. Der Lookback wird deshalb durch eine ex-ante tabulare
+%    Lag-Struktur ersetzt — verschachtelte Lag-Sets aus {1,2,3,6,12,24},
+%    dazu optional ein Block rollierender Mittel über {3,6,12} Monate.
+%  - PFLICHT: unter demselben 24-Monats-Cap wie die Sequenzmodelle. Sonst
+%    ist der Vergleich nicht fair und der Absatz verliert seinen Zweck.
+%  - Im G-Regime geht das Land als native kategoriale Variable ein.
+%  - Early Stopping wirkt hier auf Boosting-Runden, nicht auf Epochen.
+% ZAHLEN AUS: \cref{tab:app_lgbm_space}, \cref{tab:app_frozen_lgbm}.
+
+We use the same Optuna Protokoll as for the neural networks (TPE, 100 trials, the same pruner, the same burn-in selection). But for lightgbm there is no L and G regime since there is no fine tuning analogon for gradient boosting. Per quantile we train one booster. LightGBm can process sequential data so we create the lookback via an ex ante tabular lag structure from the nested lag sets {1,2,3,6,12,24} with the possiblity of added rolling means over {3,6,12} months. Lightgbm is also subject to the 24 month information cap to make the comparisson fair. Early stopping works here on boosting rounds not erpochs.
 
 \paragraph{ARIMA, Random Walk.}
-ARIMA has only the L regime and is therefore fitted per country on the
-differenced target, which makes it an ARIMA$(p,1,q)$ in levels. For a given
-order, the coefficients are estimated by maximum likelihood (exact, via the
-Kalman filter); the order $(p,q)$ is selected by AIC over the grid
-$(p,q)\in\{0,\dots,3\}^2$ (16 candidates) on the burn-in (data up to month 114)
-and frozen per country. The models are therefore not fitted to a point-error
-loss such as MAE or RMSE. The trend is suppressed (\texttt{trend="n"}), so
-ARMA$(0,0)$ nests the Random Walk. Both models are deterministic, and their
-prediction quantiles come from the empirical quantiles of their in-sample
-one-step residuals, not from a quantile loss. They share the test window and the
-conformal layer with the other models, but none of the selection machinery.
+
+% SCHREIBE: Absatz klassische Baselines (6-7 Sätze).
+%  - ARIMA hat nur das L-Regime und wird je Land auf dem differenzierten
+%    Target gefittet. Das ist äquivalent zu ARIMA(p,1,q) in Levels.
+%  - Schätzung der Koeffizienten per Maximum Likelihood (exakt, über den
+%    Kalman-Filter).
+%  - Ordnungswahl: (p,q) per AIC über das Gitter {0,...,3}^2, also 16
+%    Kandidaten, auf dem Burn-in (Daten bis Monat 114), danach je Land
+%    eingefroren.
+%  - PFLICHT: daraus folgt, dass diese Modelle NICHT auf einen
+%    Punktfehler-Loss wie MAE oder RMSE gefittet werden. Das gehört
+%    gesagt, weil man es sonst beim Lesen der Results-Tabellen annimmt.
+
+%  - Der Trend ist unterdrückt (\texttt{trend="n"}), damit ARMA(0,0) den
+%    Random Walk nestet. Ein Satz, warum das wichtig ist: der Random Walk
+%    ist der Nenner aller Skill-Verhältnisse, also muss er im selben
+%    Rahmen liegen und darf kein Fremdkörper sein.
+%  - Beide Modelle sind deterministisch. Ihre Prognosequantile kommen aus
+%    den empirischen Quantilen der In-Sample-Ein-Schritt-Residuen, nicht
+%    aus einem Quantil-Loss.
+%  - Abschluss: sie teilen Testfenster und Conformal-Layer mit allen
+%    anderen Modellen, aber nichts von der Selektionsmaschinerie.
+% ZAHLEN AUS: \cref{tab:app_frozen_arma} (Ordnungen je Land; Frankreich
+%   kollabiert auf (0,0), reproduziert also den Random Walk — schöner
+%   Konsistenz-Check, den du erwähnen kannst).
+
+ARIMA only employs the L regime and is fitted per country on the difference of the target. This is equivalent to ARIMA(p,1,q) in level space. The coeffizients are fitted via maximum likelyhood estiamtion and order (p,q) via AIC over the grid $\{0,...,3\}^2$ with 16 candidates on the burnin set and is frozzen per country. The Model is not fitted on the MAE or RMSE. The trend is supressed so that ARMA(0,0) nests the random walk. The random walk is the denominator of all skill ratios. Both Models are deterministic and theyr prediction intervalls come from the empirical quantiles of the in sample one step residuals not aquantile loss. They share the test window and conformal methods with all the other models but not the selection mechanism. 
+
+
 
 \paragraph{TiRex, TiRex-2.}
-TiRex and TiRex-2 are pretrained time-series foundation models, so they need no
-training and no hyperparameter tuning. Both are used exactly as released by NX-AI
-on Hugging Face (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}), and we use their
-probabilistic output directly. TiRex-2 is additionally run in a covariate
-variant; the variants are described in \cref{sec:models}.
+
+% SCHREIBE: Absatz Zero-Shot-Modelle (4-5 Sätze).
+%  - Beide sind vortrainierte Zeitreihen-Foundation-Modelle. Kein
+%    Training, kein Refit, keine Hyperparameteroptimierung.
+%  - Sie werden genau so verwendet, wie NX-AI sie auf Hugging Face
+%    veröffentlicht hat (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}).
+%    Der probabilistische Output wird direkt genutzt.
+%  - PFLICHT: ein Satz, warum das eine bewusste Entscheidung ist und
+%    keine Bequemlichkeit — Zero-Shot-Nutzung wie released ist genau die
+%    Frage, die RQ3 stellt. Sonst liest es sich wie eine Lücke.
+%  - TiRex-2 läuft zusätzlich in einer Kovariaten-Variante. Hier NUR die
+%    Tatsache nennen und auf \cref{sec:models} verweisen; die Varianten
+%    und der Within-Model-Kontrast gehören dorthin, nicht hierher.
+%  NICHT hier: das Kontaminations-Caveat (Release 2026-07-01, Pretraining-
+%  Cutoff undokumentiert). Das steht in \cref{sec:models:tirex2} und in
+%  den Limitations. Hier nicht vorwegnehmen, sonst steht es dreimal.
+
+Both TiRex and TiRex2 are pretrained zero shot models so there is no training, refit or hyperparameter tuning. We use thema s NXAI has released them on hugging face (\texttt{NX-AI/TiRex}, \texttt{NX-AI/TiRex-2}). This is done to isolate the effect of pretrained vs trained on the same (xlstm vs tiRex2) or similar architecture. TiRex2 also has a variant that takes in covariates. More details in \cref{sec:models}.
 
 \subsection{Seeds and aggregation}
 \label{sec:exp:seeds}
