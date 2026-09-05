@@ -91,32 +91,58 @@ The cell state is updated as the weighted sum of the old cell state and the new
 information, $c_t = f_t\odot c_{t-1} + i_t\odot\tilde{c}_t$, and the hidden state
 $h_t = o_t\odot\tanh(c_t)$ flows back into every gate at the next step.
 
-The hidden state of the last time step of our network is fed into the quantile
-head. It consists of, in order of the flow, LayerNorm, dropout, and a linear
-layer that projects onto the three quantiles $\{0.1,0.5,0.9\}$. In the G regime we
-use a country embedding that is attached at every time step. The main frozen
-hyperparameters are L: 1 layer, hidden 64, lookback 3; G: 2 layers, hidden 32,
-lookback 3. The rest of the frozen hyperparameters can be found in the appendix
-(\cref{tab:app_frozen_nn}).
-The LSTM shares the entire training protocol with the xLSTM and differs only in
-the recurrent cell. So a skill gap between the two can only come from the cell
-and not from the pipeline; the LSTM is our ablation for what the xLSTM adds.
+% SCHREIBE (5-6 Sätze).
+%  - Der Hidden State des letzten Zeitschritts geht in den Quantil-Kopf.
+%  - Aufbau in Flussrichtung: LayerNorm, Dropout, lineare Schicht, die
+%    auf die drei Quantile {0.1, 0.5, 0.9} projiziert.
+%  - Im G-Regime kommt ein Country-Embedding dazu, an jedem Zeitschritt
+%    angehängt.
+%  - Eingefrorene Hyperparameter: L = 1 Layer, hidden 64, lookback 3;
+%    G = 2 Layer, hidden 32, lookback 3. Rest im Anhang
+%    (\cref{tab:app_frozen_nn}). -> Gegen die Tabelle prüfen.
+%  - PFLICHT, das ist der Punkt des Absatzes: LSTM und xLSTM teilen das
+%    GESAMTE Trainingsprotokoll und unterscheiden sich nur in der
+%    rekurrenten Zelle. Deshalb kann ein Skill-Unterschied nur von der
+%    Zelle kommen, nicht von der Pipeline. Das LSTM ist die Ablation für
+%    das, was xLSTM hinzufügt.
+%    -> Die Wendung "the ablation that isolates what the xLSTM adds"
+%       stand schon in deiner alten Liste als Tell. Sag es als deine
+%       Konstruktionsentscheidung: du hast das Protokoll bewusst
+%       identisch gehalten, DAMIT der Vergleich sauber ist.
+
+The hidden state of the last time step is carried into the quantile head. The structure in the direction of time is as follows: LayerNorm, Dropout, linear layer that projects onto the thre quantiles {0.1, 0.5, 0.9}. in the g regime a country embedding is added at every time step. The frozen hyperparameters are: L = 1 Layer, hidden 64, lookback 3; G = 2 Layer, hidden 32, lookback 3. More details in the attatchment (\cref{tab:app_frozen_nn}). LSTM and xLSTM share the training protcoll and only deviate in the recurrent cells, there fore a difference in skill can onlu stem from architecture not the pipeline. LSTm is the ablation to isolate what xLSTM adds 
+
 
 \subsection{xLSTM}
 \label{sec:models:xlstm}
-xLSTM \parencite{beck2024xlstm} is the state-of-the-art extension of LSTM. It
-introduces two new building blocks (cell types), sLSTM and mLSTM. It was invented to overcome three
-shortcomings of the original LSTM: the original LSTM has only a scalar memory,
-which leads to a limited memory capacity; the sigmoid gates saturate, which leads
-to slow overwriting of the memory cell (it cannot learn or forget quickly); and
-the calculation of the hidden state depends on the previous hidden state and is
-therefore not parallelizable, which increases inference and training time. The
-sLSTM solves the sigmoid gate saturation by using exponential gating instead,
-which allows it to drastically forget or learn. It is capable of state tracking
-because it is time-dependent; it therefore cannot be parallelized and keeps the
-scalar memory. mLSTM also uses exponential gating but switches the scalar memory
-for matrix memory, which gives it more memory capacity and makes it
-parallelizable.
+
+% SCHREIBE (6-9 Sätze, oder 3 Sätze + itemize).
+%  1. WAS xLSTM IST: Erweiterung des LSTM \parencite{beck2024xlstm},
+%     führt zwei neue Zelltypen ein (sLSTM, mLSTM).
+%     - "state-of-the-art" ist eine Wertung. Bei einer Arbeit, in der
+%       xLSTM dann NICHT gewinnt, ist die nüchterne Variante ehrlicher.
+%  2. DIE DREI SCHWÄCHEN des Original-LSTM:
+%     (a) nur skalarer Speicher -> begrenzte Kapazität
+%     (b) Sigmoid-Gates saturieren -> Zelle wird nur langsam
+%         überschrieben, kann nicht schnell lernen/vergessen
+%     (c) Hidden State hängt vom vorherigen ab -> nicht parallelisierbar
+%         -> längere Trainings- und Inferenzzeit
+%     >>> HIER die Dreier-Parallelkonstruktion AUFBRECHEN. Drei eigene
+%         Sätze oder eine itemize-Liste. NICHT ein Satz mit Semikolons
+%         und drei "which"-Nebensätzen — genau das ist das Erkennungs-
+%         merkmal des Generats.
+%  3. sLSTM: exponentielles Gating statt Sigmoid löst die Saturation.
+%     Bleibt zeitabhängig -> state tracking möglich, aber NICHT
+%     parallelisierbar. Behält skalaren Speicher.
+%  4. mLSTM: ebenfalls exponentielles Gating, tauscht skalaren Speicher
+%     gegen Matrixspeicher -> mehr Kapazität UND parallelisierbar.
+%
+%  PFLICHT: sLSTM nicht parallelisierbar, mLSTM schon. Daran hängt später
+%  deine Konfigurationswahl (mLSTM-only, xLSTM[1:0] und xLSTM[3:0]).
+%  NICHT hier: Stabilizer/Normalizer (nächster Absatz, deine Stimme),
+%  die Gleichungen, deine Credit-Spread-Erwartung (steht am Ende).
+xLSTM is the state-of-the-art extension of LSTM \parencite{beck2024xlstm} in the way that it introduces two new cell types (sLSTM, mLSTM) and acounts for the three weaknesses of the original LSTM. The first problemw as the scalar memory which leads to a limited memory capacity. The second is the sigmoid gate saturation that allows the cells memory to only be rewritten slowly. And the Third problem is that the hiddenstate is always dependant on the previous step which makes the architecture not parallelcable. sLSTM employs exponential gating instead of sigmoid gating and by that allows for quick learning and forgetting. This change still keeps the non parallelicabilty and scalar memory but also the original lstms ability of state tracking. mLSTM also emplys exponential gating and also switeches the scalar memory for matrix memory which leads to more memory and paralleicability. 
+
 
 A gate scales a flow. In LSTM the sigmoid gating only allows for partial learning
 or forgetting. The fix is making the input gate exponential, $i_t=\exp(\cdot)$.
@@ -138,18 +164,31 @@ optionally the forget gate) is no longer bounded to $[0,1]$. The cell state can
 therefore grow unbounded and is rescaled by the normalizer state. This same
 exponential gating and stabilization is shared by both cell types below.
 
-We go through a full time step $t$ in an sLSTM block to give the reader a better
-understanding of its working. As already said, sLSTM also employs a scalar memory
-cell. The candidate for memory is the cell input $z_t$, and the input, output,
-and forget gates $i_t,o_t,f_t$ are calculated from the last hidden state $h_{t-1}$
-(which makes the network recurrent) and the current input vector $x_t$. The
-$w,r,b$ are learned parameters. Then the memory cell state is updated,
-$c_t = f_t\,c_{t-1} + i_t\,z_t$: some of the old is kept and new information is
-added. In parallel, the normalizer $n_t = f_t\,n_{t-1} + i_t$ is calculated. The
-new hidden state is determined by normalizing the memory cell state and
-multiplying by the output gate, $h_t = o_t\odot\frac{c_t}{n_t}$. Then memory
-mixing happens: sLSTM cells in the same head share information via the recurrent
-$R$ matrices.
+% SCHREIBE: zwei Absätze, je 8-12 Sätze.
+%
+% ABSATZ 1 — sLSTM-Zeitschritt:
+%  - Ankündigung: wir gehen einen vollen Zeitschritt durch.
+%    ACHTUNG: Der Satz "We go through a full time step t in an sLSTM
+%    block to give the reader a better understanding" steht im Original
+%    ZWEIMAL fast wörtlich (einmal für sLSTM, einmal für mLSTM). Wenn du
+%    beide behältst, variier den zweiten.
+%  - sLSTM hat eine skalare Speicherzelle.
+%  - Der Kandidat für den Speicher ist der Zell-Input z_t.
+%  - Input-, Output- und Forget-Gate (i_t, o_t, f_t) werden aus dem
+%    letzten Hidden State h_{t-1} und dem aktuellen Input x_t berechnet
+%    -> das macht das Netz rekurrent. w, r, b sind gelernte Parameter.
+%  - Update der Zelle: c_t = f_t c_{t-1} + i_t z_t — etwas Altes bleibt,
+%    Neues kommt dazu.
+%  - Parallel der Normalizer: n_t = f_t n_{t-1} + i_t.
+%  - Neuer Hidden State: Zelle normalisieren, mit Output-Gate
+%    multiplizieren, h_t = o_t * (c_t / n_t).
+%  - Memory Mixing: sLSTM-Zellen im selben Head teilen Information über
+%    die rekurrenten R-Matrizen.
+ We work through a full time step in the sLSTM cell. sLSTM employs a skalar memory. The candidate for that memory is the cell input $z_t$. Input, output and forget gate $(i_t, o_t, f_t)$ are calculated from the alst hidden state $h_{t-1}$ and the current input $x_t$. That is what makes the net recurrent. w, r, b are learned parameters. The memory cell is updated via $c_t = f_t c_{t-1} + i_t z_t$, some old stays some new is added. Parallel to that the normalizer $c_t = f_t c_{t-1} + i_t z_t$ is calcualted and after that the new hidden state by normalicing the cell an multiplying the result with the output gate, $h_t = o_t * (c_t / n_t)$. After that memory mixing within a head occurs to share information across the recurrent R Matrix.
+
+%
+% NICHT hier: Trainingsprotokoll, Hyperparameter (\cref{sec:model-setup}).
+
 \begin{align}
   z_t &= \varphi\!\big(w_z^\top x_t + r_z\,h_{t-1} + b_z\big), &
   i_t &= \exp\!\big(w_i^\top x_t + r_i\,h_{t-1} + b_i\big), \label{eq:slstm-zi}\\
@@ -159,22 +198,38 @@ $R$ matrices.
   n_t &= f_t\,n_{t-1} + i_t, \label{eq:slstm-cn}\\
   h_t &= o_t\odot\tilde{h}_t,\quad \tilde{h}_t = c_t/n_t. &&  \label{eq:slstm-h}
 \end{align}
-We go through a full time step $t$ in an mLSTM block to give the reader a better
-understanding of its working. Instead of scalar memory, mLSTM uses a matrix; this
-allows for much more memory capacity and associative learning of rare patterns.
-From the input vector $x_t$ the key, value, and query vectors $k_t,v_t,q_t$ are
-calculated (\eqref{eq:mlstm-qk}, \eqref{eq:mlstm-vi}). The gates $i_t,f_t,o_t$ are
-calculated next and depend only on $x_t$, no longer on the previous time step
-$h_{t-1}$ (\eqref{eq:mlstm-vi}, \eqref{eq:mlstm-fo}). The new content written into
-the matrix memory is the outer product $v_t k_t^\top$, and the memory is updated
-as the weighted sum of the old memory and the new input (\eqref{eq:mlstm-Cn}). The
-normalization vector $n_t = f_t\,n_{t-1} + i_t\,k_t$ is calculated, and with it
-the hidden state $h_t = o_t\odot\frac{C_t\,q_t}{\max(|n_t^\top q_t|,\,1)}$. In
-comparison to sLSTM, in mLSTM there is no dependency on previous steps (fully
-parallelizable), it has matrix memory, and no memory mixing. The memory matrix
-has a fixed $d\times d$ size and does not grow with the sequence length, unlike
-the key--value cache of attention. Memory usage is therefore constant and the
-compute linear in the sequence length.
+
+% ABSATZ 2 — mLSTM-Zeitschritt:
+%  - Statt skalarem Speicher eine Matrix -> mehr Kapazität, assoziatives
+%    Lernen seltener Muster.
+%  - Aus x_t werden Key, Value, Query (k_t, v_t, q_t) berechnet.
+%  - Die Gates i_t, f_t, o_t hängen NUR von x_t ab, nicht mehr von
+%    h_{t-1}. Das ist der Grund für die Parallelisierbarkeit — sag ihn.
+%  - Neu in den Speicher geschrieben wird das äußere Produkt v_t k_t^T;
+%    die Matrix wird als gewichtete Summe aus Alt und Neu aktualisiert.
+%  - Normalisierungsvektor n_t = f_t n_{t-1} + i_t k_t, damit der
+%    Hidden State h_t = o_t * (C_t q_t) / max(|n_t^T q_t|, 1).
+
+%  - VERGLEICH sLSTM vs mLSTM (das ist der Kern): mLSTM hat keine
+%    Abhängigkeit von vorherigen Schritten (voll parallelisierbar),
+%    Matrixspeicher, kein Memory Mixing.
+
+%  - Die Speichermatrix hat feste d x d Größe und wächst NICHT mit der
+%    Sequenzlänge — anders als der Key-Value-Cache bei Attention.
+%    Speicher konstant, Compute linear in der Sequenzlänge.
+%  - Abschluss (Blockstruktur): jede Zelle sitzt in einem Residualblock,
+%    sLSTM mit post-up-projection, mLSTM mit pre-up-projection.
+%    Optional eine kausale Faltung vor den Gates bzw. vor k/v/q.
+%    Residualstack mit Pre-LayerNorm-Backbone für mehr Tiefe.
+%  - Notation xLSTM[a:b] = a mLSTM- und b sLSTM-Blöcke.
+%  - PFLICHT: deine gewählte Konfiguration ist mLSTM-only (L: xLSTM[1:0],
+%    G: xLSTM[3:0]) — also ist Memory Mixing im eingesetzten Modell gar
+%    nicht vorhanden. Das ist eine ehrliche Einschränkung, die stehen
+%    bleiben muss.
+
+We again work through a full time step, this time in mLSTM where the scalar memory is replaced with matrix memory, which leads to more capacity and assciative leaning of raw patterns. From $x_t$ Key, Value, Query $(k_t, v_t, q_t)$ are calculated. The gates $i_t, f_t, o_t$ are only dependant on $x_t$, no longer from $h_{t-1}$, which leads to the paralleicibilty. The outer product $v_t k_t^T$ is now saved into the memory. The matrix is updated by the weighted sum from old and new. The normalication vector $n_t = f_t n_{t-1} + i_t k_t$ is calculated to alow the hiddenstates $h_t =\frac{o_t * (C_t q_t)}{max(|n_t^T q_t|, 1)}$, calculation. mLSTM, as opposed to sLSTM, is no longer dependant on the previous step (fully parallelicable), has matrix memory and no memory mixing. The matrix memory has the fixed size d x d, which leads to a linear compute in the sequence length in contrast to the transformer where the key value cache is growing. Every cell is inside a residual block, sLSTM with post up projection and mLSTM with pre up projection, possible a causal folding infront of the gates or k/v/q and a residuals tack with pre layer nrom backbone for more depth. In the notation we write xLSTM[a:b] where a is the amount of mLSTM cells and b the amount of sLSTM cells. The configuration chosen in out hyperparameter optimization is mLSTM only (L: xLSTM[1:0], G: xLSTM[3:0]) so there is no memory mixing ability in the architecture we use.
+
+
 \begin{align}
   q_t &= W_q x_t + b_q, &
   k_t &= \tfrac{1}{\sqrt{d}}\,W_k x_t + b_k, \label{eq:mlstm-qk}\\
@@ -210,32 +265,52 @@ spreads, since regime changes require a fast adaptation rate.
 
 \subsection{Pre-trained foundation models}
 \label{sec:models:tirex2}
-TiRex \parencite{auer2025tirex} and TiRex-2 \parencite{podest2026tirex2} are pretrained time
-series foundation models from NX-AI. Both models tokenize the series by splitting it
-into non-overlapping patches, process the token sequence with an xLSTM backbone
-\parencite{beck2024xlstm}, and emit quantiles through a residual output head. The same
-architecture we train from scratch (\cref{sec:models:xlstm}) therefore also powers
-the pretrained models, so our comparison ends with the same architecture it
-started with. They are pretrained on large
-time series corpora and are used in a zero-shot way: we did not retrain, fine-tune,
-or optimize the hyperparameters. We input the raw level series of the spreads
-$(s_1, s_2, \dots, s_{t-1})$ as context, expanding monthly and one step ahead. We
-dynamically select the $\{0.1, 0.5, 0.9\}$ quantiles from the native quantile
-output. We then transform the levels into differences,
-$q_{\Delta} = q_{\mathrm{level}} - s_{t-1}$.
 
-TiRex-2 is used in two variants: first, the univariate variant that only sees the
-spread's past as context, and second, the covariate variant that additionally sees
-the 17 covariates as past covariates. Comparing TiRex-2 with and without
-covariates on identical test months isolates the effect of the additional
-covariates. The covariates enter as past covariates. We have no future-known
-features, so TiRex-2's bidirectional future-covariate path is not used in our
-setup. TiRex only works with the context of the time series it is predicting. Since
-we have no in-sample residuals, we abstain from the constant-width interval twin
-comparison, and the G+I residual adjustment is intentionally omitted. When we look
-at the results, we have to take into account that TiRex-2 was released on
-2026-07-01 with an undocumented pretraining cutoff. There might be a potential
-contamination in the evaluation window.
+% SCHREIBE (6-8 Sätze).
+%  - TiRex \parencite{auer2025tirex} und TiRex-2 \parencite{podest2026tirex2}
+%    sind vortrainierte Zeitreihen-Foundation-Modelle von NX-AI.
+%  - Aufbau: beide zerlegen die Reihe in nicht überlappende Patches,
+%    verarbeiten die Tokensequenz mit einem xLSTM-Backbone
+%    \parencite{beck2024xlstm} und geben Quantile über einen residualen
+%    Ausgabekopf aus.
+%  - DER PUNKT, den du selbst formulieren solltest: dieselbe Architektur,
+%    die du from scratch trainierst (\cref{sec:models:xlstm}), treibt auch
+%    die vortrainierten Modelle.
+%    -> Die Original-Wendung dafür war "closing the ladder of models",
+%       danach "our comparison ends with the same architecture it started
+%       with". Beide sind Generat-Reste. Sag schlicht, was es für den
+%       Vergleich bedeutet: du kannst trainiert gegen vortrainiert bei
+%       gleicher Architektur stellen.
+%  - Zero-Shot: kein Retraining, kein Fine-Tuning, keine HPO.
+%  - Input: die rohe Level-Reihe der Spreads (s_1, ..., s_{t-1}) als
+%    Kontext, monatlich expandierend, one-step-ahead.
+%  - Die Quantile {0.1, 0.5, 0.9} werden dynamisch aus dem nativen
+%    Quantil-Output ausgewählt.
+%  - Rücktransformation in Differenzen: q_Delta = q_level - s_{t-1}.
+
+TiRex \parencite{auer2025tirex} and  TiRex-2 \parencite{podest2026tirex2} are pre trained times series foudnation modells from NXAI. Both disect the time series in non overlaping batches, process the tokensequence with an xLSTM backbone \parencite{beck2024xlstm} and produce quantiles via a residual outputhead. They use the same architecture we train from scratch at out data (\cref{sec:models:xlstm}) which allows a contast between the pretrained and selftrained architectures. Zero shot here means no retraining on the target data, no fine tuning and no hyperparameter optimization. We input the raw level series of the spread $(s_1, ..., s_{t-1})$ as context, monthly expanding and with one step ahead forecasts. The quantiles {0.1, 0.5, 0.9} are dynamicly chosen from the native quantile output. Afterwards we transform fromlevel into difference space $q_Delta = q_level - s_{t-1}$.
+
+% SCHREIBE (6-8 Sätze).
+%  - Zwei Varianten: univariat (sieht nur die Vergangenheit des Spreads)
+%    und Kovariaten-Variante (sieht zusätzlich die 17 Kovariaten als past
+%    covariates).
+%  - WOZU: der Within-Model-Kontrast auf identischen Testmonaten isoliert
+%    den reinen Kovariaten-Effekt. Das ist die Grundlage der
+%    "Kovariaten ~ null"-Aussage in den Results — sag, wozu du das baust.
+%  - Wir haben keine future-known features, deshalb bleibt der
+%    bidirektionale Future-Covariate-Pfad von TiRex-2 ungenutzt.
+%    -> Original: "is not exercised in our setup" (Tell). Schlicht sagen:
+%       wir nutzen ihn nicht, weil es nichts gibt, was er nutzen könnte.
+%  - TiRex arbeitet nur mit dem Kontext der Reihe, die es prognostiziert.
+%  - DESIGN-KONSEQUENZ: keine In-Sample-Residuen -> kein
+%    constant-width-Twin, und die G+I-Residualanpassung entfällt bewusst.
+%    Als Absicht formulieren, nicht als Lücke.
+%  - CAVEAT: TiRex-2 wurde am 2026-07-01 veröffentlicht, der
+%    Pretraining-Cutoff ist undokumentiert -> mögliche Kontamination im
+%    Evaluationsfenster. Kurz nennen, Details in den Limitations.
+
+TiRex-2 has two possible variants: univariate, where it only sees the the targets time series up to the decition point and multivariate where it sees all 17 kovariates up to the decition point. This allows for a within model contrast, on identical test months, to isolate the effect of the covariates. We use no future known covariates, there fore the bidirectional future covariate path of TiRex2 stays unused. TiRex only works with the context of the times series it is forecasting. This leads to no in sample residuals and therefore no constant width twin aswell als no G+I residualadjustment. TiRex-2 was released on 2026-07-01 and the pretraining cutoff is not documented, which might lead to data leakage in the evaluationwindow. More details in \ref{sec:limitations}.
+
 % TIEF, aber auf SETUP/Varianten, nicht auf die pretrained-Architektur.
 %   (a) Was es ist: pretrained Time-Series-Foundation-Model von NX-AI, xLSTM-
 %       basiert (schliesst die Leiter: xLSTM im Grossen). Architektur ZITIEREN

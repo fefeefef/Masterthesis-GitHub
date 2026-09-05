@@ -280,13 +280,25 @@ maximum-score approximation is necessary.
 \end{equation}
 initialized at $\alpha_{115} = \alphamis$ with $\gamma = 0.005$.
 
-The best learning rate $\gamma$ is heavily data-dependent. \texttt{agaci}
-\parencite{zaffran2022agaci} therefore turns the choice into an online aggregation
-problem over $K$ experts, where every expert runs ACI with a different $\gamma$ from the
-paper's grid. This method aggregates the predictive bounds and not the thresholds, so it is the one exception from our standard score interface. The aggregation uses the BOA algorithm \parencite{wintenberger2017boa} with adaptive learning rates. The lower and upper bounds are aggregated separately, with a symmetric-tail reading of the pinball loss at $\alphamis/2$ for the lower bound and at $1-\alphamis/2$ for
-the upper bound, even though our underlying score is one-sided. Since the
-aggregation happens online, the $\gamma$-sensitivity is handled by the
-algorithm and we do not have to tune it by hand.
+% SCHREIBE (5-7 Sätze).
+%  - Ausgangsproblem: die beste Lernrate gamma ist stark datenabhängig.
+%  - \texttt{agaci} \parencite{zaffran2022agaci} macht daraus ein
+%    Online-Aggregationsproblem über K Experten; jeder Experte fährt ACI
+%    mit einem anderen gamma aus dem Gitter des Papers.
+%  - PFLICHT: diese Methode aggregiert die PROGNOSEGRENZEN, nicht die
+%    Thresholds. Sie ist damit die einzige Ausnahme von eurem
+%    Standard-Score-Interface. Das muss dastehen, sonst wirkt eure
+%    Schnittstellenbeschreibung inkonsistent.
+%  - Aggregation über BOA \parencite{wintenberger2017boa} mit adaptiven
+%    Lernraten.
+%  - Untere und obere Grenze werden getrennt aggregiert, mit
+%    symmetrischer Tail-Lesart des Pinball-Loss bei alpha/2 bzw.
+%    1-alpha/2 — obwohl euer Score einseitig ist. Auch das ist eine
+%    bewusste Abweichung.
+%  - Fazit: weil die Aggregation online passiert, erledigt der
+%    Algorithmus die gamma-Sensitivität; ihr müsst nichts von Hand tunen.
+
+The best learning rate $\gamma$ is heavily time dependant. \texttt{agaci} \parencite{zaffran2022agaci} turns this into an aggregationproblem over k experts where every expert uses a different $\gamma$ from the papers grid. This method aggregates the forcasted bounds not the thresholds and therefore is an exception from our standard score interface. The aggregation worts via BOA \parencite{wintenberger2017boa} with adaptive learning rate. Lower and upper bounds are aggregated independantly with symmetric tail reading of the pinball loss at $\frac{\alpha}{2}$ or $1-\frac{\alpha}{2}$ eventhough our scores are one sided. Since the aggregations happens online the algorithmus handles the $\gamma$ sensitivity.
 
 For $K = 11$ experts with learning rates $\gamma_1, \dots, \gamma_K$ from the
 paper's grid, each expert $k$ runs \cref{eq:m-aci} with its own $\alpha_t^{(k)}$
@@ -349,20 +361,33 @@ with $\sigma = 1/8$ and $\eta = 2.72$; the experts' $\alpha_t^{(k)}$ follow
 \subsubsection{Group (d): forecasting the score itself}
 \label{sec:conformal:spci}
 
-\texttt{spci} \parencite{xu2023spci} turns the usual conformal logic around.
-Instead of taking an empirical quantile of past scores, it predicts the
-conditional $(1-\alphamis)$-quantile of the next score from the most recent
-$w=12$ scores. We estimate this with a Quantile Random Forest
-\parencite{meinshausen2006qrf}, implemented through the leaf weights of a
-standard random forest (100 trees, minimum leaf size 2, seed 42). The method
-directly exploits the temporal dependence and volatility clustering of the
-scores, so it does exactly what the exchangeability assumption rules out. If
-the calibration pool has fewer than $w+10=22$ scores (this mainly concerns the 24-month runs) the method falls back to a standard empirical pool
-quantile. The original paper also optimizes an asymmetry
-parameter $\beta$ to find the tightest interval endpoints. This degree of
-freedom does not exist for our one-sided CQR score, since the interval is
-fully determined by the $(1-\alphamis)$-quantile alone, so we omit the
-$\beta$-search.
+% SCHREIBE (6-8 Sätze).
+%  - Der Grundgedanke: statt ein empirisches Quantil vergangener Scores
+%    zu nehmen, PROGNOSTIZIERT spci \parencite{xu2023spci} das bedingte
+%    (1-alpha)-Quantil des nächsten Scores aus den letzten w=12 Scores.
+%    -> Original: "reverses the usual conformal logic" bzw. "turns ...
+%       around" (Tell). Beschreib schlicht den Unterschied: die anderen
+%       Methoden schauen zurück, diese schätzt nach vorn.
+%  - Schätzer: Quantile Random Forest \parencite{meinshausen2006qrf},
+%    umgesetzt über die Blattgewichte eines Standard-Random-Forest
+%    (100 Bäume, minimale Blattgröße 2, Seed 42).
+%  - PFLICHT: die Methode nutzt gezielt die zeitliche Abhängigkeit und
+%    das Volatilitätsclustering der Scores — also genau das, was die
+%    Austauschbarkeitsannahme ausschließt.
+%    -> Original: "conceptual opposite of the exchangeability
+%       assumption" (Tell). Sag es als Beobachtung: deshalb passt sie zu
+%       Monatsdaten mit Regimewechseln.
+%  - Fallback: weniger als w+10 = 22 Scores im Pool (betrifft vor allem
+%    die 24-Monats-Läufe) -> zurück auf das empirische Pool-Quantil.
+%  - Abweichung: das Originalpaper optimiert zusätzlich einen
+%    Asymmetrieparameter beta für die engsten Intervallgrenzen. Bei
+%    eurem einseitigen CQR-Score existiert dieser Freiheitsgrad nicht,
+%    das Intervall ist durch das (1-alpha)-Quantil allein bestimmt.
+%    Deshalb entfällt die beta-Suche.
+%    -> Damit ist Item 6 der Implementation notes (3.11) inhaltlich
+%       erledigt; schreib beide in einem Zug.
+
+Instead of taking an empiric quantile from past scores spci \parencite{xu2023spci} predicts the dependant (1-alpha)-Quantile of the next score from the last w=12 scores. Quantile Random Forest \parencite{meinshausen2006qrf} implemented via the leafweights of a standard random forest (100 trees, min leafsize 2, Seed 42). The method uses the time dependance and volatility clustering of the scores so exactly what the exchangability assumtion excludes. If there are less than w+10 = 22 scores in the pool (applys in the 24 month runs) the method falls abck to the standard epirical pool quantiles. The original paper optimzes an asymmetrieparameter $\beta$ for the narrowest intervall bounds. In our onesided CQR score this degree of freedom doesent exist so the itnervall is determined only by the (1-alpha)-Quantile. Therefore we dont ahve to look for a $\beta$
 
 With $\mathbf{x}_i = (E_{i}, \dots, E_{i+w-1})$ and target $E_{i+w}$ over the
 pool, let $\hat F(\cdot \mid \mathbf{x})$ be the QRF-implied conditional
@@ -377,24 +402,40 @@ distribution of the next score. Then
 \subsubsection{Group (e): online control and online convex optimization}
 \label{sec:conformal:online}
 
-The methods in this last category keep no historical pool of scores. The
-threshold $Q_t$ is an internal state instead, initialized at zero and updated
-every month from the instantaneous coverage error. These methods give no
-finite-sample exchangeability guarantee, only long-run
-asymptotic coverage or regret bounds. All free step sizes are scaled
-in units of $\bar{S}$.
+% SCHREIBE (4-5 Sätze).
+%  - Was diese letzte Gruppe unterscheidet: sie hält KEINEN historischen
+%    Score-Pool.
+%  - Stattdessen ist der Threshold Q_t ein interner Zustand, bei null
+%    initialisiert, monatlich aus dem momentanen Coverage-Fehler
+%    aktualisiert.
+%  - PFLICHT: diese Methoden geben KEINE finite-sample-Garantie unter
+%    Austauschbarkeit, nur asymptotische Langfrist-Coverage oder
+%    Regret-Schranken. Das ist der eigentliche Unterschied zu den
+%    Pool-Methoden und gehört klar gesagt.
+%  - Alle freien Schrittweiten sind in Einheiten von S-quer skaliert
+%    (\cref{eq:burnin-scale}).
 
-The PID family comes from control theory \parencite{angelopoulos2023pid}.
-The coverage error ($\mathrm{err}_t - \alphamis$) is the feedback
-signal. The proportional (P) term is a simple quantile tracking step with gain
-$\eta = 0.1\,\bar{S}$. The integral (I) term uses a saturating tangent
-integrator ($C_{\text{sat}} = 5$) against sustained miscoverage; it drains
-the accumulated error. A note on naming: our \texttt{pid} is the PI controller
-from the original paper, without the derivative term. \texttt{pid\_local}
-replaces the global integrator with a rolling 12-month window, so old errors
-are forgotten faster and the method stays robust when the regime changes.
-\texttt{pid\_tan} adds the derivative (D) term back in via an autoregressive
-scorecaster.
+This last group is different in the way that it doesent need a historical score pool, insted the threshold $Q_t$ is initialiced at zero and and monthly updated based on the current coverage error. These methods give no finite sample guarantee und the exchangability assumtion, only asymtotical long term coverage or rregret bounds. All step sizes are scaled in units of $\bar{S}$ (\cref{eq:burnin-scale}).
+
+% SCHREIBE (6-8 Sätze).
+%  - Herkunft: Regelungstechnik \parencite{angelopoulos2023pid}.
+%  - Das Rückkopplungssignal ist der Coverage-Fehler (err_t - alpha).
+%  - P-Term: einfacher Quantil-Tracking-Schritt mit Verstärkung
+%    eta = 0.1 * S-quer.
+%  - I-Term: saturierender Tangens-Integrator (C_sat = 5) gegen
+%    anhaltende Miscoverage; er baut den akkumulierten Fehler ab.
+%  - PFLICHT (Namenshinweis, sonst missversteht der Leser die Tabelle):
+%    euer \texttt{pid} ist der PI-Regler des Originalpapers, OHNE
+%    D-Term.
+%  - \texttt{pid\_local}: globaler Integrator wird durch ein rollierendes
+%    12-Monats-Fenster ersetzt -> alte Fehler werden schneller vergessen,
+%    robuster bei Regimewechseln.
+%  - \texttt{pid\_tan}: bringt den D-Term über einen autoregressiven
+%    Scorecaster zurück.
+%  - Querverweis auf die Implementation notes, wo die Abweichung bei
+%    pid_tan steht (die hast du schon geschrieben).
+
+The PID family comes from control theory \parencite{angelopoulos2023pid}. The feedbacksignal is the coverage error $(err_t - alpha)$. The p term is a simplke quantile step tracker with a scaler $\eta = 0.1 * \bar{S}$. The i term is a saturated tangens integrator $(C_{sat} = 5)$ to work agaoinst ongoing miss coverage. He dimishises the accumulated error. Our \texttt{pid} is the PI controler from the original paper without D term. In \texttt{pid\_local} the global itnegrator is substituted by a rolling 12 month window which leads to faster forgetting of previous errors and therefore possibly more robistnes against regime change. ( schreibe den querverweis hier)
 
 \begin{equation}
   \text{PID family:}\quad
@@ -426,11 +467,19 @@ autoregressive coefficient $\varphi \in [-0.95, 0.95]$ contributes
   \label{eq:m-pid-d}
 \end{equation}
 
-\texttt{sfogd} \parencite{bhatnagar2023sfogd} runs scale-free online gradient
-descent directly on the pinball subgradient. Scale-free means that the update
-step is normalized by the square root of the accumulated squared gradients,
-so there is no learning rate to calibrate, only a base radius $D = \bar{S}$.
-The corrective steps are large at the beginning and shrink automatically over time.
+% SCHREIBE (3-4 Sätze).
+%  - \texttt{sfogd} \parencite{bhatnagar2023sfogd} läuft als scale-free
+%    Online-Gradientenabstieg direkt auf dem Pinball-Subgradienten.
+%  - Was "scale-free" heißt: der Update-Schritt wird durch die Wurzel der
+%    akkumulierten quadrierten Gradienten normiert.
+%  - FOLGE, und das ist der Verkaufspunkt der Methode: es gibt keine
+%    Lernrate zu kalibrieren, nur einen Basisradius D = S-quer.
+%  - Die Korrekturschritte sind anfangs groß und schrumpfen automatisch.
+%    -> Original: "This gives large corrective steps early on that get
+%       smaller automatically over time." (Tell aus deiner alten Liste).
+%       Kürzer und in deinem Ton sagen.
+
+\texttt{sfogd} \parencite{bhatnagar2023sfogd} is a scale free online gradient decent on the pinball sub gradient. scale free here meant that the update step is normed by the root of the accumulated squared gradient. That makes the search for the optimal learning rate obsolete, we only need a base radius D = S-quer. The correction step are big in the beginning an shripk over time automatically.
 
 \begin{equation}
   \text{\texttt{sfogd}:}\quad
@@ -472,13 +521,22 @@ $g_t = \big(\rho_\tau(E_t, Q_t) - \rho_\tau(E_t, Q_t^{(e)})\big)
         \big/ \big(\sqrt{3}\,\bar S \max\{\alphamis, 1-\alphamis\}\big)$
 via $z_e \leftarrow z_e + g_t$ and $\mathit{wz}_e \leftarrow \mathit{wz}_e + g_t w_e$.
 
-\texttt{decay\_ocp} \parencite{angelopoulos2024decay} uses the same tracking
-step as \texttt{sfogd}, but with a deterministically decaying step size.
-With exponent $-1/2-\epsilon$ ($\epsilon=0.05$) the step sequence is
-square-summable, so the tracker settles on a stable threshold instead of
-oscillating around the target. We include it as the counterpart to the
-reactive methods like ACI or PID: it trades adaptivity for long-term
-stability.
+% SCHREIBE (3-4 Sätze).
+%  - \texttt{decay\_ocp} \parencite{angelopoulos2024decay} nutzt denselben
+%    Tracking-Schritt wie sfogd, aber mit deterministisch abfallender
+%    Schrittweite.
+%  - Exponent -1/2 - epsilon (epsilon = 0.05) -> die Schrittfolge ist
+%    quadratsummierbar.
+%  - FOLGE: der Tracker läuft auf einen stabilen Threshold zu, statt um
+%    das Ziel zu oszillieren.
+%  - WOZU im Vergleich: als Gegenstück zu den reaktiven Methoden wie ACI
+%    oder PID. Es tauscht Adaptivität gegen Langfriststabilität.
+%    -> Original: "a deliberate counterweight to reactive methods ...
+%       less adaptivity, in exchange for long-term stability" (Tell).
+%       Sag es als deine Auswahlbegründung: du wolltest beide Enden des
+%       Spektrums im Feld haben.
+
+\texttt{decay\_ocp} \parencite{angelopoulos2024decay} uses the same tracking step as sfogd but with deterministic shriking step size. The exponent is $-1/2 - \epsilon\ (\epsilon = 0.05)$ and therefore the series is square summable. This lets the tracker converge towars a stable threshold instead of oszillating around the target. In oposition to the reactive methods like aci or pid this method trades adaptivity against longrun stability
 
 \begin{equation}
   \text{\texttt{decay\_ocp}:}\quad
@@ -557,23 +615,32 @@ and \texttt{dtaci} determine the grid online. This is the best approach for comp
 \subsection{Derived prediction streams}
 \label{sec:conformal:derived}
 %------------------------------------------------------------------------
+% SCHREIBE (2-3 Sätze).
+%  - Zwei zusätzliche Prognoseströme, rein rechnerisch aus den
+%    gespeicherten Modellartefakten gebaut — ohne zusätzliches Training.
+%  - WOZU: sie sind die Kontrollgruppen für RQ1 und RQ2.
+%  - Sie durchlaufen dieselben 14 Kalibrierungsmethoden wie jeder andere
+%    Strom (Gleichbehandlung).
 
-We construct two additional prediction streams computationally from the
-saved model artifacts, without any extra training. They serve as the
-control groups for Research Questions (1, 2) and go through the same 14
-calibration methods as every other stream.
+We construct two additional prediction streames from the saved model artifacts, without training. These serve as a basis for reasearch question one and two. The go though the same 14 calibration methods as every other stream.
 
-The constant-width twin takes the model's median point forecast and
-adds or subtracts the empirical 10th and 90th percentiles of the in-sample
-median residuals of that refit block. So it has exactly the same point
-forecast as its parent model but a constant interval width over the whole
-refit block. This is our control group for Research Question 2: the point
-forecasts are identical, so any performance difference must come from the
-dynamic, conditional uncertainty estimate. As noted in \cref{sec:models}, this only
-works for the trainable machine learning models (\texttt{xlstm}, \texttt{lstm},
-\texttt{lgbm}), since the zero-shot foundation models have no in-sample residuals.
-Like every other stream, the twins' outputs go through the standard monotonic
-rearrangement and validity flagging.
+% SCHREIBE (5-7 Sätze).
+%  - Konstruktion: der Twin nimmt die Median-Punktprognose des Modells und
+%    addiert/subtrahiert die empirischen 10.- und 90.-Perzentile der
+%    In-Sample-Median-Residuen desselben Refit-Blocks.
+%  - Ergebnis: exakt dieselbe Punktprognose wie das Elternmodell, aber
+%    konstante Intervallbreite über den ganzen Refit-Block.
+%  - PFLICHT, das ist der Zweck: Kontrollgruppe für RQ2. Weil die
+%    Punktprognosen identisch sind, MUSS jeder Leistungsunterschied aus
+%    der dynamischen, bedingten Unsicherheitsschätzung kommen. Ohne
+%    diesen Satz ist der Twin nur eine Variante.
+%  - Einschränkung: funktioniert nur für die trainierbaren Modelle
+%    (xlstm, lstm, lgbm), weil die Zero-Shot-Modelle keine
+%    In-Sample-Residuen haben (\cref{sec:models}).
+%  - Wie jeder andere Strom durchlaufen die Twins die monotone
+%    Rearrangierung und das Validity-Flagging.
+
+The cosntant width twin takes the median point forecast of the model and adds/substacts the empirical 10/90 percentileof the in sample median residuals of the same refit block. This gives us exactly the same pointforecast as the parentmodel but constant intervall width over the whole refit block. This is done to build a controllgroup for resear question 2, since the pointforecasts are identical the difference in performance must stem from dynamic uncertainty quantification. This is only done for the trainable models (xlstm, lstm, lgbm) since zero shot models dont have any in sampe residuals (\cref{sec:models}). As all other streams the constant width twins go through the monotone rearangement and validity flagging. 
 
 For a trainable model $m \in \{\texttt{xlstm}, \texttt{lstm}, \texttt{lgbm}\}$
 with in-sample median residuals $\{\varepsilon_j\}$ of the refit block ending
@@ -587,19 +654,25 @@ at cutoff $C$, the constant-width twin $m\_\texttt{const}$ emits
 where $\hat\varepsilon^{(\tau)}_C$ is the empirical $\tau$-quantile of the
 block's in-sample median residuals.
 
-The Global+Individual (G+I) stream shifts the quantiles of the global G model
-in parallel by the rolling median of the country's last 36 realized
-out-of-sample median residuals. It is a naive intercept shift without any extra
-fine-tuning, and by that the cheapest possible country-specific adaptation for
-Research Question 1. Comparing the globally fine-tuned GF regime with G+I
-shows whether fine-tuning actually captures cross-country dynamics or
-just performs a crude level correction. To avoid leakage, the shift applied in
-month $t$ only uses residuals from before $t$. The rolling window grows from 1
-to 36 during the burn-in and stays fully populated at 36 from the first test month
-on. We record the in-sample and out-of-sample median residuals per refit block
-to check whether the bias seen during training actually survives
-out-of-sample. This stream only exists for trainable models with a global
-regime.
+% SCHREIBE (7-9 Sätze).
+%  - Konstruktion: der G+I-Strom verschiebt die Quantile des globalen
+%    G-Modells parallel um den rollierenden Median der letzten 36
+%    realisierten Out-of-Sample-Median-Residuen des Landes.
+%  - Es ist ein naiver Achsenabschnitts-Shift, ohne Fine-Tuning — also
+%    die billigste denkbare länderspezifische Anpassung.
+%  - PFLICHT, der Zweck für RQ1: der Vergleich GF gegen G+I zeigt, ob
+%    Fine-Tuning tatsächlich länderübergreifende Dynamik lernt oder nur
+%    eine grobe Niveaukorrektur leistet. Das ist die eigentliche Frage.
+%  - Leakage-Schutz: der in Monat t angewendete Shift nutzt nur Residuen
+%    von VOR t.
+%  - Das rollierende Fenster wächst während des Burn-in von 1 auf 36 und
+%    ist ab dem ersten Testmonat voll besetzt.
+%  - Diagnostik: In-Sample- und Out-of-Sample-Median-Residuen werden je
+%    Refit-Block protokolliert, um zu prüfen, ob der im Training
+%    sichtbare Bias out-of-sample überlebt.
+%  - Geltungsbereich: nur für trainierbare Modelle mit globalem Regime.
+
+The G+I stream moves the quantiles of the global G Model parallel by the rolling median of the last 36 realised out of sample median residuals of the country. This is a naive shift of the axis sction without fine tuning, so the cheapest possible country specific adaption. This is done to give clear contrast for research question 1 where we want to find out weither fine tuning actually learns dynamics across countrys or only corrects for a nivau. The in month t applyed shift only usees residuals before t. The rolling window grows durcing the burnin phase from 1 to 36 and is fll strating from the first test month. In sample and out of sample median residuals are saved per refit block to test weither the bias in training is measurable out of sample. All this is done only for the trainable models wit global regime. 
 
 \begin{equation}
   \hat q^{\,\text{G+I}}_{\tau}(t) \;=\; \hat q^{\,\text{G}}_{\tau}(t)
@@ -778,10 +851,17 @@ All 14 implementations follow the paper they originate from. Non the less the mo
   \texttt{mondrian} are a design decision, not a theoretical requirement.
 \end{enumerate}
 
-The conformal pipeline ends in a single table, \texttt{calibrated\_all.parquet}.
-It logs country, month, model, regime, seed, CP method, pool mode, target
-realization, level anchor ($y_{t-1}$), point forecast, and both raw and
-calibrated quantiles for every stream. This table is the only input to the
-evaluation chapter (\cref{sec:evaluation}), so calibration and inference stay
-cleanly separated.
+% SCHREIBE (3-4 Sätze).
+%  - Die Pipeline endet in einer einzigen Tabelle,
+%    \texttt{calibrated\_all.parquet}.
+%    -> Original war "ends in a single tidy table" (Tell aus deiner alten
+%       Liste). "tidy" weg, es sagt nichts.
+%  - Was drinsteht: Land, Monat, Modell, Regime, Seed, CP-Methode,
+%    Pool-Modus, Realisierung des Targets, Level-Anker y_{t-1},
+%    Punktprognose sowie rohe UND kalibrierte Quantile — je Strom.
+%  - PFLICHT: diese Tabelle ist der einzige Input für das
+%    Evaluationskapitel (\cref{sec:evaluation}). Deshalb bleiben
+%    Kalibrierung und Inferenz sauber getrennt. Das ist eine
+%    Reproduzierbarkeitsaussage, sag sie als solche.
 
+The pipeline ends in a single table, \texttt{calibrated\_all.parquet}. It contains country, month, model, regime, seed, cp method, pooling mode, realized target, level anchor $y_{t-1}$, point forecast aswell as raw and calibrated quantiles per stream. This table is the sole input for the evaluation chapter (\cref{sec:evaluation}), therefore calibrationa nd evaluation stay clearly sperated which makes our results reproducable.
